@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>รายงานสถานะจัดส่งข้อสอบ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+        body { background-color: #f3f4f6; font-family: 'Sarabun', sans-serif; }
+    </style>
+</head>
+<body class="p-4">
+    <div class="max-w-md mx-auto bg-white rounded-xl shadow-md p-6">
+        <div class="text-center mb-6">
+            <h1 class="text-2xl font-bold text-gray-800">ระบบติดตามข้อสอบ</h1>
+            <p class="text-sm text-gray-500" id="profileName">กำลังโหลดข้อมูลผู้ใช้...</p>
+        </div>
+
+        <form id="trackingForm" class="space-y-4">
+            <!-- เลือกรถ -->
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">หมายเลขรถ</label>
+                <select id="carNo" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500" required>
+                    <option value="">-- เลือกรถของคุณ --</option>
+                    <option value="รถคันที่ 1">รถคันที่ 1</option>
+                    <option value="รถคันที่ 2">รถคันที่ 2</option>
+                    <option value="รถคันที่ 3">รถคันที่ 3</option>
+                    <!-- แอดมินสามารถเพิ่มคันที่ 4, 5,... ได้ที่นี่ -->
+                </select>
+            </div>
+
+            <!-- เลือกรอบ -->
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">รอบการเดินทาง</label>
+                <select id="tripPhase" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500" required>
+                    <option value="ขาไป (ส่งข้อสอบ)">📤 ขาไป (ส่งข้อสอบ)</option>
+                    <option value="ขากลับ (รับกลับ)">📥 ขากลับ (รับกลับ)</option>
+                </select>
+            </div>
+
+            <!-- สถานที่เป้าหมาย -->
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">สถานที่เป้าหมาย (จุดส่ง/จุดรับ)</label>
+                <input type="text" id="targetPlace" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500" placeholder="เช่น สพป.น่าน เขต 1" required>
+            </div>
+
+            <!-- สถานะ -->
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">สถานะปัจจุบัน</label>
+                <select id="status" class="w-full p-3 border rounded-lg bg-green-50 focus:ring-2 focus:ring-green-500" required>
+                    <option value="ออกจากจุดเริ่มต้น">ออกจากจุดเริ่มต้น</option>
+                    <option value="ระหว่างทาง">ระหว่างทาง</option>
+                    <option value="ถึงจุดหมาย">✅ ถึงจุดหมายเรียบร้อย</option>
+                </select>
+            </div>
+
+            <!-- รายงานปัญหา -->
+            <div>
+                <label class="block text-sm font-bold text-red-600 mb-1">รายงานปัญหา/เหตุขัดข้อง (ถ้ามี)</label>
+                <textarea id="problem" rows="2" class="w-full p-3 border rounded-lg border-red-300 focus:ring-2 focus:ring-red-500" placeholder="เช่น ฝนตกหนัก, รถเสีย... (ปล่อยว่างได้ถ้าปกติ)"></textarea>
+            </div>
+
+            <button type="submit" id="submitBtn" class="w-full bg-green-600 text-white font-bold py-4 rounded-lg shadow-lg hover:bg-green-700 transition duration-200">
+                ส่งข้อมูลเข้าระบบ
+            </button>
+        </form>
+    </div>
+
+    <!-- ส่วนของการตั้งค่า API และ LIFF (ต้องนำค่ามาใส่ทีหลัง) -->
+    <script>
+        // 1. นำ Web App URL จาก Google Apps Script มาใส่ในเครื่องหมายคำพูดด้านล่าง
+        const WEB_APP_URL = "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL"; 
+        
+        // 2. นำ LIFF ID จาก LINE Developers มาใส่
+        const LIFF_ID = "YOUR_LIFF_ID"; 
+
+        let displayName = "ไม่ทราบชื่อ";
+
+        // เริ่มต้นระบบ LIFF
+        async function initializeLiff() {
+            try {
+                if (LIFF_ID !== "YOUR_LIFF_ID") {
+                    await liff.init({ liffId: LIFF_ID });
+                    if (liff.isLoggedIn()) {
+                        const profile = await liff.getProfile();
+                        displayName = profile.displayName;
+                        document.getElementById('profileName').textContent = `ผู้รายงาน: ${displayName}`;
+                    } else {
+                        liff.login();
+                    }
+                } else {
+                    document.getElementById('profileName').textContent = "โหมดทดสอบ (ยังไม่ได้เชื่อม LIFF)";
+                }
+            } catch (err) {
+                console.error("LIFF Init Error:", err);
+            }
+        }
+        
+        initializeLiff();
+
+        // เมื่อกดปุ่มส่งข้อมูล
+        document.getElementById('trackingForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.textContent = "กำลังดึงพิกัดและส่งข้อมูล...";
+            btn.disabled = true;
+            btn.classList.replace('bg-green-600', 'bg-gray-400');
+
+            let lat = "";
+            let lng = "";
+
+            // พยายามดึงพิกัด GPS (ถ้าไม่ได้ก็ข้ามไป ไม่ให้ระบบค้าง)
+            try {
+                const position = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 7000 });
+                });
+                lat = position.coords.latitude;
+                lng = position.coords.longitude;
+            } catch (error) {
+                console.log("ไม่สามารถดึง GPS ได้:", error.message);
+            }
+
+            // เตรียมข้อมูลส่งให้ Google Sheets
+            const payload = {
+                displayName: displayName,
+                carNo: document.getElementById('carNo').value,
+                tripPhase: document.getElementById('tripPhase').value,
+                targetPlace: document.getElementById('targetPlace').value,
+                status: document.getElementById('status').value,
+                problem: document.getElementById('problem').value,
+                lat: lat,
+                lng: lng
+            };
+
+            // ส่งข้อมูล
+            try {
+                const response = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                
+                alert('✅ ส่งข้อมูลสำเร็จเรียบร้อย!');
+                if (liff.isInClient()) {
+                    liff.closeWindow(); // ปิดหน้าต่างกลับไปหน้าแชทอัตโนมัติ
+                } else {
+                    document.getElementById('trackingForm').reset();
+                    btn.textContent = "ส่งข้อมูลเข้าระบบ";
+                    btn.disabled = false;
+                    btn.classList.replace('bg-gray-400', 'bg-green-600');
+                }
+            } catch (error) {
+                alert('❌ เกิดข้อผิดพลาดในการส่งข้อมูล: ' + error.message);
+                btn.textContent = "ลองส่งข้อมูลอีกครั้ง";
+                btn.disabled = false;
+                btn.classList.replace('bg-gray-400', 'bg-green-600');
+            }
+        });
+    </script>
+</body>
+</html>

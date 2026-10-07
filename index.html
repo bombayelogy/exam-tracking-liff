@@ -11,8 +11,11 @@
         .container { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
         h2 { text-align: center; color: #1f2937; }
         label { font-weight: bold; margin-top: 15px; display: block; color: #4b5563; font-size: 14px; }
-        select, input, button { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 16px; box-sizing: border-box; }
-        button { background-color: #00B900; color: white; border: none; font-weight: bold; margin-top: 25px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        select, input[type="text"], button { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 16px; box-sizing: border-box; }
+        .checkbox-container { background: #fff; border: 1px solid #cbd5e1; padding: 10px; border-radius: 8px; margin-top: 5px; font-size: 16px; max-height: 200px; overflow-y: auto; }
+        .checkbox-item { display: flex; align-items: center; margin-bottom: 8px; font-weight: normal; }
+        .checkbox-item input { width: 20px; height: 20px; margin-right: 10px; margin-top: 0; }
+        button { background-color: #00B900; color: white; border: none; font-weight: bold; margin-top: 25px; cursor: pointer; }
         button:disabled { background-color: #9ca3af; cursor: not-allowed; }
         .loading { text-align: center; color: #3b82f6; font-size: 16px; margin: 20px 0; font-weight: bold; }
     </style>
@@ -20,11 +23,8 @@
 <body>
     <div class="container">
         <h2>📍 รายงานสถานะจัดส่ง</h2>
-        
-        <!-- ข้อความโหลดข้อมูล จะแสดงตอนเปิดแอป -->
         <div id="loadingMessage" class="loading">⏳ กำลังโหลดข้อมูลระบบ...</div>
         
-        <!-- ฟอร์มจะซ่อนไว้ก่อนจนกว่าจะโหลดข้อมูลเสร็จ -->
         <form id="trackerForm" style="display: none;">
             <label>หมายเลขรถ / สายทาง</label>
             <select id="carNo" required>
@@ -37,10 +37,10 @@
                 <option value="ขากลับ (รับกระดาษคำตอบ)">ขากลับ (รับกระดาษคำตอบ)</option>
             </select>
 
-            <label>สถานที่เป้าหมาย</label>
-            <select id="targetPlace" required disabled>
-                <option value="">-- กรุณาเลือกรถก่อน --</option>
-            </select>
+            <label>สถานที่เป้าหมาย (เลือกได้หลายที่)</label>
+            <div id="targetPlaceContainer" class="checkbox-container">
+                <span style="color: #9ca3af;">-- กรุณาเลือกรถก่อน --</span>
+            </div>
 
             <label>สถานะปัจจุบัน</label>
             <select id="status" required>
@@ -55,151 +55,13 @@
     </div>
 
     <script>
-        // ⚠️ สำคัญมาก: ใส่ URL ของ Google Apps Script ที่ได้จากการ Deploy ใหม่ล่าสุด
+        // ใส่ลิงก์ Web App ของคุณเรียบร้อยแล้ว
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw3trBi1uBeDMCWufXtEvENbvCO07HtQL4FkGIUJD0J2dMQnJeiFydZB_BruMBPQnBvoQ/exec"; 
         
-        // LIFF ID ของคุณ (ใส่ให้แล้ว)
         const LIFF_ID = "2011909530-beJI0GnK"; 
-        
-        let masterData = {}; // ตัวแปรเก็บคู่ รถ-สถานที่
+        let masterData = {};
         let displayName = "Unknown";
 
-        // 1. เริ่มต้นการทำงานของแอป
         async function main() {
             await liff.init({ liffId: LIFF_ID });
-            if (liff.isLoggedIn()) {
-                const profile = await liff.getProfile();
-                displayName = profile.displayName;
-                fetchMasterData(); // ไปดึงข้อมูลจาก Google Sheets
-            } else {
-                liff.login();
-            }
-        }
-        main();
-
-        // 2. ดึงข้อมูล Master Data จาก Apps Script (doGet)
-        function fetchMasterData() {
-            fetch(WEB_APP_URL)
-                .then(response => response.json())
-                .then(data => {
-                    masterData = data.cars; 
-                    
-                    // สร้างตัวเลือกรถ
-                    const carSelect = document.getElementById("carNo");
-                    for (let car in masterData) {
-                        let option = document.createElement("option");
-                        option.value = car;
-                        option.text = car;
-                        carSelect.appendChild(option);
-                    }
-
-                    // สร้างตัวเลือกสถานะ
-                    const statusSelect = document.getElementById("status");
-                    data.statuses.forEach(status => {
-                        if(status) {
-                            let option = document.createElement("option");
-                            option.value = status;
-                            option.text = status;
-                            statusSelect.appendChild(option);
-                        }
-                    });
-
-                    // ซ่อนสถานะกำลังโหลด และแสดงฟอร์ม
-                    document.getElementById("loadingMessage").style.display = "none";
-                    document.getElementById("trackerForm").style.display = "block";
-                })
-                .catch(error => {
-                    console.error("Error:", error);
-                    document.getElementById("loadingMessage").innerText = "❌ โหลดข้อมูลล้มเหลว กรุณาปิดแล้วเปิดใหม่";
-                    document.getElementById("loadingMessage").style.color = "red";
-                });
-        }
-
-        // 3. กรองสถานที่เป้าหมาย เมื่อมีการเลือกรถ
-        document.getElementById("carNo").addEventListener("change", function() {
-            const selectedCar = this.value;
-            const placeSelect = document.getElementById("targetPlace");
-            
-            placeSelect.innerHTML = '<option value="">-- เลือกสถานที่เป้าหมาย --</option>'; // เคลียร์ของเก่า
-            
-            if (selectedCar && masterData[selectedCar]) {
-                masterData[selectedCar].forEach(place => {
-                    let option = document.createElement("option");
-                    option.value = place;
-                    option.text = place;
-                    placeSelect.appendChild(option);
-                });
-                placeSelect.disabled = false; // ปลดล็อกให้กดเลือกได้
-            } else {
-                placeSelect.innerHTML = '<option value="">-- กรุณาเลือกรถก่อน --</option>';
-                placeSelect.disabled = true; // ล็อกไว้ถ้ายังไม่เลือกรถ
-            }
-        });
-
-        // 4. จัดการตอนกดปุ่มส่งข้อมูล (ขอพิกัด + ยิงกลับไปที่ Google Sheets)
-        document.getElementById("trackerForm").addEventListener("submit", function(e) {
-            e.preventDefault();
-            const btn = document.getElementById("submitBtn");
-            btn.disabled = true;
-            btn.innerText = "📍 กำลังค้นหาพิกัด GPS...";
-
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        sendData(position.coords.latitude, position.coords.longitude);
-                    },
-                    (error) => {
-                        Swal.fire("แจ้งเตือน", "แอปต้องการเข้าถึง GPS กรุณาเปิด Location ในมือถือ", "warning");
-                        btn.disabled = false;
-                        btn.innerText = "🚀 ส่งข้อมูลพิกัดและสถานะ";
-                    },
-                    { enableHighAccuracy: true } // บังคับให้หาพิกัดแบบแม่นยำสูง
-                );
-            } else {
-                Swal.fire("ข้อผิดพลาด", "อุปกรณ์ของคุณไม่รองรับ GPS", "error");
-            }
-        });
-
-        // 5. ส่งข้อมูลกลับไปที่ Apps Script (doPost)
-        function sendData(lat, lng) {
-            document.getElementById("submitBtn").innerText = "☁️ กำลังบันทึกข้อมูลลงระบบ...";
-            
-            const payload = {
-                displayName: displayName,
-                carNo: document.getElementById("carNo").value,
-                tripPhase: document.getElementById("tripPhase").value,
-                targetPlace: document.getElementById("targetPlace").value,
-                status: document.getElementById("status").value,
-                problem: document.getElementById("problem").value,
-                lat: lat,
-                lng: lng
-            };
-
-            fetch(WEB_APP_URL, {
-                method: 'POST',
-                body: JSON.stringify(payload)
-            })
-            .then(response => response.json())
-            .then(result => {
-                if(result.status === "success") {
-                    Swal.fire({
-                        title: "สำเร็จ!",
-                        text: "บันทึกข้อมูลการเดินทางเรียบร้อยแล้ว",
-                        icon: "success",
-                        confirmButtonText: "ตกลง"
-                    }).then(() => {
-                        liff.closeWindow(); // ปิดหน้าต่างอัตโนมัติ
-                    });
-                } else {
-                    throw new Error("บันทึกไม่สำเร็จ");
-                }
-            })
-            .catch(error => {
-                Swal.fire("ข้อผิดพลาด", "บันทึกข้อมูลล้มเหลว กรุณาลองใหม่", "error");
-                document.getElementById("submitBtn").disabled = false;
-                document.getElementById("submitBtn").innerText = "🚀 ส่งข้อมูลพิกัดและสถานะ";
-            });
-        }
-    </script>
-</body>
-</html>
+            if (l

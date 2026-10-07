@@ -64,4 +64,110 @@
 
         async function main() {
             await liff.init({ liffId: LIFF_ID });
-            if (l
+            if (liff.isLoggedIn()) {
+                displayName = (await liff.getProfile()).displayName;
+                fetchMasterData();
+            } else {
+                liff.login();
+            }
+        }
+        main();
+
+        function fetchMasterData() {
+            fetch(WEB_APP_URL)
+                .then(r => r.json())
+                .then(data => {
+                    masterData = data.cars; 
+                    const carSelect = document.getElementById("carNo");
+                    for (let car in masterData) {
+                        carSelect.add(new Option(car, car));
+                    }
+                    const statusSelect = document.getElementById("status");
+                    data.statuses.forEach(status => {
+                        if(status) statusSelect.add(new Option(status, status));
+                    });
+                    document.getElementById("loadingMessage").style.display = "none";
+                    document.getElementById("trackerForm").style.display = "block";
+                }).catch(e => {
+                    document.getElementById("loadingMessage").innerText = "❌ โหลดข้อมูลล้มเหลว";
+                    document.getElementById("loadingMessage").style.color = "red";
+                });
+        }
+
+        document.getElementById("carNo").addEventListener("change", function() {
+            const selectedCar = this.value;
+            const container = document.getElementById("targetPlaceContainer");
+            container.innerHTML = ""; 
+            
+            if (selectedCar && masterData[selectedCar]) {
+                masterData[selectedCar].forEach(place => {
+                    let label = document.createElement("label");
+                    label.className = "checkbox-item";
+                    label.innerHTML = `<input type="checkbox" name="targetPlace" value="${place}"> ${place}`;
+                    container.appendChild(label);
+                });
+            } else {
+                container.innerHTML = '<span style="color: #9ca3af;">-- กรุณาเลือกรถก่อน --</span>';
+            }
+        });
+
+        document.getElementById("trackerForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            const btn = document.getElementById("submitBtn");
+            
+            let selectedPlaces = [];
+            document.querySelectorAll('input[name="targetPlace"]:checked').forEach(cb => {
+                selectedPlaces.push(cb.value);
+            });
+
+            if(selectedPlaces.length === 0) {
+                Swal.fire("แจ้งเตือน", "กรุณาติ๊กเลือกสถานที่เป้าหมายอย่างน้อย 1 แห่ง", "warning");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "📍 กำลังค้นหาพิกัด GPS...";
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => sendData(position.coords.latitude, position.coords.longitude, selectedPlaces),
+                    (error) => {
+                        Swal.fire("แจ้งเตือน", "กรุณาเปิด Location ในมือถือ", "warning");
+                        btn.disabled = false;
+                        btn.innerText = "🚀 ส่งข้อมูลพิกัดและสถานะ";
+                    },
+                    { enableHighAccuracy: true }
+                );
+            }
+        });
+
+        function sendData(lat, lng, selectedPlaces) {
+            document.getElementById("submitBtn").innerText = "☁️ กำลังบันทึกข้อมูลลงระบบ...";
+            
+            const payload = {
+                displayName: displayName,
+                carNo: document.getElementById("carNo").value,
+                tripPhase: document.getElementById("tripPhase").value,
+                targetPlaces: selectedPlaces,
+                status: document.getElementById("status").value,
+                problem: document.getElementById("problem").value,
+                lat: lat,
+                lng: lng
+            };
+
+            fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) })
+            .then(r => r.json())
+            .then(result => {
+                if(result.status === "success") {
+                    Swal.fire("สำเร็จ!", "บันทึกข้อมูลเรียบร้อย", "success").then(() => liff.closeWindow());
+                } else throw new Error();
+            })
+            .catch(() => {
+                Swal.fire("ข้อผิดพลาด", "บันทึกข้อมูลล้มเหลว", "error");
+                document.getElementById("submitBtn").disabled = false;
+                document.getElementById("submitBtn").innerText = "🚀 ส่งข้อมูลพิกัดและสถานะ";
+            });
+        }
+    </script>
+</body>
+</html>

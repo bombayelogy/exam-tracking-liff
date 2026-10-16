@@ -1,173 +1,574 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบติดตามการจัดส่งข้อสอบ</title>
-    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <style>
-        body { font-family: 'Sarabun', sans-serif; padding: 20px; background-color: #f4f6f9; }
-        .container { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: #1f2937; }
-        label { font-weight: bold; margin-top: 15px; display: block; color: #4b5563; font-size: 14px; }
-        select, input[type="text"], button { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 16px; box-sizing: border-box; }
-        .checkbox-container { background: #fff; border: 1px solid #cbd5e1; padding: 10px; border-radius: 8px; margin-top: 5px; font-size: 16px; max-height: 200px; overflow-y: auto; }
-        .checkbox-item { display: flex; align-items: center; margin-bottom: 8px; font-weight: normal; }
-        .checkbox-item input { width: 20px; height: 20px; margin-right: 10px; margin-top: 0; }
-        button { background-color: #00B900; color: white; border: none; font-weight: bold; margin-top: 25px; cursor: pointer; }
-        button:disabled { background-color: #9ca3af; cursor: not-allowed; }
-        .loading { text-align: center; color: #3b82f6; font-size: 16px; margin: 20px 0; font-weight: bold; }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#8c1d2c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
-    <div class="container">
-        <h2>📍 รายงานสถานะจัดส่ง</h2>
-        <div id="loadingMessage" class="loading">⏳ กำลังโหลดข้อมูลระบบ...</div>
-        
-        <form id="trackerForm" style="display: none;">
-            <label>หมายเลขรถ / สายทาง</label>
-            <select id="carNo" required>
-                <option value="">-- เลือกรถ --</option>
-            </select>
+<title>รายงานรถข้อสอบ ว.14</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anuphan:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: แบบฟอร์มแนวตั้งคอลัมน์เดียวสำหรับมือถือ ปุ่มใหญ่กดง่ายขณะอยู่ข้างรถ ปุ่มส่งติดขอบล่าง */
+:root{
+  --bg:#f3f4f7; --panel:#ffffff; --ink:#1b2130; --muted:#5d6577; --line:#dfe2ea; --soft:#eceef4;
+  --brand:#8c1d2c; --brand-ink:#ffffff; --gold:#d9a521; --line-green:#06c755;
+  --s-incident:#d0312d; --s-paused:#b08800; --s-going:#2563c9; --s-returning:#7a45c2; --s-done:#2b8a3e;
+  --f-display:'Anuphan','IBM Plex Sans Thai',system-ui,sans-serif;
+  --f-body:'IBM Plex Sans Thai','Noto Sans Thai',system-ui,sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12151d; --panel:#1a1e29; --ink:#e7e9ef; --muted:#9aa2b4; --line:#2c3242; --soft:#232837;
+  --brand:#b8384a; --gold:#e6b93c; --s-incident:#f0605a; --s-paused:#d8b23a; --s-going:#5b93ec; --s-returning:#a57ce4; --s-done:#4cb563; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12151d; --panel:#1a1e29; --ink:#e7e9ef; --muted:#9aa2b4; --line:#2c3242; --soft:#232837;
+  --brand:#b8384a; --gold:#e6b93c; --s-incident:#f0605a; --s-paused:#d8b23a; --s-going:#5b93ec; --s-returning:#a57ce4; --s-done:#4cb563; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--s-going);outline-offset:2px}
+.wrap{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.top{background:var(--brand);color:var(--brand-ink)}
+.top .wrap{display:flex;align-items:center;gap:12px;padding-block:14px}
+.ava{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.2);overflow:hidden;flex:none;display:grid;place-items:center;font-weight:600;border:2px solid var(--gold)}
+.ava img{width:100%;height:100%;object-fit:cover}
+.top h1{font-family:var(--f-display);font-size:1.15rem;margin:0;line-height:1.25}
+.top p{margin:0;font-size:.82rem;opacity:.85}
+.demo{margin-left:auto;background:var(--gold);color:#2a1e00;border-radius:4px;padding:2px 8px;font-weight:600;font-size:.75rem;white-space:nowrap}
+form{display:flex;flex-direction:column;gap:18px;padding-block:18px 120px}
+fieldset{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;min-width:0}
+legend,.lbl{font-family:var(--f-display);font-weight:600;font-size:.95rem;padding:0;margin-bottom:8px}
+.step{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--ink);color:var(--bg);font-family:var(--f-mono);font-size:.75rem;margin-right:8px;vertical-align:1px}
+select,textarea{width:100%;border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:12px}
+textarea{min-height:80px;resize:vertical}
+.hint{font-size:.82rem;color:var(--muted);margin:0}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--soft);padding:4px;border-radius:12px;gap:4px}
+.seg button{border:0;background:transparent;border-radius:9px;padding:10px;font-weight:600;color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--panel);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.stages{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stage{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 6px;border:1.5px solid var(--line);border-radius:12px;background:var(--panel);cursor:pointer;text-align:center;position:relative}
+.stage svg{width:30px;height:30px;stroke:var(--c);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.stage b{font-size:.95rem;line-height:1.2}
+.stage small{font-size:.72rem;color:var(--muted);line-height:1.25}
+.stage[aria-pressed="true"]{border-color:var(--c);background:color-mix(in srgb,var(--c) 10%,var(--panel));box-shadow:inset 0 0 0 1px var(--c)}
+.rec{position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);font-size:.66rem;border-radius:999px;padding:0 8px;white-space:nowrap}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1.5px solid var(--line);background:var(--panel);border-radius:999px;padding:8px 16px;cursor:pointer;font-weight:500}
+.chip[aria-pressed="true"]{border-color:var(--c,var(--ink));background:color-mix(in srgb,var(--c,var(--ink)) 12%,var(--panel))}
+.dests{display:flex;flex-direction:column;gap:6px}
+.dest{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:10px;align-items:center;border:1.5px solid var(--line);background:var(--panel);border-radius:10px;padding:10px 12px;cursor:pointer;text-align:left}
+.dest .n{font-family:var(--f-mono);color:var(--muted);font-size:.85rem}
+.dest small{display:block;color:var(--muted);font-size:.78rem}
+.dest .tick{font-size:.75rem;color:var(--s-done);white-space:nowrap}
+.dest[aria-pressed="true"]{border-color:var(--s-done);box-shadow:inset 0 0 0 1px var(--s-done)}
+.gps{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.gps .st{font-weight:600}
+.gps .co{font-family:var(--f-mono);font-size:.82rem;color:var(--muted);grid-column:1}
+.gps .st.ok{color:var(--s-done)} .gps .st.bad{color:var(--s-incident)}
+.gps button{grid-row:1/3;grid-column:2;border:1px solid var(--line);background:var(--soft);border-radius:8px;padding:8px 12px;cursor:pointer}
+.gps a{color:var(--s-going);font-size:.82rem}
+.submitbar{position:fixed;left:0;right:0;bottom:0;background:var(--panel);border-top:1px solid var(--line);padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));padding-top:12px}
+.submitbar .wrap{display:flex;flex-direction:column;gap:6px}
+.send{width:100%;border:0;border-radius:12px;padding:15px;background:var(--line-green);color:#fff;font-weight:700;font-size:1.05rem;cursor:pointer}
+.send:disabled{opacity:.5;cursor:not-allowed}
+.sum{font-size:.82rem;color:var(--muted);text-align:center;min-height:1.2em}
+.err{color:var(--s-incident);font-weight:600}
+.hist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.hist li{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:.85rem;display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 10px}
+.hist .t{font-family:var(--f-mono);color:var(--muted);grid-row:1/3}
+.hist small{color:var(--muted)}
+.done{position:fixed;inset:0;background:var(--bg);z-index:10;display:flex;align-items:center;justify-content:center;padding:24px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px))}
+.done .box{max-width:420px;width:100%;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
+.done .ring{width:72px;height:72px;border-radius:50%;background:color-mix(in srgb,var(--s-done) 15%,var(--panel));display:grid;place-items:center}
+.done .ring svg{width:38px;height:38px;stroke:var(--s-done);stroke-width:3;fill:none}
+.done h2{font-family:var(--f-display);margin:0}
+.done .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;text-align:left;width:100%;font-size:.9rem}
+.done .btns{display:flex;gap:8px;width:100%}
+.done .btns button{flex:1;border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:12px;cursor:pointer;font-weight:600}
+.done .btns .primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+</style>
 
-            <label>รอบการเดินทาง</label>
-            <select id="tripPhase" required>
-                <option value="ขาไป (ส่งข้อสอบ)">ขาไป (ส่งข้อสอบ)</option>
-                <option value="ขากลับ (รับกระดาษคำตอบ)">ขากลับ (รับกระดาษคำตอบ)</option>
-            </select>
+<header class="top"><div class="wrap">
+  <div class="ava" id="ava">?</div>
+  <div style="min-width:0"><h1 id="hello">กำลังเชื่อมต่อ LINE…</h1><p>รายงานสถานะรถขนส่งข้อสอบ ว.14</p></div>
+  <span class="demo" id="demoBadge" hidden>โหมดทดลอง</span>
+</div></header>
 
-            <label>สถานที่เป้าหมาย (เลือกได้หลายที่)</label>
-            <div id="targetPlaceContainer" class="checkbox-container">
-                <span style="color: #9ca3af;">-- กรุณาเลือกรถก่อน --</span>
-            </div>
+<div class="wrap">
+<form id="f" novalidate>
+  <fieldset>
+    <legend><span class="step">1</span>รถคันที่</legend>
+    <select id="veh" aria-label="เลือกคันที่"></select>
+    <p class="hint" id="vehInfo"></p>
+  </fieldset>
 
-            <label>สถานะปัจจุบัน</label>
-            <select id="status" required>
-                <option value="">-- เลือกสถานะ --</option>
-            </select>
-
-            <label>ปัญหา / เหตุขัดข้อง (ถ้ามี)</label>
-            <input type="text" id="problem" placeholder="เช่น ฝนตกหนัก, รถติด, ยางรั่ว">
-
-            <button type="submit" id="submitBtn">🚀 ส่งข้อมูลพิกัดและสถานะ</button>
-        </form>
+  <fieldset>
+    <legend><span class="step">2</span>เที่ยว</legend>
+    <div class="seg" id="leg">
+      <button type="button" data-v="go" aria-pressed="true">ขาไป · ส่งข้อสอบ</button>
+      <button type="button" data-v="back" aria-pressed="false">ขากลับ · รับคืน</button>
     </div>
+  </fieldset>
 
-    <script>
-        // ใส่ลิงก์ Web App ของคุณเรียบร้อยแล้ว
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw3trBi1uBeDMCWufXtEvENbvCO07HtQL4FkGIUJD0J2dMQnJeiFydZB_BruMBPQnBvoQ/exec"; 
-        
-        const LIFF_ID = "2011909530-beJI0GnK"; 
-        let masterData = {};
-        let displayName = "Unknown";
+  <fieldset>
+    <legend><span class="step">3</span>สถานะ</legend>
+    <div class="stages" id="stages">
+      <button type="button" class="stage" data-v="DEPART" style="--c:var(--s-going)" aria-pressed="false">
+        <svg viewBox="0 0 24 24"><path d="M3 17h2m14 0h2M5 17a2 2 0 1 0 4 0 2 2 0 0 0-4 0Zm10 0a2 2 0 1 0 4 0 2 2 0 0 0-4 0ZM9 17h6M3 17V8h11v9m0-6h4l3 3v3"/></svg>
+        <b>ออกเดินทาง</b><small>ออกจากจุดขึ้นรถ</small></button>
+      <button type="button" class="stage" data-v="ENROUTE" style="--c:var(--s-paused)" aria-pressed="false">
+        <svg viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10.3 3.9 2.4 17.5A2 2 0 0 0 4.1 20.5h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+        <b>ระหว่างทาง</b><small>แวะพัก · รถเสีย · ยาง</small></button>
+      <button type="button" class="stage" data-v="ARRIVE" style="--c:var(--s-done)" aria-pressed="false">
+        <svg viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z"/><path d="m9 10 2 2 4-4"/></svg>
+        <b>ถึงจุดหมาย</b><small>ส่งมอบ / รับคืน</small></button>
+    </div>
+  </fieldset>
 
-        async function main() {
-            await liff.init({ liffId: LIFF_ID });
-            if (liff.isLoggedIn()) {
-                displayName = (await liff.getProfile()).displayName;
-                fetchMasterData();
-            } else {
-                liff.login();
-            }
-        }
-        main();
+  <fieldset id="subBox" hidden>
+    <legend>เหตุการณ์ระหว่างทาง</legend>
+    <div class="chips" id="subs"></div>
+  </fieldset>
 
-        function fetchMasterData() {
-            fetch(WEB_APP_URL)
-                .then(r => r.json())
-                .then(data => {
-                    masterData = data.cars; 
-                    const carSelect = document.getElementById("carNo");
-                    for (let car in masterData) {
-                        carSelect.add(new Option(car, car));
-                    }
-                    const statusSelect = document.getElementById("status");
-                    data.statuses.forEach(status => {
-                        if(status) statusSelect.add(new Option(status, status));
-                    });
-                    document.getElementById("loadingMessage").style.display = "none";
-                    document.getElementById("trackerForm").style.display = "block";
-                }).catch(e => {
-                    document.getElementById("loadingMessage").innerText = "❌ โหลดข้อมูลล้มเหลว";
-                    document.getElementById("loadingMessage").style.color = "red";
-                });
-        }
+  <fieldset id="destBox" hidden>
+    <legend id="destLegend">ถึงจุดหมายใด</legend>
+    <div class="dests" id="dests"></div>
+  </fieldset>
 
-        document.getElementById("carNo").addEventListener("change", function() {
-            const selectedCar = this.value;
-            const container = document.getElementById("targetPlaceContainer");
-            container.innerHTML = ""; 
-            
-            if (selectedCar && masterData[selectedCar]) {
-                masterData[selectedCar].forEach(place => {
-                    let label = document.createElement("label");
-                    label.className = "checkbox-item";
-                    label.innerHTML = `<input type="checkbox" name="targetPlace" value="${place}"> ${place}`;
-                    container.appendChild(label);
-                });
-            } else {
-                container.innerHTML = '<span style="color: #9ca3af;">-- กรุณาเลือกรถก่อน --</span>';
-            }
-        });
+  <fieldset>
+    <legend><span class="step">4</span>พิกัดปัจจุบัน</legend>
+    <div class="gps" aria-live="polite">
+      <span class="st" id="gpsSt">กำลังหาพิกัด…</span>
+      <span class="co" id="gpsCo">กรุณากด "อนุญาต" เมื่อ LINE ขอสิทธิ์ตำแหน่ง</span>
+      <button type="button" id="gpsBtn">อ่านพิกัดใหม่</button>
+    </div>
+  </fieldset>
 
-        document.getElementById("trackerForm").addEventListener("submit", function(e) {
-            e.preventDefault();
-            const btn = document.getElementById("submitBtn");
-            
-            let selectedPlaces = [];
-            document.querySelectorAll('input[name="targetPlace"]:checked').forEach(cb => {
-                selectedPlaces.push(cb.value);
-            });
+  <fieldset>
+    <legend><span class="step">5</span>หมายเหตุ <span style="font-weight:400;color:var(--muted)">(ถ้ามี)</span></legend>
+    <textarea id="note" placeholder="เช่น ส่งมอบให้ ผอ.กลุ่มฯ แล้ว 12 กล่อง / ยางรั่ว คาดว่าล่าช้า 30 นาที"></textarea>
+  </fieldset>
 
-            if(selectedPlaces.length === 0) {
-                Swal.fire("แจ้งเตือน", "กรุณาติ๊กเลือกสถานที่เป้าหมายอย่างน้อย 1 แห่ง", "warning");
-                return;
-            }
+  <fieldset>
+    <legend>รายงานล่าสุดของคันนี้</legend>
+    <ul class="hist" id="hist"><li><small>กำลังโหลด…</small></li></ul>
+  </fieldset>
+</form>
+</div>
 
-            btn.disabled = true;
-            btn.innerText = "📍 กำลังค้นหาพิกัด GPS...";
+<div class="submitbar"><div class="wrap">
+  <div class="sum" id="sum"></div>
+  <button class="send" id="send" type="submit" form="f">ส่งรายงาน</button>
+</div></div>
 
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (position) => sendData(position.coords.latitude, position.coords.longitude, selectedPlaces),
-                    (error) => {
-                        Swal.fire("แจ้งเตือน", "กรุณาเปิด Location ในมือถือ", "warning");
-                        btn.disabled = false;
-                        btn.innerText = "🚀 ส่งข้อมูลพิกัดและสถานะ";
-                    },
-                    { enableHighAccuracy: true }
-                );
-            }
-        });
+<div class="done" id="done" hidden>
+  <div class="box">
+    <div class="ring"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg></div>
+    <h2>บันทึกรายงานแล้ว</h2>
+    <div class="card" id="doneCard"></div>
+    <p class="hint">ผู้บริหารเห็นสถานะนี้บนแดชบอร์ดทันที ไม่ต้องพิมพ์ซ้ำในกลุ่มไลน์</p>
+    <div class="btns"><button type="button" id="again">รายงานต่อ</button><button type="button" class="primary" id="closeBtn">ปิดหน้านี้</button></div>
+  </div>
+</div>
 
-        function sendData(lat, lng, selectedPlaces) {
-            document.getElementById("submitBtn").innerText = "☁️ กำลังบันทึกข้อมูลลงระบบ...";
-            
-            const payload = {
-                displayName: displayName,
-                carNo: document.getElementById("carNo").value,
-                tripPhase: document.getElementById("tripPhase").value,
-                targetPlaces: selectedPlaces,
-                status: document.getElementById("status").value,
-                problem: document.getElementById("problem").value,
-                lat: lat,
-                lng: lng
-            };
+<script src="config.js"></script>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script>
+/* ===== ข้อมูลร่วม: เส้นทาง สถานะ การเรียก API และข้อมูลตัวอย่าง ===== */
+const DATA = {"origins":{"TUC":{"name":"TUC · ศูนย์สอบธรรมศาสตร์ (รังสิต)","lat":14.0685,"lng":100.6153},"CSP":{"name":"CSP · โรงพิมพ์จันวาณิชย์ (สมุทรปราการ)","lat":13.603,"lng":100.5571}},"vehicles":[{"id":1,"line":"สาย 1 กทม./นนทบุรี","origin":"TUC","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"185","name":"สพม. กรุงเทพมหานคร เขต 2","venue":"","address":"","contact":"","amphoe":"เขตห้วยขวาง กทม.","lat":13.7968,"lng":100.5877,"approx":true},{"code":"184","name":"สพม. กรุงเทพมหานคร เขต 1","venue":"","address":"","contact":"","amphoe":"เขตราชเทวี กทม.","lat":13.7582,"lng":100.5308,"approx":true},{"code":"246","name":"สศศ.","venue":"","address":"","contact":"","amphoe":"เขตดุสิต กทม. (กระทรวงศึกษาธิการ)","lat":13.7668,"lng":100.5092,"approx":true},{"code":"203","name":"สพม. นนทบุรี","venue":"","address":"","contact":"","amphoe":"อ.เมืองนนทบุรี","lat":13.8652,"lng":100.4657,"approx":true},{"code":"065","name":"สพป. นนทบุรี เขต 2","venue":"","address":"","contact":"","amphoe":"อ.บางใหญ่","lat":13.8785,"lng":100.4038,"approx":true}]},{"id":2,"line":"สาย 2 สมุทรปราการ/สมุทรสาคร","origin":"TUC","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"145","name":"สพป. สมุทรปราการ เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองสมุทรปราการ","lat":13.6224,"lng":100.5884,"approx":true},{"code":"233","name":"สพม. สมุทรปราการ","venue":"","address":"","contact":"","amphoe":"อ.เมืองสมุทรปราการ","lat":13.6228,"lng":100.5889,"approx":true},{"code":"148","name":"สพป. สมุทรสาคร","venue":"","address":"","contact":"","amphoe":"อ.เมืองสมุทรสาคร","lat":13.5747,"lng":100.2734,"approx":true},{"code":"234","name":"สพม. สมุทรสาคร สมุทรสงคราม","venue":"","address":"","contact":"","amphoe":"อ.เมืองสมุทรสาคร","lat":13.5496,"lng":100.2643,"approx":true}]},{"id":3,"line":"สาย 3 นครปฐม/กาญจนบุรี","origin":"TUC","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"047","name":"สพป. นครปฐม เขต 2","venue":"","address":"","contact":"","amphoe":"อ.นครชัยศรี","lat":13.8005,"lng":100.1878,"approx":true},{"code":"046","name":"สพป. นครปฐม เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองนครปฐม","lat":13.8139,"lng":100.0987,"approx":true},{"code":"004","name":"สพป. กาญจนบุรี เขต 2","venue":"","address":"","contact":"","amphoe":"อ.พนมทวน","lat":14.1086,"lng":99.6661,"approx":true},{"code":"186","name":"สพม. กาญจนบุรี","venue":"","address":"","contact":"","amphoe":"อ.เมืองกาญจนบุรี","lat":14.0209,"lng":99.5313,"approx":true},{"code":"006","name":"สพป. กาญจนบุรี เขต 4","venue":"","address":"","contact":"","amphoe":"อ.บ่อพลอย","lat":14.3121,"lng":99.5288,"approx":true}]},{"id":4,"line":"สาย 4 อยุธยา/สุพรรณบุรี/สิงห์บุรี","origin":"TUC","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"212","name":"สพม. พระนครศรีอยุธยา","venue":"","address":"","contact":"","amphoe":"อ.พระนครศรีอยุธยา","lat":14.4033,"lng":100.5277,"approx":true},{"code":"086","name":"สพป. พระนครศรีอยุธยา เขต 2","venue":"","address":"","contact":"","amphoe":"อ.เสนา","lat":14.3236,"lng":100.4025,"approx":true},{"code":"157","name":"สพป. สุพรรณบุรี เขต 2","venue":"","address":"","contact":"","amphoe":"อ.อู่ทอง","lat":14.3815,"lng":99.9081,"approx":true},{"code":"239","name":"สพม. สุพรรณบุรี","venue":"","address":"","contact":"","amphoe":"อ.เมืองสุพรรณบุรี","lat":14.514,"lng":100.13,"approx":true},{"code":"153","name":"สพป. สิงห์บุรี","venue":"","address":"","contact":"","amphoe":"อ.เมืองสิงห์บุรี","lat":14.8805,"lng":100.4034,"approx":true}]},{"id":5,"line":"สาย 5 ปทุมธานี/สระบุรี/ลพบุรี","origin":"TUC","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"076","name":"สพป. ปทุมธานี เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองปทุมธานี","lat":14.0235,"lng":100.5252,"approx":true},{"code":"151","name":"สพป. สระบุรี เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองสระบุรี","lat":14.53,"lng":100.9376,"approx":true},{"code":"152","name":"สพป. สระบุรี เขต 2","venue":"","address":"","contact":"","amphoe":"อ.แก่งคอย","lat":14.5764,"lng":101.0156,"approx":true},{"code":"125","name":"สพป. ลพบุรี เขต 2","venue":"","address":"","contact":"","amphoe":"อ.ชัยบาดาล","lat":15.2036,"lng":101.0924,"approx":true}]},{"id":6,"line":"สาย 6 สตูล/ปัตตานี/ยะลา","origin":"TUC","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"144","name":"สพป. สตูล","venue":"","address":"","contact":"","amphoe":"อ.เมืองสตูล","lat":6.6493,"lng":100.0774,"approx":true},{"code":"083","name":"สพป. ปัตตานี เขต 2","venue":"","address":"","contact":"","amphoe":"อ.โคกโพธิ์","lat":6.73,"lng":101.0978,"approx":true},{"code":"113","name":"สพป. ยะลา เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองยะลา","lat":6.5468,"lng":101.2837,"approx":true}]},{"id":7,"line":"สาย 7 ปัตตานี/นราธิวาส","origin":"TUC","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"211","name":"สพม. ปัตตานี","venue":"","address":"","contact":"","amphoe":"อ.เมืองปัตตานี","lat":6.8704,"lng":101.2517,"approx":true},{"code":"082","name":"สพป. ปัตตานี เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองปัตตานี","lat":6.8924,"lng":101.2498,"approx":true},{"code":"084","name":"สพป. ปัตตานี เขต 3","venue":"","address":"","contact":"","amphoe":"อ.สายบุรี","lat":6.7143,"lng":101.521,"approx":true},{"code":"066","name":"สพป. นราธิวาส เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองนราธิวาส","lat":6.4148,"lng":101.7986,"approx":true},{"code":"068","name":"สพป. นราธิวาส เขต 3","venue":"","address":"","contact":"","amphoe":"อ.ระแงะ","lat":6.2954,"lng":101.7221,"approx":true}]},{"id":8,"line":"สาย 8 ชลบุรี","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"192","name":"สพม. ชลบุรี ระยอง","venue":"","address":"","contact":"","amphoe":"อ.เมืองชลบุรี","lat":13.3326,"lng":100.923,"approx":true},{"code":"021","name":"สพป. ชลบุรี เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองชลบุรี (โดยประมาณ)","lat":13.3522,"lng":100.9767,"approx":true},{"code":"022","name":"สพป. ชลบุรี เขต 2","venue":"","address":"","contact":"","amphoe":"อ.พนัสนิคม","lat":13.4297,"lng":101.1992,"approx":true},{"code":"023","name":"สพป. ชลบุรี เขต 3","venue":"","address":"","contact":"","amphoe":"อ.บางละมุง","lat":13.042,"lng":100.9255,"approx":true}]},{"id":9,"line":"สาย 9 จันทบุรี/ตราด","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"018","name":"สพป. จันทบุรี เขต 2","venue":"","address":"","contact":"","amphoe":"อ.เมืองจันทบุรี","lat":12.607,"lng":102.0804,"approx":true},{"code":"190","name":"สพม. จันทบุรี ตราด","venue":"","address":"","contact":"","amphoe":"อ.เมืองจันทบุรี","lat":12.6137,"lng":102.1105,"approx":true},{"code":"042","name":"สพป. ตราด","venue":"","address":"","contact":"","amphoe":"อ.เมืองตราด","lat":12.2671,"lng":102.498,"approx":true}]},{"id":10,"line":"สาย 10 ปราจีนบุรี/สระแก้ว","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"080","name":"สพป. ปราจีนบุรี เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองปราจีนบุรี","lat":14.0479,"lng":101.3713,"approx":true},{"code":"081","name":"สพป. ปราจีนบุรี เขต 2","venue":"","address":"","contact":"","amphoe":"อ.กบินทร์บุรี","lat":13.9453,"lng":101.7116,"approx":true},{"code":"235","name":"สพม. สระแก้ว","venue":"","address":"","contact":"","amphoe":"อ.เมืองสระแก้ว (โดยประมาณ)","lat":13.8031,"lng":102.1209,"approx":true},{"code":"150","name":"สพป. สระแก้ว เขต 2","venue":"","address":"","contact":"","amphoe":"อ.อรัญประเทศ","lat":13.6908,"lng":102.5011,"approx":true}]},{"id":11,"line":"สาย 11 กาญจนบุรี เขต 3","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"005","name":"สพป. กาญจนบุรี เขต 3","venue":"","address":"","contact":"","amphoe":"อ.ไทรโยค","lat":14.1167,"lng":99.1435,"approx":true}]},{"id":12,"line":"สาย 12 เพชรบุรี/ประจวบฯ","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"097","name":"สพป. เพชรบุรี เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองเพชรบุรี","lat":13.122,"lng":99.9363,"approx":true},{"code":"098","name":"สพป. เพชรบุรี เขต 2","venue":"","address":"","contact":"","amphoe":"อ.ท่ายาง","lat":12.9302,"lng":99.9062,"approx":true},{"code":"079","name":"สพป. ประจวบคีรีขันธ์ เขต 2","venue":"","address":"","contact":"","amphoe":"อ.ปราณบุรี","lat":12.3673,"lng":99.8846,"approx":true},{"code":"209","name":"สพม. ประจวบคีรีขันธ์","venue":"","address":"","contact":"","amphoe":"อ.เมืองประจวบคีรีขันธ์","lat":11.7995,"lng":99.7985,"approx":true},{"code":"078","name":"สพป. ประจวบคีรีขันธ์ เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองประจวบคีรีขันธ์","lat":11.7369,"lng":99.7638,"approx":true}]},{"id":13,"line":"สาย 13 ชุมพร/สุราษฎร์ธานี","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"028","name":"สพป. ชุมพร เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองชุมพร","lat":10.4909,"lng":99.1275,"approx":true},{"code":"029","name":"สพป. ชุมพร เขต 2","venue":"","address":"","contact":"","amphoe":"อ.หลังสวน","lat":9.9465,"lng":99.0766,"approx":true},{"code":"160","name":"สพป. สุราษฎร์ธานี เขต 2","venue":"","address":"","contact":"","amphoe":"อ.พุนพิน","lat":9.1083,"lng":99.2339,"approx":true},{"code":"159","name":"สพป. สุราษฎร์ธานี เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองสุราษฎร์ธานี","lat":9.1328,"lng":99.347,"approx":true},{"code":"240","name":"สพม. สุราษฎร์ธานี ชุมพร","venue":"","address":"","contact":"","amphoe":"อ.เมืองสุราษฎร์ธานี","lat":9.1315,"lng":99.3437,"approx":true}]},{"id":14,"line":"สาย 14 นครศรีฯ/พัทลุง/สงขลา","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"201","name":"สพม. นครศรีธรรมราช","venue":"","address":"","contact":"","amphoe":"อ.พระพรหม","lat":8.3469,"lng":99.9371,"approx":true},{"code":"059","name":"สพป. นครศรีธรรมราช เขต 3","venue":"","address":"","contact":"","amphoe":"อ.เชียรใหญ่","lat":8.1327,"lng":100.1214,"approx":true},{"code":"091","name":"สพป. พัทลุง เขต 2","venue":"","address":"","contact":"","amphoe":"อ.ตะโหมด","lat":7.3515,"lng":100.1318,"approx":true},{"code":"142","name":"สพป. สงขลา เขต 2","venue":"","address":"","contact":"","amphoe":"อ.หาดใหญ่","lat":7.0052,"lng":100.4553,"approx":true}]},{"id":15,"line":"สาย 15 พังงา/ภูเก็ต/กระบี่/ตรัง","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"089","name":"สพป. พังงา","venue":"","address":"","contact":"","amphoe":"อ.เมืองพังงา","lat":8.4609,"lng":98.533,"approx":true},{"code":"214","name":"สพม. พังงา ภูเก็ต ระนอง","venue":"","address":"","contact":"","amphoe":"อ.เมืองพังงา","lat":8.4386,"lng":98.5178,"approx":true},{"code":"104","name":"สพป. ภูเก็ต","venue":"","address":"","contact":"","amphoe":"อ.เมืองภูเก็ต","lat":7.8893,"lng":98.3851,"approx":true},{"code":"001","name":"สพป. กระบี่","venue":"","address":"","contact":"","amphoe":"อ.เมืองกระบี่","lat":8.1072,"lng":98.9034,"approx":true},{"code":"196","name":"สพม. ตรัง กระบี่","venue":"","address":"","contact":"","amphoe":"อ.เมืองตรัง","lat":7.5576,"lng":99.5879,"approx":true}]},{"id":16,"line":"สาย 16 อุทัยธานี/นครสวรรค์","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"177","name":"สพป. อุทัยธานี เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองอุทัยธานี","lat":15.3921,"lng":100.0227,"approx":true},{"code":"202","name":"สพม. นครสวรรค์","venue":"","address":"","contact":"","amphoe":"อ.เมืองนครสวรรค์","lat":15.7215,"lng":100.1181,"approx":true},{"code":"061","name":"สพป. นครสวรรค์ เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองนครสวรรค์","lat":15.6931,"lng":100.1212,"approx":true},{"code":"062","name":"สพป. นครสวรรค์ เขต 2","venue":"","address":"","contact":"","amphoe":"อ.ลาดยาว","lat":15.7643,"lng":99.7986,"approx":true}]},{"id":17,"line":"สาย 17 กำแพงเพชร/ตาก","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"011","name":"สพป. กำแพงเพชร เขต 2","venue":"","address":"","contact":"","amphoe":"อ.คลองขลุง","lat":16.217,"lng":99.702,"approx":true},{"code":"188","name":"สพม. กำแพงเพชร","venue":"","address":"","contact":"","amphoe":"อ.เมืองกำแพงเพชร","lat":16.4791,"lng":99.5257,"approx":true},{"code":"010","name":"สพป. กำแพงเพชร เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองกำแพงเพชร","lat":16.5558,"lng":99.5181,"approx":true},{"code":"197","name":"สพม. ตาก","venue":"","address":"","contact":"","amphoe":"อ.เมืองตาก","lat":16.8691,"lng":99.1313,"approx":true}]},{"id":18,"line":"สาย 18 พิจิตร/พิษณุโลก/น่าน","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"093","name":"สพป. พิจิตร เขต 2","venue":"","address":"","contact":"","amphoe":"อ.ตะพานหิน","lat":16.2161,"lng":100.4093,"approx":true},{"code":"092","name":"สพป. พิจิตร เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองพิจิตร","lat":16.4439,"lng":100.3268,"approx":true},{"code":"217","name":"สพม. พิษณุโลก อุตรดิตถ์","venue":"","address":"","contact":"","amphoe":"อ.เมืองพิษณุโลก","lat":16.8029,"lng":100.2009,"approx":true},{"code":"095","name":"สพป. พิษณุโลก เขต 2","venue":"","address":"","contact":"","amphoe":"อ.วังทอง","lat":16.7831,"lng":100.4363,"approx":true},{"code":"070","name":"สพป. น่าน เขต 2","venue":"","address":"","contact":"","amphoe":"อ.ปัว","lat":19.1799,"lng":100.9077,"approx":true}]},{"id":19,"line":"สาย 19 เพชรบูรณ์/เลย","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"101","name":"สพป. เพชรบูรณ์ เขต 3","venue":"","address":"","contact":"","amphoe":"อ.บึงสามพัน","lat":15.8273,"lng":101.0093,"approx":true},{"code":"099","name":"สพป. เพชรบูรณ์ เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองเพชรบูรณ์","lat":16.4496,"lng":101.1529,"approx":true},{"code":"100","name":"สพป. เพชรบูรณ์ เขต 2","venue":"","address":"","contact":"","amphoe":"อ.หล่มสัก","lat":16.8071,"lng":101.2487,"approx":true},{"code":"229","name":"สพม. เลย หนองบัวลำภู","venue":"","address":"","contact":"","amphoe":"อ.เมืองเลย","lat":17.4616,"lng":101.7129,"approx":true},{"code":"131","name":"สพป. เลย เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองเลย","lat":17.554,"lng":101.7278,"approx":true}]},{"id":20,"line":"สาย 20 เชียงราย/ฝาง","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"031","name":"สพป. เชียงราย เขต 2","venue":"","address":"","contact":"","amphoe":"อ.แม่ลาว","lat":19.7438,"lng":99.7258,"approx":true},{"code":"030","name":"สพป. เชียงราย เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองเชียงราย","lat":19.9001,"lng":99.8276,"approx":true},{"code":"194","name":"สพม. เชียงราย","venue":"","address":"","contact":"","amphoe":"อ.เมืองเชียงราย","lat":19.9158,"lng":99.8261,"approx":true},{"code":"032","name":"สพป. เชียงราย เขต 3","venue":"","address":"","contact":"","amphoe":"อ.แม่จัน","lat":20.1633,"lng":99.8674,"approx":true},{"code":"036","name":"สพป. เชียงใหม่ เขต 3","venue":"","address":"","contact":"","amphoe":"อ.ฝาง","lat":19.8459,"lng":99.1724,"approx":true}]},{"id":21,"line":"สาย 21 ลำปาง/เชียงใหม่/แม่ฮ่องสอน","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"228","name":"สพม. ลำปาง ลำพูน","venue":"","address":"","contact":"","amphoe":"อ.เมืองลำปาง","lat":18.3091,"lng":99.497,"approx":true},{"code":"035","name":"สพป. เชียงใหม่ เขต 2","venue":"","address":"","contact":"","amphoe":"อ.แม่ริม","lat":18.9659,"lng":98.945,"approx":true},{"code":"038","name":"สพป. เชียงใหม่ เขต 5","venue":"","address":"","contact":"","amphoe":"อ.ฮอด","lat":18.1848,"lng":98.6119,"approx":true},{"code":"110","name":"สพป. แม่ฮ่องสอน เขต 2","venue":"","address":"","contact":"","amphoe":"อ.แม่สะเรียง","lat":18.159,"lng":97.9321,"approx":true},{"code":"223","name":"สพม. แม่ฮ่องสอน","venue":"","address":"","contact":"","amphoe":"อ.เมืองแม่ฮ่องสอน","lat":19.3114,"lng":97.9646,"approx":true}]},{"id":22,"line":"สาย 22 นครราชสีมา/บุรีรัมย์","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"200","name":"สพม. นครราชสีมา","venue":"","address":"","contact":"","amphoe":"อ.เมืองนครราชสีมา","lat":14.9096,"lng":101.9786,"approx":true},{"code":"052","name":"สพป. นครราชสีมา เขต 3","venue":"","address":"","contact":"","amphoe":"อ.ครบุรี","lat":14.5234,"lng":102.2495,"approx":true},{"code":"074","name":"สพป. บุรีรัมย์ เขต 3","venue":"","address":"","contact":"","amphoe":"อ.นางรอง","lat":14.6313,"lng":102.7646,"approx":true},{"code":"073","name":"สพป. บุรีรัมย์ เขต 2","venue":"","address":"","contact":"","amphoe":"อ.ประโคนชัย","lat":14.6136,"lng":103.0784,"approx":true},{"code":"072","name":"สพป. บุรีรัมย์ เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองบุรีรัมย์","lat":14.9974,"lng":103.1144,"approx":true}]},{"id":23,"line":"สาย 23 โคราชเหนือ/บุรีรัมย์/มหาสารคาม","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"055","name":"สพป. นครราชสีมา เขต 6","venue":"","address":"","contact":"","amphoe":"อ.บัวใหญ่","lat":15.6047,"lng":102.4104,"approx":true},{"code":"056","name":"สพป. นครราชสีมา เขต 7","venue":"","address":"","contact":"","amphoe":"อ.ชุมพวง","lat":15.3203,"lng":102.7248,"approx":true},{"code":"075","name":"สพป. บุรีรัมย์ เขต 4","venue":"","address":"","contact":"","amphoe":"อ.พุทไธสง","lat":15.548,"lng":102.9931,"approx":true},{"code":"106","name":"สพป. มหาสารคาม เขต 2","venue":"","address":"","contact":"","amphoe":"อ.วาปีปทุม","lat":15.8455,"lng":103.3777,"approx":true},{"code":"107","name":"สพป. มหาสารคาม เขต 3","venue":"","address":"","contact":"","amphoe":"อ.โกสุมพิสัย","lat":16.2463,"lng":103.0667,"approx":true}]},{"id":24,"line":"สาย 24 ชัยภูมิ/ขอนแก่น","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"193","name":"สพม. ชัยภูมิ","venue":"","address":"","contact":"","amphoe":"อ.เมืองชัยภูมิ","lat":15.7913,"lng":102.0122,"approx":true},{"code":"026","name":"สพป. ชัยภูมิ เขต 2","venue":"","address":"","contact":"","amphoe":"อ.ภูเขียว","lat":16.3753,"lng":102.1254,"approx":true},{"code":"016","name":"สพป. ขอนแก่น เขต 5","venue":"","address":"","contact":"","amphoe":"อ.ชุมแพ","lat":16.5521,"lng":102.0834,"approx":true},{"code":"189","name":"สพม. ขอนแก่น","venue":"","address":"","contact":"","amphoe":"อ.เมืองขอนแก่น","lat":16.4505,"lng":102.729,"approx":true}]},{"id":25,"line":"สาย 25 หนองบัวลำภู/อุดรฯ/หนองคาย/บึงกาฬ","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"167","name":"สพป. หนองบัวลำภู เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองหนองบัวลำภู","lat":17.2173,"lng":102.4271,"approx":true},{"code":"174","name":"สพป. อุดรธานี เขต 4","venue":"","address":"","contact":"","amphoe":"อ.บ้านผือ","lat":17.6876,"lng":102.4738,"approx":true},{"code":"173","name":"สพป. อุดรธานี เขต 3","venue":"","address":"","contact":"","amphoe":"อ.หนองหาน","lat":17.3614,"lng":103.1084,"approx":true},{"code":"166","name":"สพป. หนองคาย เขต 2","venue":"","address":"","contact":"","amphoe":"อ.โพนพิสัย","lat":18.035,"lng":103.0822,"approx":true},{"code":"071","name":"สพป. บึงกาฬ","venue":"","address":"","contact":"","amphoe":"อ.เมืองบึงกาฬ","lat":18.3734,"lng":103.6469,"approx":true}]},{"id":26,"line":"สาย 26 กาฬสินธุ์/สกลนคร/นครพนม","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"008","name":"สพป. กาฬสินธุ์ เขต 2","venue":"","address":"","contact":"","amphoe":"อ.ห้วยเม็ก","lat":16.5984,"lng":103.228,"approx":true},{"code":"009","name":"สพป. กาฬสินธุ์ เขต 3","venue":"","address":"","contact":"","amphoe":"อ.ห้วยผึ้ง","lat":16.6482,"lng":103.908,"approx":true},{"code":"139","name":"สพป. สกลนคร เขต 2","venue":"","address":"","contact":"","amphoe":"อ.สว่างแดนดิน","lat":17.4809,"lng":103.4599,"approx":true},{"code":"049","name":"สพป. นครพนม เขต 2","venue":"","address":"","contact":"","amphoe":"อ.ศรีสงคราม","lat":17.621,"lng":104.2824,"approx":true},{"code":"048","name":"สพป. นครพนม เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองนครพนม","lat":17.4173,"lng":104.7712,"approx":true},{"code":"199","name":"สพม. นครพนม","venue":"","address":"","contact":"","amphoe":"อ.เมืองนครพนม","lat":17.4039,"lng":104.7818,"approx":true}]},{"id":27,"line":"สาย 27 ศรีสะเกษ/อุบลฯ/อำนาจเจริญ/มุกดาหาร","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"135","name":"สพป. ศรีสะเกษ เขต 2","venue":"","address":"","contact":"","amphoe":"อ.อุทุมพรพิสัย","lat":15.1119,"lng":104.1472,"approx":true},{"code":"230","name":"สพม. ศรีสะเกษ ยโสธร","venue":"","address":"","contact":"","amphoe":"อ.เมืองศรีสะเกษ","lat":15.1127,"lng":104.3253,"approx":true},{"code":"183","name":"สพป. อุบลราชธานี เขต 5","venue":"","address":"","contact":"","amphoe":"อ.เดชอุดม","lat":14.9414,"lng":105.0325,"approx":true},{"code":"245","name":"สพม. อุบลราชธานี อำนาจเจริญ","venue":"","address":"","contact":"","amphoe":"อ.เมืองอุบลราชธานี","lat":15.2669,"lng":104.9258,"approx":true},{"code":"170","name":"สพป. อำนาจเจริญ","venue":"","address":"","contact":"","amphoe":"อ.เมืองอำนาจเจริญ","lat":15.8778,"lng":104.6215,"approx":true},{"code":"108","name":"สพป. มุกดาหาร","venue":"","address":"","contact":"","amphoe":"อ.เมืองมุกดาหาร","lat":16.5465,"lng":104.7265,"approx":true}]}]};
+const CFG = Object.assign({
+  API_URL: '',          // URL ของ Apps Script Web App (…/exec)
+  LIFF_ID: '',          // LIFF ID จาก LINE Developers
+  VIEW_KEY: '',         // ถ้าตั้ง VIEW_KEY ไว้ใน Apps Script
+  STALE_MIN: 180,       // ไม่มีรายงานเกินกี่นาทีถือว่า "ขาดการติดต่อ"
+  REFRESH_SEC: 60
+}, window.CONFIG || {});
+const DEMO = !CFG.API_URL;
+// รหัสเข้าดูส่งผ่านลิงก์ได้ เช่น …/dashboard/?key=XXXX (จำไว้ในเครื่องหลังเปิดครั้งแรก) ไม่ต้องเขียนไว้ใน config.js
+(() => {
+  let k = new URLSearchParams(location.search).get('key');
+  try { if (k) localStorage.setItem('et-key', k); else k = localStorage.getItem('et-key'); } catch (e) {}
+  if (k) CFG.VIEW_KEY = k;
+})();
 
-            fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) })
-            .then(r => r.json())
-            .then(result => {
-                if(result.status === "success") {
-                    Swal.fire("สำเร็จ!", "บันทึกข้อมูลเรียบร้อย", "success").then(() => liff.closeWindow());
-                } else throw new Error();
-            })
-            .catch(() => {
-                Swal.fire("ข้อผิดพลาด", "บันทึกข้อมูลล้มเหลว", "error");
-                document.getElementById("submitBtn").disabled = false;
-                document.getElementById("submitBtn").innerText = "🚀 ส่งข้อมูลพิกัดและสถานะ";
-            });
-        }
-    </script>
+const VEH = [];
+const VMAP = {};
+
+/* ----- แผนรถ: ฝังมากับหน้าเว็บ และอัปเดตสดจากชีต "รถ" + "ปลายทาง" ใน Google Sheet ----- */
+function hav(a, b) { const R = 6371, t = Math.PI / 180, dLa = (b.lat - a.lat) * t, dLo = (b.lng - a.lng) * t; const x = Math.sin(dLa / 2) ** 2 + Math.cos(a.lat * t) * Math.cos(b.lat * t) * Math.sin(dLo / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(x)); }
+// ระยะถนนโดยประมาณ ใช้ค่าเดียวกับไฟล์แผน: ตัวคูณ 1.35 (เส้นตรง < 60 กม.) / 1.22, ความเร็ว 70 กม./ชม., เผื่อ 15 นาทีต่อช่วง, ส่งมอบ 30 นาทีต่อจุด
+function roadKm(a, b) { const d = hav(a, b); return d * (d < 60 ? 1.35 : 1.22); }
+function applyPlan(plan) {
+  if (!plan || !plan.vehicles || !plan.vehicles.length) return false;
+  if (plan.origins) DATA.origins = plan.origins;
+  VEH.length = 0; Object.keys(VMAP).forEach(k => delete VMAP[k]);
+  plan.vehicles.forEach(v => {
+    v.line = v.line || v.route || ('สาย ' + v.id);
+    v.route = v.line;
+    v.stops.forEach(s => { s.label = s.venue || s.name; });
+    let prev = DATA.origins[v.origin], km = 0, h = 0;
+    v.stops.forEach(s => { const k = roadKm(prev, s); km += k; h += k / 70 + .25 + .5; prev = s; });
+    v.km = Math.round(km); v.hours = Math.round(h * 10) / 10;
+    v.approxCount = v.stops.filter(s => s.approx).length;
+    VEH.push(v); VMAP[v.id] = v;
+  });
+  DATA.vehicles = VEH;
+  return true;
+}
+applyPlan({ origins: DATA.origins, vehicles: DATA.vehicles });
+
+/** ดึงแผนรถล่าสุดจาก Google Sheet (ถ้าตั้ง API_URL) — ถ้าไม่สำเร็จใช้แผนที่ฝังมากับหน้าเว็บ */
+async function loadPlan() {
+  if (DEMO) return 'embedded';
+  try {
+    const res = await fetch(CFG.API_URL + '?action=plan&key=' + encodeURIComponent(CFG.VIEW_KEY || ''));
+    const j = await res.json();
+    if (j.ok && applyPlan(j.plan)) return 'sheet';
+  } catch (e) {}
+  return 'embedded';
+}
+// ขาไป: ออกเดินทางได้จาก CSP หรือ TUC เท่านั้น · ขากลับ: ปลายทางเดียวคือ TUC
+const DEPOTS = Object.entries(DATA.origins).map(([code, o]) => Object.assign({ code }, o));
+const HOME = Object.assign({ code: 'TUC' }, DATA.origins.TUC);
+
+const STAGE_TH = { DEPART: 'ออกเดินทาง', ENROUTE: 'ระหว่างทาง', ARRIVE: 'ถึงจุดหมาย' };
+const LEG_TH = { go: 'ขาไป', back: 'ขากลับ' };
+const SUBS = ['แวะพัก', 'รถเสีย', 'เปลี่ยนยาง', 'เดินทางต่อ', 'อื่นๆ'];
+const INCIDENT_RE = /รถเสีย|เปลี่ยนยาง/;
+
+const STATUS = {
+  incident:  { th: 'เหตุขัดข้อง',        rank: 0 },
+  stale:     { th: 'ขาดการติดต่อ',       rank: 1 },
+  paused:    { th: 'แวะพัก',             rank: 2 },
+  going:     { th: 'ขาไป · กำลังส่ง',    rank: 3 },
+  returning: { th: 'ขากลับ',             rank: 4 },
+  delivered: { th: 'ส่งครบ รอขากลับ',    rank: 5 },
+  idle:      { th: 'ยังไม่ออกเดินทาง',   rank: 6 },
+  done:      { th: 'กลับถึงศูนย์แล้ว',    rank: 7 }
+};
+
+function originOf(v) { return Object.assign({ code: v.origin }, DATA.origins[v.origin]); }
+function pointByCode(v, code) {
+  if (DATA.origins[code]) return Object.assign({ code }, DATA.origins[code]);
+  return v.stops.find(s => s.code === code);
+}
+
+/** สรุปสถานะล่าสุดของรถหนึ่งคันจากรายการรายงาน (เรียงเวลาแล้ว) */
+function deriveStatus(v, reps, now) {
+  const goDone = new Set(), backDone = new Set();
+  let lastPos = null;
+  let home = false;
+  reps.forEach(r => {
+    if (r.leg === 'go' && r.stage === 'ARRIVE' && r.destCode) goDone.add(r.destCode);
+    if (r.leg === 'back' && r.stage === 'DEPART' && r.destCode) backDone.add(r.destCode);
+    if (r.leg === 'back' && r.stage === 'ARRIVE') home = true;
+    if (r.lat !== '' && r.lat != null) lastPos = r;
+  });
+  const last = reps[reps.length - 1];
+  const n = v.stops.length;
+  const out = { v, reps, last, lastPos, goDone, backDone, leg: last ? last.leg : 'go', key: 'idle', stale: false };
+  if (!last) return out;
+  if (last.stage === 'ENROUTE' && INCIDENT_RE.test(last.sub)) out.key = 'incident';
+  else if (last.stage === 'ENROUTE' && last.sub === 'แวะพัก') out.key = 'paused';
+  else if (last.leg === 'go') out.key = goDone.size >= n && last.stage === 'ARRIVE' ? 'delivered' : 'going';
+  else out.key = home && last.stage === 'ARRIVE' ? 'done' : 'returning';
+  const mins = (now - new Date(last.serverTime || last.clientTime)) / 60000;
+  out.ageMin = mins;
+  out.stale = ['going', 'returning', 'paused', 'incident'].includes(out.key) && mins > CFG.STALE_MIN;
+  out.progress = out.leg === 'back'
+    ? { done: backDone.size, total: n, label: 'ออกจากสนาม' }
+    : { done: [...goDone].length, total: n, label: 'ส่งแล้ว' };
+  out.home = home;
+  return out;
+}
+
+function describe(r) {
+  if (!r) return 'ยังไม่มีรายงาน';
+  let t = STAGE_TH[r.stage];
+  if (r.sub) t += ' · ' + r.sub;
+  if (r.destName) {
+    const v = VMAP[r.vehicle], i = v ? v.stops.findIndex(s => s.code === r.destCode) : -1;
+    t += ' · ' + (i >= 0 ? (r.leg === 'go' ? 'ปลายทางที่ ' : 'สนามที่ ') + (i + 1) + ' ' : '') + r.destName;
+  }
+  return t;
+}
+
+/* ----- เวลา (แสดงเป็นเวลาไทยเสมอ) ----- */
+const TZ = 'Asia/Bangkok';
+const fmtTime = d => new Date(d).toLocaleTimeString('th-TH', { timeZone: TZ, hour: '2-digit', minute: '2-digit' });
+const fmtDate = d => new Date(d).toLocaleDateString('th-TH', { timeZone: TZ, day: 'numeric', month: 'short' });
+const fmtDT = d => fmtDate(d) + ' ' + fmtTime(d) + ' น.';
+function ago(min) {
+  if (min < 1) return 'เมื่อสักครู่';
+  if (min < 60) return Math.round(min) + ' นาทีที่แล้ว';
+  const h = Math.floor(min / 60), m = Math.round(min % 60);
+  return h < 24 ? h + ' ชม. ' + (m ? m + ' นาที' : '') + 'ที่แล้ว' : Math.floor(h / 24) + ' วันที่แล้ว';
+}
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const mapsUrl = r => 'https://www.google.com/maps?q=' + r.lat + ',' + r.lng;
+
+/* ----- API ----- */
+const LS_KEY = 'exam-tracker-demo-reports';
+function lsGet() { try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch (e) { return []; } }
+function lsSet(a) { try { localStorage.setItem(LS_KEY, JSON.stringify(a)); } catch (e) {} }
+
+async function fetchReports(params) {
+  if (DEMO) {
+    let rows = demoReports(new Date()).concat(lsGet());
+    if (params && params.vehicle) rows = rows.filter(r => String(r.vehicle) === String(params.vehicle));
+    return rows.sort((a, b) => a.serverTime < b.serverTime ? -1 : 1);
+  }
+  const q = new URLSearchParams(Object.assign({ key: CFG.VIEW_KEY }, params || {}));
+  const res = await fetch(CFG.API_URL + '?' + q.toString());
+  const j = await res.json();
+  if (!j.ok) throw new Error(j.error || 'โหลดข้อมูลไม่สำเร็จ');
+  return j.reports.sort((a, b) => a.serverTime < b.serverTime ? -1 : 1);
+}
+
+async function postReport(data) {
+  if (DEMO) {
+    const r = Object.assign({}, data, { id: Math.random().toString(36).slice(2, 10), serverTime: new Date().toISOString(), verified: false });
+    delete r.idToken;
+    const a = lsGet(); a.push(r); lsSet(a);
+    return r;
+  }
+  // text/plain เพื่อไม่ให้เกิด CORS preflight กับ Apps Script
+  const res = await fetch(CFG.API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(data) });
+  const j = await res.json();
+  if (!j.ok) throw new Error(j.error || 'ส่งรายงานไม่สำเร็จ');
+  return j.report;
+}
+
+/* ----- ข้อมูลตัวอย่าง (ใช้เมื่อยังไม่ได้ตั้ง API_URL) ----- */
+function demoReports(now) {
+  const names = ['ครูสมชาย ใจดี', 'อ.วิภาวรรณ ศรีสุข', 'นายประเสริฐ ทองคำ', 'ครูอรอุมา แก้วใส', 'นายธนพล รุ่งเรือง', 'อ.กมลชนก พรหมมา', 'นายสุรเชษฐ์ บุญมา', 'ครูจิราพร มณีวงศ์', 'นายอนุชา แสงทอง'];
+  // สัดส่วนความคืบหน้าของแต่ละคัน (0 = เพิ่งออก, 1 = จบทริป, <0 = ยังไม่ออก)
+  const frac = [1.05, .97, .88, .74, .62, .30, .34, .99, .70, .55, .80, .58, .42, .36, .40, .66, .50, .38, .45, .33, .28, .47, .52, .44, .37, .31, -.1];
+  const hav = (a, b) => { const R = 6371, t = Math.PI / 180, dLa = (b.lat - a.lat) * t, dLo = (b.lng - a.lng) * t; const x = Math.sin(dLa / 2) ** 2 + Math.cos(a.lat * t) * Math.cos(b.lat * t) * Math.sin(dLo / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(x)); };
+  const lerp = (a, b, f) => ({ lat: a.lat + (b.lat - a.lat) * f, lng: a.lng + (b.lng - a.lng) * f });
+  const out = [];
+  VEH.forEach((v, i) => {
+    const who = names[i % names.length];
+    const ev = []; const H = 3600e3;
+    const push = (t, leg, stage, p, extra) => ev.push(Object.assign({ t, leg, stage, lat: +p.lat.toFixed(5), lng: +p.lng.toFixed(5), sub: '', destCode: '', destName: '' }, extra || {}));
+    const travel = (from, to, t, leg) => {
+      const km = hav(from, to) * 1.25, h = km / 70 + .25;
+      const legs = Math.ceil(h / 2.5); let add = 0;
+      for (let j = 1; j < legs; j++) {
+        const f = j / legs, at = t + (h * f + add) * H;
+        push(at, leg, 'ENROUTE', lerp(from, to, f), { sub: 'แวะพัก', note: j % 2 ? 'พักรถ เติมน้ำมัน' : 'พักทานอาหาร' });
+        push(at + .33 * H, leg, 'ENROUTE', lerp(from, to, f), { sub: 'เดินทางต่อ' }); add += .33;
+      }
+      return t + (h + add) * H;
+    };
+    const o = originOf(v);
+    let t = 0;
+    push(t, 'go', 'DEPART', o, { destCode: o.code, destName: o.name });
+    let prev = o;
+    v.stops.forEach(s => { t = travel(prev, s, t, 'go'); push(t, 'go', 'ARRIVE', s, { destCode: s.code, destName: s.label, sub: 'ส่งมอบแล้ว' }); t += .5 * H; prev = s; });
+    t += 2 * H;
+    const rev = v.stops.slice().reverse();
+    prev = rev[0];
+    rev.forEach((s, j) => { if (j) t = travel(prev, s, t, 'back') + .4 * H; push(t, 'back', 'DEPART', s, { destCode: s.code, destName: s.label, note: 'รับกระดาษคำตอบแล้ว' }); prev = s; });
+    t = travel(prev, HOME, t, 'back'); push(t, 'back', 'ARRIVE', HOME, { destCode: HOME.code, destName: HOME.name, sub: 'ส่งคืนครบ' });
+    const total = t, start = now.getTime() - frac[i] * total;
+    let kept = ev.filter(e => start + e.t <= now.getTime());
+    if ((v.id === 14 || v.id === 20) && kept.length) {
+      const l = kept[kept.length - 1], nx = ev[kept.length] || l;
+      const p = lerp(l, nx, .4);
+      kept.push({ t: Math.max(l.t + 5 * 60e3, now.getTime() - start - 35 * 60e3), leg: l.leg, stage: 'ENROUTE', lat: +p.lat.toFixed(5), lng: +p.lng.toFixed(5), sub: v.id === 14 ? 'รถเสีย' : 'เปลี่ยนยาง', destCode: '', destName: '', note: v.id === 14 ? 'หม้อน้ำรั่ว รอช่างประมาณ 1 ชม. กล่องข้อสอบปลอดภัย' : 'ยางหลังขวารั่ว กำลังเปลี่ยนยางอะไหล่' });
+    }
+    if (v.id === 9 && kept.length) kept[kept.length - 1].t -= 3.6 * H; // ตัวอย่างคันที่เงียบหาย
+    kept.forEach((e, k) => out.push({
+      id: 'd' + v.id + '-' + k, serverTime: new Date(start + e.t).toISOString(), clientTime: '', vehicle: v.id, leg: e.leg, stage: e.stage, sub: e.sub,
+      destCode: e.destCode, destName: e.destName, lat: e.lat, lng: e.lng, accuracy: 12 + (k * 7) % 30, note: e.note || '',
+      lineUserId: 'demo' + i, lineName: who, linePicture: '', verified: true
+    }));
+  });
+  return out;
+}
+
+
+const $ = s => document.querySelector(s);
+const st = { profile: null, idToken: '', vehicle: null, leg: 'go', stage: null, sub: '', dest: null, pos: null, reps: [] };
+
+async function initLine() {
+  if (CFG.LIFF_ID && window.liff) {
+    await liff.init({ liffId: CFG.LIFF_ID });
+    if (!liff.isLoggedIn()) { liff.login({ redirectUri: location.href }); return false; }
+    st.profile = await liff.getProfile();
+    st.idToken = liff.getIDToken() || '';
+  } else {
+    st.profile = { displayName: 'ผู้ทดสอบระบบ', userId: 'demo-user', pictureUrl: '' };
+    $('#demoBadge').hidden = false;
+  }
+  const p = st.profile;
+  $('#hello').textContent = 'สวัสดี ' + p.displayName;
+  $('#ava').innerHTML = p.pictureUrl ? '<img src="' + esc(p.pictureUrl) + '" alt="">' : esc(p.displayName.slice(0, 1));
+  return true;
+}
+
+/* ----- vehicle ----- */
+function pickVehicle() {
+  const qs = new URLSearchParams(location.search);
+  let v = qs.get('v');
+  if (!v && qs.get('liff.state')) v = new URLSearchParams(qs.get('liff.state').split('?')[1] || '').get('v');
+  if (!v) try { v = localStorage.getItem('et-vehicle'); } catch (e) {}
+  $('#veh').innerHTML = '<option value="">— เลือกคันที่ —</option>' + VEH.map(x => '<option value="' + x.id + '">คันที่ ' + x.id + ' · ' + esc(x.line) + '</option>').join('');
+  if (v && VMAP[v]) $('#veh').value = v;
+  setVehicle($('#veh').value);
+}
+async function setVehicle(id) {
+  st.vehicle = VMAP[id] || null;
+  try { if (id) localStorage.setItem('et-vehicle', id); } catch (e) {}
+  if (!st.vehicle) { $('#vehInfo').textContent = 'เลือกคันที่ของคุณ (ลิงก์ประจำคันจะเลือกให้อัตโนมัติ)'; $('#hist').innerHTML = ''; renderAll(); return; }
+  const v = st.vehicle;
+  $('#vehInfo').textContent = 'ออกจาก ' + originOf(v).name + ' · ' + v.stops.length + ' สนามสอบ · ~' + v.km + ' กม.' + (v.plate ? ' · ทะเบียน ' + v.plate : '');
+  $('#hist').innerHTML = '<li><small>กำลังโหลด…</small></li>';
+  try { st.reps = await fetchReports({ vehicle: v.id }); } catch (e) { st.reps = []; }
+  suggest(); renderAll(); renderHist();
+}
+
+/** เดาขั้นถัดไปจากรายงานก่อนหน้า เพื่อลดการกด */
+function suggest() {
+  const s = deriveStatus(st.vehicle, st.reps, new Date());
+  st.leg = s.key === 'delivered' || s.leg === 'back' ? 'back' : 'go';
+  st.sub = ''; st.dest = null;
+  // ขากลับ: ออกจากสนามสอบทีละเขต (วนกลับ) จนครบ แล้วจึงถึง TUC
+  st.rec = s.key === 'idle' || s.key === 'delivered' ? 'DEPART'
+    : s.key === 'done' ? null
+    : st.leg === 'back' ? (s.backDone.size < st.vehicle.stops.length ? 'DEPART' : 'ARRIVE')
+    : 'ARRIVE';
+  st.stage = st.rec;
+}
+
+/** รายการจุดที่เลือกได้ ตามขาและสถานะ (ดึงจากแผนเส้นทางของคันนั้นอัตโนมัติ)
+ *  ขาไป-ออกเดินทาง : CSP หรือ TUC
+ *  ขาไป-ถึงจุดหมาย : ปลายทางที่ 1..n ของคันนั้น
+ *  ขากลับ-ออกเดินทาง: สนามสอบของคันนั้น เรียงวนกลับ (ปลายทางสุดท้าย → ปลายทางที่ 1)
+ *  ขากลับ-ถึงจุดหมาย: TUC เท่านั้น */
+function destList() {
+  const v = st.vehicle; if (!v) return [];
+  const label = (p, i, tag) => Object.assign({}, p, { tag: tag + ' ' + i });
+  if (st.leg === 'go') return st.stage === 'DEPART' ? DEPOTS.slice().sort((a, b) => (b.code === v.origin) - (a.code === v.origin))
+    : v.stops.map((p, i) => label(p, i + 1, 'ปลายทางที่'));
+  return st.stage === 'DEPART' ? v.stops.map((p, i) => label(p, i + 1, 'สนามที่')).reverse() : [HOME];
+}
+function doneSet() {
+  const s = new Set();
+  st.reps.forEach(r => { if (r.leg === st.leg && r.destCode && r.stage === st.stage) s.add(r.destCode); });
+  return s;
+}
+
+/* ----- render ----- */
+function renderAll() {
+  document.querySelectorAll('#leg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === st.leg));
+  document.querySelectorAll('.stage').forEach(b => {
+    b.setAttribute('aria-pressed', b.dataset.v === st.stage);
+    const r = b.querySelector('.rec'); if (r) r.remove();
+    if (b.dataset.v === st.rec) b.insertAdjacentHTML('afterbegin', '<span class="rec">แนะนำ</span>');
+  });
+  $('.stage[data-v="DEPART"] small').textContent = st.leg === 'go' ? 'จาก CSP / TUC' : 'จากสนามสอบ (วนกลับ)';
+  $('.stage[data-v="ARRIVE"] small').textContent = st.leg === 'go' ? 'ปลายทางที่ 1–' + (st.vehicle ? st.vehicle.stops.length : 'n') : 'ถึง TUC';
+
+  $('#subBox').hidden = st.stage !== 'ENROUTE';
+  const subC = { 'แวะพัก': 's-paused', 'รถเสีย': 's-incident', 'เปลี่ยนยาง': 's-incident', 'เดินทางต่อ': 's-going', 'อื่นๆ': 'muted' };
+  $('#subs').innerHTML = SUBS.map(x => '<button type="button" class="chip" data-v="' + x + '" style="--c:var(--' + subC[x] + ')" aria-pressed="' + (st.sub === x) + '">' + x + '</button>').join('');
+
+  const showDest = st.stage === 'ARRIVE' || st.stage === 'DEPART';
+  $('#destBox').hidden = !showDest || !st.vehicle;
+  if (showDest && st.vehicle) {
+    $('#destLegend').textContent = st.leg === 'go'
+      ? (st.stage === 'DEPART' ? 'ออกเดินทางจาก' : 'ถึงปลายทางใด')
+      : (st.stage === 'DEPART' ? 'ออกจากสนามสอบใด (เรียงวนกลับ)' : 'ปลายทางขากลับ');
+    const list = destList(), done = doneSet();
+    if (!st.dest || !list.some(p => p.code === st.dest)) st.dest = st.leg === 'go' && st.stage === 'DEPART' ? st.vehicle.origin : (list.find(p => !done.has(p.code)) || list[list.length - 1]).code;
+    $('#dests').innerHTML = list.map(p => {
+      const depot = !!DATA.origins[p.code];
+      const sub = depot ? (p.code === st.vehicle.origin ? 'จุดขึ้นรถตามแผน' : '') : p.tag + ' · ' + (p.venue ? p.name : (p.amphoe || ''));
+      return '<button type="button" class="dest" data-v="' + p.code + '" aria-pressed="' + (st.dest === p.code) + '"><span class="n">' + (depot ? p.code : p.tag.replace(/\D/g, '')) + '</span><span>' + esc(p.label || p.name) + '<small>' + esc(sub) + '</small></span><span class="tick">' + (done.has(p.code) ? '✓ รายงานแล้ว' : '') + '</span></button>';
+    }).join('');
+  }
+  renderSum();
+}
+function renderSum() {
+  const v = st.vehicle;
+  let msg = '';
+  if (!v) msg = 'เลือกคันที่ก่อน';
+  else if (!st.stage) msg = 'เลือกสถานะ';
+  else if (st.stage === 'ENROUTE' && !st.sub) msg = 'เลือกเหตุการณ์ระหว่างทาง';
+  else if (st.sub === 'อื่นๆ' && !$('#note').value.trim()) msg = 'กรุณาระบุรายละเอียดในหมายเหตุ';
+  const ok = !msg;
+  $('#send').disabled = !ok;
+  $('#sum').innerHTML = ok ? 'คันที่ ' + v.id + ' · ' + LEG_TH[st.leg] + ' · ' + STAGE_TH[st.stage] + (st.sub ? ' · ' + st.sub : '') + (st.pos ? '' : ' · <span class="err">ไม่มีพิกัด</span>') : msg;
+}
+function renderHist() {
+  const r = st.reps.slice(-5).reverse();
+  $('#hist').innerHTML = r.length ? r.map(x => '<li><span class="t">' + fmtTime(x.serverTime) + '</span><span>' + LEG_TH[x.leg] + ' · ' + esc(describe(x)) + '</span><small>' + fmtDate(x.serverTime) + ' · ' + esc(x.lineName) + '</small></li>').join('') : '<li><small>ยังไม่มีรายงานของคันนี้</small></li>';
+}
+
+/* ----- GPS ----- */
+function readGps() {
+  $('#gpsSt').className = 'st'; $('#gpsSt').textContent = 'กำลังหาพิกัด…';
+  if (!navigator.geolocation) return gpsFail('อุปกรณ์นี้ไม่รองรับการระบุตำแหน่ง');
+  navigator.geolocation.getCurrentPosition(p => {
+    st.pos = { lat: +p.coords.latitude.toFixed(6), lng: +p.coords.longitude.toFixed(6), accuracy: Math.round(p.coords.accuracy) };
+    $('#gpsSt').className = 'st ok'; $('#gpsSt').textContent = 'ได้พิกัดแล้ว (±' + st.pos.accuracy + ' ม.)';
+    $('#gpsCo').innerHTML = st.pos.lat + ', ' + st.pos.lng + ' · <a href="' + mapsUrl(st.pos) + '" target="_blank" rel="noopener">ดูบนแผนที่</a>';
+    renderSum();
+  }, e => gpsFail(e.code === 1 ? 'ไม่ได้รับอนุญาตให้ใช้ตำแหน่ง — เปิดสิทธิ์ตำแหน่งให้แอป LINE แล้วกด "อ่านพิกัดใหม่"' : 'อ่านพิกัดไม่สำเร็จ ลองกดอ่านใหม่ในที่โล่ง'),
+  { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 });
+}
+function gpsFail(m) { st.pos = null; $('#gpsSt').className = 'st bad'; $('#gpsSt').textContent = 'ไม่มีพิกัด'; $('#gpsCo').textContent = m + ' (ยังส่งรายงานได้)'; renderSum(); }
+
+/* ----- events ----- */
+$('#veh').addEventListener('change', e => setVehicle(e.target.value));
+$('#leg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; st.leg = b.dataset.v; st.dest = null; renderAll(); });
+$('#stages').addEventListener('click', e => { const b = e.target.closest('.stage'); if (!b) return; st.stage = b.dataset.v; st.dest = null; if (st.stage !== 'ENROUTE') st.sub = ''; renderAll(); });
+$('#subs').addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; st.sub = b.dataset.v; renderAll(); });
+$('#dests').addEventListener('click', e => { const b = e.target.closest('.dest'); if (!b) return; st.dest = b.dataset.v; renderAll(); });
+$('#note').addEventListener('input', renderSum);
+$('#gpsBtn').onclick = readGps;
+
+$('#f').addEventListener('submit', async e => {
+  e.preventDefault();
+  if ($('#send').disabled) return;
+  const v = st.vehicle;
+  const dest = st.stage === 'ENROUTE' ? null : pointByCode(v, st.dest);
+  const payload = {
+    vehicle: v.id, leg: st.leg, stage: st.stage, sub: st.sub,
+    destCode: dest ? dest.code : '', destName: dest ? (dest.label || dest.name) : '',
+    lat: st.pos ? st.pos.lat : '', lng: st.pos ? st.pos.lng : '', accuracy: st.pos ? st.pos.accuracy : '',
+    note: $('#note').value.trim(), clientTime: new Date().toISOString(),
+    lineUserId: st.profile.userId, lineName: st.profile.displayName, linePicture: st.profile.pictureUrl || '', idToken: st.idToken
+  };
+  $('#send').disabled = true; $('#send').textContent = 'กำลังส่ง…';
+  try {
+    const r = await postReport(payload);
+    st.reps.push(r);
+    $('#doneCard').innerHTML = '<b>คันที่ ' + v.id + ' · ' + LEG_TH[r.leg] + '</b><br>' + esc(describe(r)) + '<br><span style="color:var(--muted)">' + fmtDT(r.serverTime) + (r.lat !== '' ? ' · พิกัด ±' + r.accuracy + ' ม.' : ' · ไม่มีพิกัด') + '</span>';
+    $('#done').hidden = false;
+  } catch (err) {
+    $('#sum').innerHTML = '<span class="err">' + esc(err.message) + ' — สัญญาณอาจไม่ดี ลองกดส่งอีกครั้ง</span>';
+    $('#send').disabled = false;
+  }
+  $('#send').textContent = 'ส่งรายงาน';
+});
+$('#again').onclick = () => { $('#done').hidden = true; $('#note').value = ''; suggest(); renderAll(); renderHist(); readGps(); window.scrollTo(0, 0); };
+$('#closeBtn').onclick = () => { if (window.liff && CFG.LIFF_ID && liff.isInClient()) liff.closeWindow(); else $('#again').click(); };
+
+(async () => {
+  try { if (!(await initLine())) return; } catch (e) { $('#hello').textContent = 'เชื่อมต่อ LINE ไม่สำเร็จ'; $('#sum').innerHTML = '<span class="err">' + esc(e.message) + '</span>'; return; }
+  await loadPlan(); pickVehicle(); readGps();
+})();
+</script>
+
 </body>
 </html>

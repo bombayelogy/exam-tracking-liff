@@ -1,0 +1,1336 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#8c1d2c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>ติดตามรถข้อสอบ ว.14</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anuphan:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>/* required styles */
+
+.leaflet-pane,
+.leaflet-tile,
+.leaflet-marker-icon,
+.leaflet-marker-shadow,
+.leaflet-tile-container,
+.leaflet-pane > svg,
+.leaflet-pane > canvas,
+.leaflet-zoom-box,
+.leaflet-image-layer,
+.leaflet-layer {
+	position: absolute;
+	left: 0;
+	top: 0;
+	}
+.leaflet-container {
+	overflow: hidden;
+	}
+.leaflet-tile,
+.leaflet-marker-icon,
+.leaflet-marker-shadow {
+	-webkit-user-select: none;
+	   -moz-user-select: none;
+	        user-select: none;
+	  -webkit-user-drag: none;
+	}
+/* Prevents IE11 from highlighting tiles in blue */
+.leaflet-tile::selection {
+	background: transparent;
+}
+/* Safari renders non-retina tile on retina better with this, but Chrome is worse */
+.leaflet-safari .leaflet-tile {
+	image-rendering: -webkit-optimize-contrast;
+	}
+/* hack that prevents hw layers "stretching" when loading new tiles */
+.leaflet-safari .leaflet-tile-container {
+	width: 1600px;
+	height: 1600px;
+	-webkit-transform-origin: 0 0;
+	}
+.leaflet-marker-icon,
+.leaflet-marker-shadow {
+	display: block;
+	}
+/* .leaflet-container svg: reset svg max-width decleration shipped in Joomla! (joomla.org) 3.x */
+/* .leaflet-container img: map is broken in FF if you have max-width: 100% on tiles */
+.leaflet-container .leaflet-overlay-pane svg {
+	max-width: none !important;
+	max-height: none !important;
+	}
+.leaflet-container .leaflet-marker-pane img,
+.leaflet-container .leaflet-shadow-pane img,
+.leaflet-container .leaflet-tile-pane img,
+.leaflet-container img.leaflet-image-layer,
+.leaflet-container .leaflet-tile {
+	max-width: none !important;
+	max-height: none !important;
+	width: auto;
+	padding: 0;
+	}
+
+.leaflet-container img.leaflet-tile {
+	/* See: https://bugs.chromium.org/p/chromium/issues/detail?id=600120 */
+	mix-blend-mode: plus-lighter;
+}
+
+.leaflet-container.leaflet-touch-zoom {
+	-ms-touch-action: pan-x pan-y;
+	touch-action: pan-x pan-y;
+	}
+.leaflet-container.leaflet-touch-drag {
+	-ms-touch-action: pinch-zoom;
+	/* Fallback for FF which doesn't support pinch-zoom */
+	touch-action: none;
+	touch-action: pinch-zoom;
+}
+.leaflet-container.leaflet-touch-drag.leaflet-touch-zoom {
+	-ms-touch-action: none;
+	touch-action: none;
+}
+.leaflet-container {
+	-webkit-tap-highlight-color: transparent;
+}
+.leaflet-container a {
+	-webkit-tap-highlight-color: rgba(51, 181, 229, 0.4);
+}
+.leaflet-tile {
+	filter: inherit;
+	visibility: hidden;
+	}
+.leaflet-tile-loaded {
+	visibility: inherit;
+	}
+.leaflet-zoom-box {
+	width: 0;
+	height: 0;
+	-moz-box-sizing: border-box;
+	     box-sizing: border-box;
+	z-index: 800;
+	}
+/* workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=888319 */
+.leaflet-overlay-pane svg {
+	-moz-user-select: none;
+	}
+
+.leaflet-pane         { z-index: 400; }
+
+.leaflet-tile-pane    { z-index: 200; }
+.leaflet-overlay-pane { z-index: 400; }
+.leaflet-shadow-pane  { z-index: 500; }
+.leaflet-marker-pane  { z-index: 600; }
+.leaflet-tooltip-pane   { z-index: 650; }
+.leaflet-popup-pane   { z-index: 700; }
+
+.leaflet-map-pane canvas { z-index: 100; }
+.leaflet-map-pane svg    { z-index: 200; }
+
+.leaflet-vml-shape {
+	width: 1px;
+	height: 1px;
+	}
+.lvml {
+	behavior: url(#default#VML);
+	display: inline-block;
+	position: absolute;
+	}
+
+
+/* control positioning */
+
+.leaflet-control {
+	position: relative;
+	z-index: 800;
+	pointer-events: visiblePainted; /* IE 9-10 doesn't have auto */
+	pointer-events: auto;
+	}
+.leaflet-top,
+.leaflet-bottom {
+	position: absolute;
+	z-index: 1000;
+	pointer-events: none;
+	}
+.leaflet-top {
+	top: 0;
+	}
+.leaflet-right {
+	right: 0;
+	}
+.leaflet-bottom {
+	bottom: 0;
+	}
+.leaflet-left {
+	left: 0;
+	}
+.leaflet-control {
+	float: left;
+	clear: both;
+	}
+.leaflet-right .leaflet-control {
+	float: right;
+	}
+.leaflet-top .leaflet-control {
+	margin-top: 10px;
+	}
+.leaflet-bottom .leaflet-control {
+	margin-bottom: 10px;
+	}
+.leaflet-left .leaflet-control {
+	margin-left: 10px;
+	}
+.leaflet-right .leaflet-control {
+	margin-right: 10px;
+	}
+
+
+/* zoom and fade animations */
+
+.leaflet-fade-anim .leaflet-popup {
+	opacity: 0;
+	-webkit-transition: opacity 0.2s linear;
+	   -moz-transition: opacity 0.2s linear;
+	        transition: opacity 0.2s linear;
+	}
+.leaflet-fade-anim .leaflet-map-pane .leaflet-popup {
+	opacity: 1;
+	}
+.leaflet-zoom-animated {
+	-webkit-transform-origin: 0 0;
+	    -ms-transform-origin: 0 0;
+	        transform-origin: 0 0;
+	}
+svg.leaflet-zoom-animated {
+	will-change: transform;
+}
+
+.leaflet-zoom-anim .leaflet-zoom-animated {
+	-webkit-transition: -webkit-transform 0.25s cubic-bezier(0,0,0.25,1);
+	   -moz-transition:    -moz-transform 0.25s cubic-bezier(0,0,0.25,1);
+	        transition:         transform 0.25s cubic-bezier(0,0,0.25,1);
+	}
+.leaflet-zoom-anim .leaflet-tile,
+.leaflet-pan-anim .leaflet-tile {
+	-webkit-transition: none;
+	   -moz-transition: none;
+	        transition: none;
+	}
+
+.leaflet-zoom-anim .leaflet-zoom-hide {
+	visibility: hidden;
+	}
+
+
+/* cursors */
+
+.leaflet-interactive {
+	cursor: pointer;
+	}
+.leaflet-grab {
+	cursor: -webkit-grab;
+	cursor:    -moz-grab;
+	cursor:         grab;
+	}
+.leaflet-crosshair,
+.leaflet-crosshair .leaflet-interactive {
+	cursor: crosshair;
+	}
+.leaflet-popup-pane,
+.leaflet-control {
+	cursor: auto;
+	}
+.leaflet-dragging .leaflet-grab,
+.leaflet-dragging .leaflet-grab .leaflet-interactive,
+.leaflet-dragging .leaflet-marker-draggable {
+	cursor: move;
+	cursor: -webkit-grabbing;
+	cursor:    -moz-grabbing;
+	cursor:         grabbing;
+	}
+
+/* marker & overlays interactivity */
+.leaflet-marker-icon,
+.leaflet-marker-shadow,
+.leaflet-image-layer,
+.leaflet-pane > svg path,
+.leaflet-tile-container {
+	pointer-events: none;
+	}
+
+.leaflet-marker-icon.leaflet-interactive,
+.leaflet-image-layer.leaflet-interactive,
+.leaflet-pane > svg path.leaflet-interactive,
+svg.leaflet-image-layer.leaflet-interactive path {
+	pointer-events: visiblePainted; /* IE 9-10 doesn't have auto */
+	pointer-events: auto;
+	}
+
+/* visual tweaks */
+
+.leaflet-container {
+	background: #ddd;
+	outline-offset: 1px;
+	}
+.leaflet-container a {
+	color: #0078A8;
+	}
+.leaflet-zoom-box {
+	border: 2px dotted #38f;
+	background: rgba(255,255,255,0.5);
+	}
+
+
+/* general typography */
+.leaflet-container {
+	font-family: "Helvetica Neue", Arial, Helvetica, sans-serif;
+	font-size: 12px;
+	font-size: 0.75rem;
+	line-height: 1.5;
+	}
+
+
+/* general toolbar styles */
+
+.leaflet-bar {
+	box-shadow: 0 1px 5px rgba(0,0,0,0.65);
+	border-radius: 4px;
+	}
+.leaflet-bar a {
+	background-color: #fff;
+	border-bottom: 1px solid #ccc;
+	width: 26px;
+	height: 26px;
+	line-height: 26px;
+	display: block;
+	text-align: center;
+	text-decoration: none;
+	color: black;
+	}
+.leaflet-bar a,
+.leaflet-control-layers-toggle {
+	background-position: 50% 50%;
+	background-repeat: no-repeat;
+	display: block;
+	}
+.leaflet-bar a:hover,
+.leaflet-bar a:focus {
+	background-color: #f4f4f4;
+	}
+.leaflet-bar a:first-child {
+	border-top-left-radius: 4px;
+	border-top-right-radius: 4px;
+	}
+.leaflet-bar a:last-child {
+	border-bottom-left-radius: 4px;
+	border-bottom-right-radius: 4px;
+	border-bottom: none;
+	}
+.leaflet-bar a.leaflet-disabled {
+	cursor: default;
+	background-color: #f4f4f4;
+	color: #bbb;
+	}
+
+.leaflet-touch .leaflet-bar a {
+	width: 30px;
+	height: 30px;
+	line-height: 30px;
+	}
+.leaflet-touch .leaflet-bar a:first-child {
+	border-top-left-radius: 2px;
+	border-top-right-radius: 2px;
+	}
+.leaflet-touch .leaflet-bar a:last-child {
+	border-bottom-left-radius: 2px;
+	border-bottom-right-radius: 2px;
+	}
+
+/* zoom control */
+
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+	font: bold 18px 'Lucida Console', Monaco, monospace;
+	text-indent: 1px;
+	}
+
+.leaflet-touch .leaflet-control-zoom-in, .leaflet-touch .leaflet-control-zoom-out  {
+	font-size: 22px;
+	}
+
+
+/* layers control */
+
+.leaflet-control-layers {
+	box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+	background: #fff;
+	border-radius: 5px;
+	}
+.leaflet-control-layers-toggle {
+	background-image: url(images/layers.png);
+	width: 36px;
+	height: 36px;
+	}
+.leaflet-retina .leaflet-control-layers-toggle {
+	background-image: url(images/layers-2x.png);
+	background-size: 26px 26px;
+	}
+.leaflet-touch .leaflet-control-layers-toggle {
+	width: 44px;
+	height: 44px;
+	}
+.leaflet-control-layers .leaflet-control-layers-list,
+.leaflet-control-layers-expanded .leaflet-control-layers-toggle {
+	display: none;
+	}
+.leaflet-control-layers-expanded .leaflet-control-layers-list {
+	display: block;
+	position: relative;
+	}
+.leaflet-control-layers-expanded {
+	padding: 6px 10px 6px 6px;
+	color: #333;
+	background: #fff;
+	}
+.leaflet-control-layers-scrollbar {
+	overflow-y: scroll;
+	overflow-x: hidden;
+	padding-right: 5px;
+	}
+.leaflet-control-layers-selector {
+	margin-top: 2px;
+	position: relative;
+	top: 1px;
+	}
+.leaflet-control-layers label {
+	display: block;
+	font-size: 13px;
+	font-size: 1.08333em;
+	}
+.leaflet-control-layers-separator {
+	height: 0;
+	border-top: 1px solid #ddd;
+	margin: 5px -10px 5px -6px;
+	}
+
+/* Default icon URLs */
+.leaflet-default-icon-path { /* used only in path-guessing heuristic, see L.Icon.Default */
+	background-image: url(images/marker-icon.png);
+	}
+
+
+/* attribution and scale controls */
+
+.leaflet-container .leaflet-control-attribution {
+	background: #fff;
+	background: rgba(255, 255, 255, 0.8);
+	margin: 0;
+	}
+.leaflet-control-attribution,
+.leaflet-control-scale-line {
+	padding: 0 5px;
+	color: #333;
+	line-height: 1.4;
+	}
+.leaflet-control-attribution a {
+	text-decoration: none;
+	}
+.leaflet-control-attribution a:hover,
+.leaflet-control-attribution a:focus {
+	text-decoration: underline;
+	}
+.leaflet-attribution-flag {
+	display: inline !important;
+	vertical-align: baseline !important;
+	width: 1em;
+	height: 0.6669em;
+	}
+.leaflet-left .leaflet-control-scale {
+	margin-left: 5px;
+	}
+.leaflet-bottom .leaflet-control-scale {
+	margin-bottom: 5px;
+	}
+.leaflet-control-scale-line {
+	border: 2px solid #777;
+	border-top: none;
+	line-height: 1.1;
+	padding: 2px 5px 1px;
+	white-space: nowrap;
+	-moz-box-sizing: border-box;
+	     box-sizing: border-box;
+	background: rgba(255, 255, 255, 0.8);
+	text-shadow: 1px 1px #fff;
+	}
+.leaflet-control-scale-line:not(:first-child) {
+	border-top: 2px solid #777;
+	border-bottom: none;
+	margin-top: -2px;
+	}
+.leaflet-control-scale-line:not(:first-child):not(:last-child) {
+	border-bottom: 2px solid #777;
+	}
+
+.leaflet-touch .leaflet-control-attribution,
+.leaflet-touch .leaflet-control-layers,
+.leaflet-touch .leaflet-bar {
+	box-shadow: none;
+	}
+.leaflet-touch .leaflet-control-layers,
+.leaflet-touch .leaflet-bar {
+	border: 2px solid rgba(0,0,0,0.2);
+	background-clip: padding-box;
+	}
+
+
+/* popup */
+
+.leaflet-popup {
+	position: absolute;
+	text-align: center;
+	margin-bottom: 20px;
+	}
+.leaflet-popup-content-wrapper {
+	padding: 1px;
+	text-align: left;
+	border-radius: 12px;
+	}
+.leaflet-popup-content {
+	margin: 13px 24px 13px 20px;
+	line-height: 1.3;
+	font-size: 13px;
+	font-size: 1.08333em;
+	min-height: 1px;
+	}
+.leaflet-popup-content p {
+	margin: 17px 0;
+	margin: 1.3em 0;
+	}
+.leaflet-popup-tip-container {
+	width: 40px;
+	height: 20px;
+	position: absolute;
+	left: 50%;
+	margin-top: -1px;
+	margin-left: -20px;
+	overflow: hidden;
+	pointer-events: none;
+	}
+.leaflet-popup-tip {
+	width: 17px;
+	height: 17px;
+	padding: 1px;
+
+	margin: -10px auto 0;
+	pointer-events: auto;
+
+	-webkit-transform: rotate(45deg);
+	   -moz-transform: rotate(45deg);
+	    -ms-transform: rotate(45deg);
+	        transform: rotate(45deg);
+	}
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+	background: white;
+	color: #333;
+	box-shadow: 0 3px 14px rgba(0,0,0,0.4);
+	}
+.leaflet-container a.leaflet-popup-close-button {
+	position: absolute;
+	top: 0;
+	right: 0;
+	border: none;
+	text-align: center;
+	width: 24px;
+	height: 24px;
+	font: 16px/24px Tahoma, Verdana, sans-serif;
+	color: #757575;
+	text-decoration: none;
+	background: transparent;
+	}
+.leaflet-container a.leaflet-popup-close-button:hover,
+.leaflet-container a.leaflet-popup-close-button:focus {
+	color: #585858;
+	}
+.leaflet-popup-scrolled {
+	overflow: auto;
+	}
+
+.leaflet-oldie .leaflet-popup-content-wrapper {
+	-ms-zoom: 1;
+	}
+.leaflet-oldie .leaflet-popup-tip {
+	width: 24px;
+	margin: 0 auto;
+
+	-ms-filter: "progid:DXImageTransform.Microsoft.Matrix(M11=0.70710678, M12=0.70710678, M21=-0.70710678, M22=0.70710678)";
+	filter: progid:DXImageTransform.Microsoft.Matrix(M11=0.70710678, M12=0.70710678, M21=-0.70710678, M22=0.70710678);
+	}
+
+.leaflet-oldie .leaflet-control-zoom,
+.leaflet-oldie .leaflet-control-layers,
+.leaflet-oldie .leaflet-popup-content-wrapper,
+.leaflet-oldie .leaflet-popup-tip {
+	border: 1px solid #999;
+	}
+
+
+/* div icon */
+
+.leaflet-div-icon {
+	background: #fff;
+	border: 1px solid #666;
+	}
+
+
+/* Tooltip */
+/* Base styles for the element that has a tooltip */
+.leaflet-tooltip {
+	position: absolute;
+	padding: 6px;
+	background-color: #fff;
+	border: 1px solid #fff;
+	border-radius: 3px;
+	color: #222;
+	white-space: nowrap;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	pointer-events: none;
+	box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+	}
+.leaflet-tooltip.leaflet-interactive {
+	cursor: pointer;
+	pointer-events: auto;
+	}
+.leaflet-tooltip-top:before,
+.leaflet-tooltip-bottom:before,
+.leaflet-tooltip-left:before,
+.leaflet-tooltip-right:before {
+	position: absolute;
+	pointer-events: none;
+	border: 6px solid transparent;
+	background: transparent;
+	content: "";
+	}
+
+/* Directions */
+
+.leaflet-tooltip-bottom {
+	margin-top: 6px;
+}
+.leaflet-tooltip-top {
+	margin-top: -6px;
+}
+.leaflet-tooltip-bottom:before,
+.leaflet-tooltip-top:before {
+	left: 50%;
+	margin-left: -6px;
+	}
+.leaflet-tooltip-top:before {
+	bottom: 0;
+	margin-bottom: -12px;
+	border-top-color: #fff;
+	}
+.leaflet-tooltip-bottom:before {
+	top: 0;
+	margin-top: -12px;
+	margin-left: -6px;
+	border-bottom-color: #fff;
+	}
+.leaflet-tooltip-left {
+	margin-left: -6px;
+}
+.leaflet-tooltip-right {
+	margin-left: 6px;
+}
+.leaflet-tooltip-left:before,
+.leaflet-tooltip-right:before {
+	top: 50%;
+	margin-top: -6px;
+	}
+.leaflet-tooltip-left:before {
+	right: 0;
+	margin-right: -12px;
+	border-left-color: #fff;
+	}
+.leaflet-tooltip-right:before {
+	left: 0;
+	margin-left: -12px;
+	border-right-color: #fff;
+	}
+
+/* Printing */
+
+@media print {
+	/* Prevent printers from removing background-images of controls. */
+	.leaflet-control {
+		-webkit-print-color-adjust: exact;
+		print-color-adjust: exact;
+		}
+	}
+</style>
+<style>
+/* Layout: แถบสรุปสถานะด้านบน → รายการรถ (ซ้าย) + แผนที่ (ขวา, ติดหน้าจอ) → แผงรายละเอียดเลื่อนเข้าจากขวา */
+:root{
+  --bg:#f3f4f7; --panel:#ffffff; --ink:#1b2130; --muted:#5d6577; --line:#dfe2ea; --soft:#eceef4;
+  --brand:#8c1d2c; --brand-ink:#ffffff; --gold:#d9a521;
+  --s-incident:#d0312d; --s-stale:#c46a12; --s-paused:#b08800; --s-going:#2563c9; --s-returning:#7a45c2;
+  --s-delivered:#0f8a83; --s-idle:#8a90a0; --s-done:#2b8a3e;
+  --land:#e4e7ee; --sea:#f7f8fb;
+  --f-display:'Anuphan','IBM Plex Sans Thai',system-ui,sans-serif;
+  --f-body:'IBM Plex Sans Thai','Noto Sans Thai',system-ui,sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12151d; --panel:#1a1e29; --ink:#e7e9ef; --muted:#9aa2b4; --line:#2c3242; --soft:#232837;
+  --brand:#b8384a; --brand-ink:#ffffff; --gold:#e6b93c;
+  --s-incident:#f0605a; --s-stale:#e58a3a; --s-paused:#d8b23a; --s-going:#5b93ec; --s-returning:#a57ce4;
+  --s-delivered:#2fb5ac; --s-idle:#7d8496; --s-done:#4cb563; --land:#252b3a; --sea:#171b25; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12151d; --panel:#1a1e29; --ink:#e7e9ef; --muted:#9aa2b4; --line:#2c3242; --soft:#232837;
+  --brand:#b8384a; --brand-ink:#ffffff; --gold:#e6b93c;
+  --s-incident:#f0605a; --s-stale:#e58a3a; --s-paused:#d8b23a; --s-going:#5b93ec; --s-returning:#a57ce4;
+  --s-delivered:#2fb5ac; --s-idle:#7d8496; --s-done:#4cb563; --land:#252b3a; --sea:#171b25; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--s-going);outline-offset:2px}
+.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:1500px;margin:0 auto}
+.num,.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+/* header */
+.top{background:var(--brand);color:var(--brand-ink)}
+.top .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px;padding-block:14px}
+.brand{display:flex;align-items:center;gap:12px;min-width:0;flex:1}
+.seal{width:40px;height:40px;border-radius:50%;border:2px solid var(--gold);display:grid;place-items:center;font-family:var(--f-display);font-weight:700;font-size:13px;flex:none;letter-spacing:.02em}
+.brand h1{font-family:var(--f-display);font-size:1.3rem;margin:0;line-height:1.2;text-wrap:balance}
+.brand p{margin:0;font-size:.85rem;opacity:.85}
+.topmeta{display:flex;align-items:center;gap:10px;font-size:.85rem;flex-wrap:wrap}
+.demo{background:var(--gold);color:#2a1e00;border-radius:4px;padding:2px 8px;font-weight:600;font-size:.78rem}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:6px 12px;cursor:pointer}
+.top .btn{background:transparent;border-color:rgba(255,255,255,.45);color:var(--brand-ink)}
+.top .btn:hover{background:rgba(255,255,255,.12)}
+
+/* summary */
+.summary{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:8px;padding-block:16px 8px}
+.sum{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;cursor:pointer;position:relative;overflow:hidden}
+.sum::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--c,var(--muted))}
+.sum b{font-family:var(--f-mono);font-size:1.6rem;line-height:1.1;font-weight:500}
+.sum span{font-size:.82rem;color:var(--muted)}
+.sum[aria-pressed="true"]{border-color:var(--c,var(--ink));box-shadow:inset 0 0 0 1px var(--c,var(--ink))}
+.sum.zero{opacity:.55}
+
+/* tabs + toolbar */
+.bar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;padding-block:8px}
+.tabs{display:flex;gap:4px;background:var(--soft);padding:3px;border-radius:9px}
+.tabs button{border:0;background:transparent;padding:6px 14px;border-radius:7px;cursor:pointer;color:var(--muted);font-weight:500}
+.tabs button[aria-selected="true"]{background:var(--panel);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.tools{display:flex;flex-wrap:wrap;gap:8px}
+.tools input,.tools select{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:6px 10px;min-width:0}
+.tools input{width:200px;max-width:100%}
+
+/* main grid */
+.grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;padding-bottom:32px;align-items:start}
+@media (max-width:960px){.grid{grid-template-columns:1fr}.mapcol{order:-1}}
+.mapcol{position:sticky;top:12px}
+@media (max-width:960px){.mapcol{position:static}}
+#map{height:calc(100vh - 230px);min-height:340px;border-radius:var(--r);border:1px solid var(--line);background:var(--sea)}
+@media (max-width:960px){#map{height:320px}}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.78rem;color:var(--muted);padding-top:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--c);margin-right:5px;vertical-align:-1px}
+
+/* vehicle rows */
+.list{display:flex;flex-direction:column;gap:6px;min-width:0}
+.vrow{display:grid;grid-template-columns:44px minmax(0,1.3fr) minmax(0,1.2fr) minmax(0,.9fr);gap:12px;align-items:center;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;cursor:pointer;width:100%}
+.vrow:hover{border-color:var(--muted)}
+.vrow.sel{border-color:var(--s-going);box-shadow:inset 0 0 0 1px var(--s-going)}
+.vrow.alert{background:color-mix(in srgb,var(--s-incident) 7%,var(--panel))}
+@media (max-width:640px){.vrow{grid-template-columns:40px minmax(0,1fr);row-gap:6px}.vrow .vstat,.vrow .vtime{grid-column:2}}
+.vno{width:40px;height:40px;border-radius:8px;display:grid;place-items:center;font-family:var(--f-mono);font-size:1.1rem;background:var(--soft);border:2px solid var(--c,var(--line))}
+.vmain{min-width:0;display:flex;flex-direction:column;gap:3px}
+.vmain b{font-family:var(--f-display);font-weight:600;font-size:1rem;line-height:1.25}
+.vmain small,.vstat small,.vtime small{color:var(--muted);font-size:.8rem;line-height:1.35}
+.vstat,.vtime{min-width:0;display:flex;flex-direction:column;gap:3px}
+.vtime{align-items:flex-end;text-align:right}
+@media (max-width:640px){.vtime{align-items:flex-start;text-align:left}}
+.pill{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;border-radius:999px;padding:1px 10px 1px 8px;font-size:.8rem;font-weight:600;color:var(--c);background:color-mix(in srgb,var(--c) 13%,transparent);white-space:nowrap}
+.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--c)}
+.pill.incident::before,.pill.stale::before{animation:blink 1.2s infinite}
+@keyframes blink{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.pill::before{animation:none!important}}
+.warn{color:var(--s-stale);font-weight:600}
+.dots{display:flex;gap:3px;align-items:center;font-size:.75rem;color:var(--muted)}
+.dots i{width:14px;height:6px;border-radius:2px;background:var(--line)}
+.dots i.on{background:var(--c,var(--s-going))}
+.dots em{font-style:normal;margin-left:6px}
+
+/* feed table */
+.feedwrap{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+table{width:100%;border-collapse:collapse;font-size:.88rem;min-width:720px}
+th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.78rem;letter-spacing:.02em;color:var(--muted);font-weight:600;position:sticky;top:0;background:var(--panel)}
+th[data-sort]{cursor:pointer;user-select:none}
+th[data-sort]::after{content:" ↕";opacity:.4}
+th.asc::after{content:" ↑";opacity:1}th.desc::after{content:" ↓";opacity:1}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:var(--soft)}
+.who{display:flex;align-items:center;gap:8px;min-width:0}
+.ava{width:24px;height:24px;border-radius:50%;background:var(--soft);display:grid;place-items:center;font-size:.72rem;font-weight:600;flex:none;overflow:hidden;color:var(--muted)}
+.ava img{width:100%;height:100%;object-fit:cover}
+.ok{color:var(--s-done);font-size:.75rem}
+a{color:var(--s-going)}
+
+/* drawer */
+.scrim{position:fixed;inset:0;background:rgba(10,12,18,.35);z-index:1000}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(460px,100%);background:var(--panel);z-index:1001;display:flex;flex-direction:column;border-left:1px solid var(--line);box-shadow:-8px 0 24px rgba(0,0,0,.15);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-right:env(safe-area-inset-right,0px)}
+.dhead{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:flex-start}
+.dhead h2{font-family:var(--f-display);margin:0;font-size:1.2rem;line-height:1.3;text-wrap:balance}
+.dhead p{margin:4px 0 0;color:var(--muted);font-size:.85rem}
+.dbody{overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:20px}
+.close{margin-left:auto;border:0;background:var(--soft);width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:1.1rem;flex:none}
+.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.facts div{background:var(--soft);border-radius:8px;padding:8px 10px}
+.facts span{display:block;font-size:.75rem;color:var(--muted)}
+.facts b{font-family:var(--f-mono);font-weight:500}
+h3{font-family:var(--f-display);font-size:.95rem;margin:0 0 8px;font-weight:600}
+.stops{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.stops li{display:grid;grid-template-columns:22px minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:7px 0;border-bottom:1px dashed var(--line);font-size:.88rem}
+.stops .seq{font-family:var(--f-mono);color:var(--muted);font-size:.8rem}
+.chk{font-family:var(--f-mono);font-size:.75rem;padding:1px 6px;border-radius:4px;background:var(--soft);color:var(--muted);white-space:nowrap}
+.chk.y{background:color-mix(in srgb,var(--s-done) 16%,transparent);color:var(--s-done)}
+.tl{list-style:none;margin:0;padding:0;position:relative}
+.tl li{position:relative;padding:0 0 16px 22px}
+.tl li::before{content:"";position:absolute;left:5px;top:6px;bottom:-6px;width:2px;background:var(--line)}
+.tl li:last-child::before{display:none}
+.tl li::after{content:"";position:absolute;left:0;top:4px;width:12px;height:12px;border-radius:50%;background:var(--panel);border:3px solid var(--c)}
+.tl .t{font-family:var(--f-mono);font-size:.8rem;color:var(--muted)}
+.tl .h{font-weight:600}
+.tl .n{background:var(--soft);border-radius:6px;padding:6px 8px;font-size:.85rem;margin-top:4px}
+.tl .m{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.8rem;color:var(--muted);margin-top:4px;align-items:center}
+.empty{color:var(--muted);text-align:center;padding:32px 16px;background:var(--panel);border:1px dashed var(--line);border-radius:var(--r)}
+
+/* map markers */
+.vm{width:28px;height:28px;border-radius:50%;background:var(--c);color:#fff;display:grid;place-items:center;font-family:var(--f-mono);font-size:12px;border:2px solid var(--panel);box-shadow:0 1px 4px rgba(0,0,0,.35)}
+.vm.big{transform:scale(1.25)}
+.leaflet-container{font-family:var(--f-body);background:var(--sea)}
+.leaflet-popup-content{margin:10px 12px;font-size:.85rem}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--panel);color:var(--ink)}
+.apx{font-size:.72rem;color:var(--s-stale);border:1px dashed var(--s-stale);border-radius:4px;padding:0 4px;white-space:nowrap}
+.crew{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;font-size:.85rem}
+.crew div{border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.crew span{display:block;font-size:.75rem;color:var(--muted)}
+/* ---------- มือถือ ---------- */
+.m-only{display:none}
+@media (max-width:960px){
+  .m-only{display:inline-block}
+  .mapcol{display:none}
+  body.tab-m .mapcol{display:block}
+  body.tab-m #map{height:calc(100vh - 300px);min-height:360px}
+  .bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:500;background:var(--bg);padding-block:8px}
+}
+@media (max-width:640px){
+  body{font-size:14px}
+  .top .wrap{padding-block:10px;gap:6px 12px}
+  .brand{flex-basis:100%}
+  .brand h1{font-size:1.08rem}
+  .seal{width:34px;height:34px;font-size:11px}
+  .topmeta{width:100%;justify-content:space-between}
+  .topmeta .btn{padding:4px 12px}
+  .summary{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding-block:10px 4px}
+  .sum{padding:6px 8px 6px 10px}
+  .sum b{font-size:1.2rem}
+  .sum span{font-size:.72rem;line-height:1.25}
+  .bar{flex-direction:column;align-items:stretch}
+  .tabs button{flex:1;padding:7px 6px}
+  .tools{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .tools input{grid-column:1/-1;width:100%}
+  .tools select{width:100%}
+  #toolsF{grid-template-columns:1fr 1fr}
+  #toolsF #fVeh{grid-column:1/-1}
+  .vrow{padding:10px;gap:4px 10px}
+  .vrow .vstat{flex-direction:row;flex-wrap:wrap;align-items:center;gap:4px 8px}
+  .vrow .vtime{flex-direction:row;flex-wrap:wrap;gap:0 8px;align-items:baseline}
+  .vrow .vtime small{font-size:.75rem}
+  .dhead{padding:12px 14px}
+  .dbody{padding:14px}
+  .facts{grid-template-columns:1fr 1fr}
+  .facts div:first-child{grid-column:1/-1}
+  .stops li{grid-template-columns:20px minmax(0,1fr) auto;row-gap:2px}
+  .stops li .chk:last-child{grid-column:3}
+  .stops li .chk:nth-last-child(2){grid-row:1;grid-column:3}
+}
+.err{background:color-mix(in srgb,var(--s-incident) 12%,var(--panel));border:1px solid var(--s-incident);border-radius:8px;padding:10px 12px;margin-top:12px}
+</style>
+
+<header class="top"><div class="wrap">
+  <div class="brand">
+    <div class="seal">ว.14</div>
+    <div><h1>ศูนย์ติดตามรถขนส่งข้อสอบ</h1><p>การสอบแข่งขันครูผู้ช่วย · <span id="hdrCount"></span></p></div>
+  </div>
+  <div class="topmeta">
+    <span id="demoBadge" class="demo" hidden>ข้อมูลตัวอย่าง</span>
+    <span>อัปเดต <b id="upd" class="num">–</b></span>
+    <button class="btn" id="refresh" type="button">รีเฟรช</button>
+  </div>
+</div></header>
+
+<div class="wrap">
+  <div id="errBox" class="err" hidden></div>
+  <section class="summary" id="summary" aria-label="สรุปสถานะ"></section>
+
+  <div class="bar">
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tabV" aria-selected="true" type="button">รายคัน</button>
+      <button role="tab" id="tabM" aria-selected="false" type="button" class="m-only">แผนที่</button>
+      <button role="tab" id="tabF" aria-selected="false" type="button">ฟีดรายงาน</button>
+    </div>
+    <div class="tools" id="toolsV">
+      <input id="q" type="search" placeholder="ค้นหาคันที่ / จังหวัด / สพป. สพม." aria-label="ค้นหา">
+      <select id="line" aria-label="สายรถ"></select>
+      <select id="sort" aria-label="เรียงตาม">
+        <option value="status">เรียง: ต้องดูแลก่อน</option>
+        <option value="id">เรียง: คันที่</option>
+        <option value="recent">เรียง: อัปเดตล่าสุด</option>
+        <option value="progress">เรียง: ความคืบหน้า</option>
+      </select>
+    </div>
+    <div class="tools" id="toolsF" hidden>
+      <select id="fVeh" aria-label="เลือกคัน"><option value="">ทุกคัน</option></select>
+      <select id="fStage" aria-label="ประเภทรายงาน">
+        <option value="">ทุกประเภท</option><option value="DEPART">ออกเดินทาง</option><option value="ENROUTE">ระหว่างทาง</option>
+        <option value="ARRIVE">ถึงจุดหมาย</option><option value="INC">เฉพาะเหตุขัดข้อง</option>
+      </select>
+      <select id="fLeg" aria-label="ขา"><option value="">ไป-กลับ</option><option value="go">ขาไป</option><option value="back">ขากลับ</option></select>
+    </div>
+  </div>
+
+  <main class="grid">
+    <section>
+      <div class="list" id="list"></div>
+      <div id="feed" hidden></div>
+    </section>
+    <aside class="mapcol">
+      <div id="map" role="region" aria-label="แผนที่ตำแหน่งรถ"></div>
+      <div class="legend" id="legend"></div>
+    </aside>
+  </main>
+</div>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" hidden aria-label="รายละเอียดรถ"></aside>
+
+<script src="../config.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script>
+/* ===== ข้อมูลร่วม: เส้นทาง สถานะ การเรียก API และข้อมูลตัวอย่าง ===== */
+const DATA = {"origins":{"TUC":{"name":"TUC · ศูนย์สอบธรรมศาสตร์ (รังสิต)","lat":14.0685,"lng":100.6153},"CSP":{"name":"CSP · โรงพิมพ์จันวาณิชย์ (สมุทรปราการ)","lat":13.603,"lng":100.5571}},"vehicles":[{"id":1,"line":"สาย 1 กทม./นนทบุรี","origin":"TUC","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"185","name":"สพม. กรุงเทพมหานคร เขต 2","venue":"","address":"","contact":"","amphoe":"เขตห้วยขวาง กทม.","lat":13.7968,"lng":100.5877,"approx":true},{"code":"184","name":"สพม. กรุงเทพมหานคร เขต 1","venue":"","address":"","contact":"","amphoe":"เขตราชเทวี กทม.","lat":13.7582,"lng":100.5308,"approx":true},{"code":"246","name":"สศศ.","venue":"","address":"","contact":"","amphoe":"เขตดุสิต กทม. (กระทรวงศึกษาธิการ)","lat":13.7668,"lng":100.5092,"approx":true},{"code":"203","name":"สพม. นนทบุรี","venue":"","address":"","contact":"","amphoe":"อ.เมืองนนทบุรี","lat":13.8652,"lng":100.4657,"approx":true},{"code":"065","name":"สพป. นนทบุรี เขต 2","venue":"","address":"","contact":"","amphoe":"อ.บางใหญ่","lat":13.8785,"lng":100.4038,"approx":true}]},{"id":2,"line":"สาย 2 สมุทรปราการ/สมุทรสาคร","origin":"TUC","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"145","name":"สพป. สมุทรปราการ เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองสมุทรปราการ","lat":13.6224,"lng":100.5884,"approx":true},{"code":"233","name":"สพม. สมุทรปราการ","venue":"","address":"","contact":"","amphoe":"อ.เมืองสมุทรปราการ","lat":13.6228,"lng":100.5889,"approx":true},{"code":"148","name":"สพป. สมุทรสาคร","venue":"","address":"","contact":"","amphoe":"อ.เมืองสมุทรสาคร","lat":13.5747,"lng":100.2734,"approx":true},{"code":"234","name":"สพม. สมุทรสาคร สมุทรสงคราม","venue":"","address":"","contact":"","amphoe":"อ.เมืองสมุทรสาคร","lat":13.5496,"lng":100.2643,"approx":true}]},{"id":3,"line":"สาย 3 นครปฐม/กาญจนบุรี","origin":"TUC","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"047","name":"สพป. นครปฐม เขต 2","venue":"","address":"","contact":"","amphoe":"อ.นครชัยศรี","lat":13.8005,"lng":100.1878,"approx":true},{"code":"046","name":"สพป. นครปฐม เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองนครปฐม","lat":13.8139,"lng":100.0987,"approx":true},{"code":"004","name":"สพป. กาญจนบุรี เขต 2","venue":"","address":"","contact":"","amphoe":"อ.พนมทวน","lat":14.1086,"lng":99.6661,"approx":true},{"code":"186","name":"สพม. กาญจนบุรี","venue":"","address":"","contact":"","amphoe":"อ.เมืองกาญจนบุรี","lat":14.0209,"lng":99.5313,"approx":true},{"code":"006","name":"สพป. กาญจนบุรี เขต 4","venue":"","address":"","contact":"","amphoe":"อ.บ่อพลอย","lat":14.3121,"lng":99.5288,"approx":true}]},{"id":4,"line":"สาย 4 อยุธยา/สุพรรณบุรี/สิงห์บุรี","origin":"TUC","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"212","name":"สพม. พระนครศรีอยุธยา","venue":"","address":"","contact":"","amphoe":"อ.พระนครศรีอยุธยา","lat":14.4033,"lng":100.5277,"approx":true},{"code":"086","name":"สพป. พระนครศรีอยุธยา เขต 2","venue":"","address":"","contact":"","amphoe":"อ.เสนา","lat":14.3236,"lng":100.4025,"approx":true},{"code":"157","name":"สพป. สุพรรณบุรี เขต 2","venue":"","address":"","contact":"","amphoe":"อ.อู่ทอง","lat":14.3815,"lng":99.9081,"approx":true},{"code":"239","name":"สพม. สุพรรณบุรี","venue":"","address":"","contact":"","amphoe":"อ.เมืองสุพรรณบุรี","lat":14.514,"lng":100.13,"approx":true},{"code":"153","name":"สพป. สิงห์บุรี","venue":"","address":"","contact":"","amphoe":"อ.เมืองสิงห์บุรี","lat":14.8805,"lng":100.4034,"approx":true}]},{"id":5,"line":"สาย 5 ปทุมธานี/สระบุรี/ลพบุรี","origin":"TUC","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"076","name":"สพป. ปทุมธานี เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองปทุมธานี","lat":14.0235,"lng":100.5252,"approx":true},{"code":"151","name":"สพป. สระบุรี เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองสระบุรี","lat":14.53,"lng":100.9376,"approx":true},{"code":"152","name":"สพป. สระบุรี เขต 2","venue":"","address":"","contact":"","amphoe":"อ.แก่งคอย","lat":14.5764,"lng":101.0156,"approx":true},{"code":"125","name":"สพป. ลพบุรี เขต 2","venue":"","address":"","contact":"","amphoe":"อ.ชัยบาดาล","lat":15.2036,"lng":101.0924,"approx":true}]},{"id":6,"line":"สาย 6 สตูล/ปัตตานี/ยะลา","origin":"TUC","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"144","name":"สพป. สตูล","venue":"","address":"","contact":"","amphoe":"อ.เมืองสตูล","lat":6.6493,"lng":100.0774,"approx":true},{"code":"083","name":"สพป. ปัตตานี เขต 2","venue":"","address":"","contact":"","amphoe":"อ.โคกโพธิ์","lat":6.73,"lng":101.0978,"approx":true},{"code":"113","name":"สพป. ยะลา เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองยะลา","lat":6.5468,"lng":101.2837,"approx":true}]},{"id":7,"line":"สาย 7 ปัตตานี/นราธิวาส","origin":"TUC","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"211","name":"สพม. ปัตตานี","venue":"","address":"","contact":"","amphoe":"อ.เมืองปัตตานี","lat":6.8704,"lng":101.2517,"approx":true},{"code":"082","name":"สพป. ปัตตานี เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองปัตตานี","lat":6.8924,"lng":101.2498,"approx":true},{"code":"084","name":"สพป. ปัตตานี เขต 3","venue":"","address":"","contact":"","amphoe":"อ.สายบุรี","lat":6.7143,"lng":101.521,"approx":true},{"code":"066","name":"สพป. นราธิวาส เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองนราธิวาส","lat":6.4148,"lng":101.7986,"approx":true},{"code":"068","name":"สพป. นราธิวาส เขต 3","venue":"","address":"","contact":"","amphoe":"อ.ระแงะ","lat":6.2954,"lng":101.7221,"approx":true}]},{"id":8,"line":"สาย 8 ชลบุรี","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"192","name":"สพม. ชลบุรี ระยอง","venue":"","address":"","contact":"","amphoe":"อ.เมืองชลบุรี","lat":13.3326,"lng":100.923,"approx":true},{"code":"021","name":"สพป. ชลบุรี เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองชลบุรี (โดยประมาณ)","lat":13.3522,"lng":100.9767,"approx":true},{"code":"022","name":"สพป. ชลบุรี เขต 2","venue":"","address":"","contact":"","amphoe":"อ.พนัสนิคม","lat":13.4297,"lng":101.1992,"approx":true},{"code":"023","name":"สพป. ชลบุรี เขต 3","venue":"","address":"","contact":"","amphoe":"อ.บางละมุง","lat":13.042,"lng":100.9255,"approx":true}]},{"id":9,"line":"สาย 9 จันทบุรี/ตราด","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"018","name":"สพป. จันทบุรี เขต 2","venue":"","address":"","contact":"","amphoe":"อ.เมืองจันทบุรี","lat":12.607,"lng":102.0804,"approx":true},{"code":"190","name":"สพม. จันทบุรี ตราด","venue":"","address":"","contact":"","amphoe":"อ.เมืองจันทบุรี","lat":12.6137,"lng":102.1105,"approx":true},{"code":"042","name":"สพป. ตราด","venue":"","address":"","contact":"","amphoe":"อ.เมืองตราด","lat":12.2671,"lng":102.498,"approx":true}]},{"id":10,"line":"สาย 10 ปราจีนบุรี/สระแก้ว","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"080","name":"สพป. ปราจีนบุรี เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองปราจีนบุรี","lat":14.0479,"lng":101.3713,"approx":true},{"code":"081","name":"สพป. ปราจีนบุรี เขต 2","venue":"","address":"","contact":"","amphoe":"อ.กบินทร์บุรี","lat":13.9453,"lng":101.7116,"approx":true},{"code":"235","name":"สพม. สระแก้ว","venue":"","address":"","contact":"","amphoe":"อ.เมืองสระแก้ว (โดยประมาณ)","lat":13.8031,"lng":102.1209,"approx":true},{"code":"150","name":"สพป. สระแก้ว เขต 2","venue":"","address":"","contact":"","amphoe":"อ.อรัญประเทศ","lat":13.6908,"lng":102.5011,"approx":true}]},{"id":11,"line":"สาย 11 กาญจนบุรี เขต 3","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"005","name":"สพป. กาญจนบุรี เขต 3","venue":"","address":"","contact":"","amphoe":"อ.ไทรโยค","lat":14.1167,"lng":99.1435,"approx":true}]},{"id":12,"line":"สาย 12 เพชรบุรี/ประจวบฯ","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"097","name":"สพป. เพชรบุรี เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองเพชรบุรี","lat":13.122,"lng":99.9363,"approx":true},{"code":"098","name":"สพป. เพชรบุรี เขต 2","venue":"","address":"","contact":"","amphoe":"อ.ท่ายาง","lat":12.9302,"lng":99.9062,"approx":true},{"code":"079","name":"สพป. ประจวบคีรีขันธ์ เขต 2","venue":"","address":"","contact":"","amphoe":"อ.ปราณบุรี","lat":12.3673,"lng":99.8846,"approx":true},{"code":"209","name":"สพม. ประจวบคีรีขันธ์","venue":"","address":"","contact":"","amphoe":"อ.เมืองประจวบคีรีขันธ์","lat":11.7995,"lng":99.7985,"approx":true},{"code":"078","name":"สพป. ประจวบคีรีขันธ์ เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองประจวบคีรีขันธ์","lat":11.7369,"lng":99.7638,"approx":true}]},{"id":13,"line":"สาย 13 ชุมพร/สุราษฎร์ธานี","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"028","name":"สพป. ชุมพร เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองชุมพร","lat":10.4909,"lng":99.1275,"approx":true},{"code":"029","name":"สพป. ชุมพร เขต 2","venue":"","address":"","contact":"","amphoe":"อ.หลังสวน","lat":9.9465,"lng":99.0766,"approx":true},{"code":"160","name":"สพป. สุราษฎร์ธานี เขต 2","venue":"","address":"","contact":"","amphoe":"อ.พุนพิน","lat":9.1083,"lng":99.2339,"approx":true},{"code":"159","name":"สพป. สุราษฎร์ธานี เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองสุราษฎร์ธานี","lat":9.1328,"lng":99.347,"approx":true},{"code":"240","name":"สพม. สุราษฎร์ธานี ชุมพร","venue":"","address":"","contact":"","amphoe":"อ.เมืองสุราษฎร์ธานี","lat":9.1315,"lng":99.3437,"approx":true}]},{"id":14,"line":"สาย 14 นครศรีฯ/พัทลุง/สงขลา","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"201","name":"สพม. นครศรีธรรมราช","venue":"","address":"","contact":"","amphoe":"อ.พระพรหม","lat":8.3469,"lng":99.9371,"approx":true},{"code":"059","name":"สพป. นครศรีธรรมราช เขต 3","venue":"","address":"","contact":"","amphoe":"อ.เชียรใหญ่","lat":8.1327,"lng":100.1214,"approx":true},{"code":"091","name":"สพป. พัทลุง เขต 2","venue":"","address":"","contact":"","amphoe":"อ.ตะโหมด","lat":7.3515,"lng":100.1318,"approx":true},{"code":"142","name":"สพป. สงขลา เขต 2","venue":"","address":"","contact":"","amphoe":"อ.หาดใหญ่","lat":7.0052,"lng":100.4553,"approx":true}]},{"id":15,"line":"สาย 15 พังงา/ภูเก็ต/กระบี่/ตรัง","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"089","name":"สพป. พังงา","venue":"","address":"","contact":"","amphoe":"อ.เมืองพังงา","lat":8.4609,"lng":98.533,"approx":true},{"code":"214","name":"สพม. พังงา ภูเก็ต ระนอง","venue":"","address":"","contact":"","amphoe":"อ.เมืองพังงา","lat":8.4386,"lng":98.5178,"approx":true},{"code":"104","name":"สพป. ภูเก็ต","venue":"","address":"","contact":"","amphoe":"อ.เมืองภูเก็ต","lat":7.8893,"lng":98.3851,"approx":true},{"code":"001","name":"สพป. กระบี่","venue":"","address":"","contact":"","amphoe":"อ.เมืองกระบี่","lat":8.1072,"lng":98.9034,"approx":true},{"code":"196","name":"สพม. ตรัง กระบี่","venue":"","address":"","contact":"","amphoe":"อ.เมืองตรัง","lat":7.5576,"lng":99.5879,"approx":true}]},{"id":16,"line":"สาย 16 อุทัยธานี/นครสวรรค์","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"177","name":"สพป. อุทัยธานี เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองอุทัยธานี","lat":15.3921,"lng":100.0227,"approx":true},{"code":"202","name":"สพม. นครสวรรค์","venue":"","address":"","contact":"","amphoe":"อ.เมืองนครสวรรค์","lat":15.7215,"lng":100.1181,"approx":true},{"code":"061","name":"สพป. นครสวรรค์ เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองนครสวรรค์","lat":15.6931,"lng":100.1212,"approx":true},{"code":"062","name":"สพป. นครสวรรค์ เขต 2","venue":"","address":"","contact":"","amphoe":"อ.ลาดยาว","lat":15.7643,"lng":99.7986,"approx":true}]},{"id":17,"line":"สาย 17 กำแพงเพชร/ตาก","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"011","name":"สพป. กำแพงเพชร เขต 2","venue":"","address":"","contact":"","amphoe":"อ.คลองขลุง","lat":16.217,"lng":99.702,"approx":true},{"code":"188","name":"สพม. กำแพงเพชร","venue":"","address":"","contact":"","amphoe":"อ.เมืองกำแพงเพชร","lat":16.4791,"lng":99.5257,"approx":true},{"code":"010","name":"สพป. กำแพงเพชร เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองกำแพงเพชร","lat":16.5558,"lng":99.5181,"approx":true},{"code":"197","name":"สพม. ตาก","venue":"","address":"","contact":"","amphoe":"อ.เมืองตาก","lat":16.8691,"lng":99.1313,"approx":true}]},{"id":18,"line":"สาย 18 พิจิตร/พิษณุโลก/น่าน","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"093","name":"สพป. พิจิตร เขต 2","venue":"","address":"","contact":"","amphoe":"อ.ตะพานหิน","lat":16.2161,"lng":100.4093,"approx":true},{"code":"092","name":"สพป. พิจิตร เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองพิจิตร","lat":16.4439,"lng":100.3268,"approx":true},{"code":"217","name":"สพม. พิษณุโลก อุตรดิตถ์","venue":"","address":"","contact":"","amphoe":"อ.เมืองพิษณุโลก","lat":16.8029,"lng":100.2009,"approx":true},{"code":"095","name":"สพป. พิษณุโลก เขต 2","venue":"","address":"","contact":"","amphoe":"อ.วังทอง","lat":16.7831,"lng":100.4363,"approx":true},{"code":"070","name":"สพป. น่าน เขต 2","venue":"","address":"","contact":"","amphoe":"อ.ปัว","lat":19.1799,"lng":100.9077,"approx":true}]},{"id":19,"line":"สาย 19 เพชรบูรณ์/เลย","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"101","name":"สพป. เพชรบูรณ์ เขต 3","venue":"","address":"","contact":"","amphoe":"อ.บึงสามพัน","lat":15.8273,"lng":101.0093,"approx":true},{"code":"099","name":"สพป. เพชรบูรณ์ เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองเพชรบูรณ์","lat":16.4496,"lng":101.1529,"approx":true},{"code":"100","name":"สพป. เพชรบูรณ์ เขต 2","venue":"","address":"","contact":"","amphoe":"อ.หล่มสัก","lat":16.8071,"lng":101.2487,"approx":true},{"code":"229","name":"สพม. เลย หนองบัวลำภู","venue":"","address":"","contact":"","amphoe":"อ.เมืองเลย","lat":17.4616,"lng":101.7129,"approx":true},{"code":"131","name":"สพป. เลย เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองเลย","lat":17.554,"lng":101.7278,"approx":true}]},{"id":20,"line":"สาย 20 เชียงราย/ฝาง","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"031","name":"สพป. เชียงราย เขต 2","venue":"","address":"","contact":"","amphoe":"อ.แม่ลาว","lat":19.7438,"lng":99.7258,"approx":true},{"code":"030","name":"สพป. เชียงราย เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองเชียงราย","lat":19.9001,"lng":99.8276,"approx":true},{"code":"194","name":"สพม. เชียงราย","venue":"","address":"","contact":"","amphoe":"อ.เมืองเชียงราย","lat":19.9158,"lng":99.8261,"approx":true},{"code":"032","name":"สพป. เชียงราย เขต 3","venue":"","address":"","contact":"","amphoe":"อ.แม่จัน","lat":20.1633,"lng":99.8674,"approx":true},{"code":"036","name":"สพป. เชียงใหม่ เขต 3","venue":"","address":"","contact":"","amphoe":"อ.ฝาง","lat":19.8459,"lng":99.1724,"approx":true}]},{"id":21,"line":"สาย 21 ลำปาง/เชียงใหม่/แม่ฮ่องสอน","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"228","name":"สพม. ลำปาง ลำพูน","venue":"","address":"","contact":"","amphoe":"อ.เมืองลำปาง","lat":18.3091,"lng":99.497,"approx":true},{"code":"035","name":"สพป. เชียงใหม่ เขต 2","venue":"","address":"","contact":"","amphoe":"อ.แม่ริม","lat":18.9659,"lng":98.945,"approx":true},{"code":"038","name":"สพป. เชียงใหม่ เขต 5","venue":"","address":"","contact":"","amphoe":"อ.ฮอด","lat":18.1848,"lng":98.6119,"approx":true},{"code":"110","name":"สพป. แม่ฮ่องสอน เขต 2","venue":"","address":"","contact":"","amphoe":"อ.แม่สะเรียง","lat":18.159,"lng":97.9321,"approx":true},{"code":"223","name":"สพม. แม่ฮ่องสอน","venue":"","address":"","contact":"","amphoe":"อ.เมืองแม่ฮ่องสอน","lat":19.3114,"lng":97.9646,"approx":true}]},{"id":22,"line":"สาย 22 นครราชสีมา/บุรีรัมย์","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"200","name":"สพม. นครราชสีมา","venue":"","address":"","contact":"","amphoe":"อ.เมืองนครราชสีมา","lat":14.9096,"lng":101.9786,"approx":true},{"code":"052","name":"สพป. นครราชสีมา เขต 3","venue":"","address":"","contact":"","amphoe":"อ.ครบุรี","lat":14.5234,"lng":102.2495,"approx":true},{"code":"074","name":"สพป. บุรีรัมย์ เขต 3","venue":"","address":"","contact":"","amphoe":"อ.นางรอง","lat":14.6313,"lng":102.7646,"approx":true},{"code":"073","name":"สพป. บุรีรัมย์ เขต 2","venue":"","address":"","contact":"","amphoe":"อ.ประโคนชัย","lat":14.6136,"lng":103.0784,"approx":true},{"code":"072","name":"สพป. บุรีรัมย์ เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองบุรีรัมย์","lat":14.9974,"lng":103.1144,"approx":true}]},{"id":23,"line":"สาย 23 โคราชเหนือ/บุรีรัมย์/มหาสารคาม","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"055","name":"สพป. นครราชสีมา เขต 6","venue":"","address":"","contact":"","amphoe":"อ.บัวใหญ่","lat":15.6047,"lng":102.4104,"approx":true},{"code":"056","name":"สพป. นครราชสีมา เขต 7","venue":"","address":"","contact":"","amphoe":"อ.ชุมพวง","lat":15.3203,"lng":102.7248,"approx":true},{"code":"075","name":"สพป. บุรีรัมย์ เขต 4","venue":"","address":"","contact":"","amphoe":"อ.พุทไธสง","lat":15.548,"lng":102.9931,"approx":true},{"code":"106","name":"สพป. มหาสารคาม เขต 2","venue":"","address":"","contact":"","amphoe":"อ.วาปีปทุม","lat":15.8455,"lng":103.3777,"approx":true},{"code":"107","name":"สพป. มหาสารคาม เขต 3","venue":"","address":"","contact":"","amphoe":"อ.โกสุมพิสัย","lat":16.2463,"lng":103.0667,"approx":true}]},{"id":24,"line":"สาย 24 ชัยภูมิ/ขอนแก่น","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"193","name":"สพม. ชัยภูมิ","venue":"","address":"","contact":"","amphoe":"อ.เมืองชัยภูมิ","lat":15.7913,"lng":102.0122,"approx":true},{"code":"026","name":"สพป. ชัยภูมิ เขต 2","venue":"","address":"","contact":"","amphoe":"อ.ภูเขียว","lat":16.3753,"lng":102.1254,"approx":true},{"code":"016","name":"สพป. ขอนแก่น เขต 5","venue":"","address":"","contact":"","amphoe":"อ.ชุมแพ","lat":16.5521,"lng":102.0834,"approx":true},{"code":"189","name":"สพม. ขอนแก่น","venue":"","address":"","contact":"","amphoe":"อ.เมืองขอนแก่น","lat":16.4505,"lng":102.729,"approx":true}]},{"id":25,"line":"สาย 25 หนองบัวลำภู/อุดรฯ/หนองคาย/บึงกาฬ","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"167","name":"สพป. หนองบัวลำภู เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองหนองบัวลำภู","lat":17.2173,"lng":102.4271,"approx":true},{"code":"174","name":"สพป. อุดรธานี เขต 4","venue":"","address":"","contact":"","amphoe":"อ.บ้านผือ","lat":17.6876,"lng":102.4738,"approx":true},{"code":"173","name":"สพป. อุดรธานี เขต 3","venue":"","address":"","contact":"","amphoe":"อ.หนองหาน","lat":17.3614,"lng":103.1084,"approx":true},{"code":"166","name":"สพป. หนองคาย เขต 2","venue":"","address":"","contact":"","amphoe":"อ.โพนพิสัย","lat":18.035,"lng":103.0822,"approx":true},{"code":"071","name":"สพป. บึงกาฬ","venue":"","address":"","contact":"","amphoe":"อ.เมืองบึงกาฬ","lat":18.3734,"lng":103.6469,"approx":true}]},{"id":26,"line":"สาย 26 กาฬสินธุ์/สกลนคร/นครพนม","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"008","name":"สพป. กาฬสินธุ์ เขต 2","venue":"","address":"","contact":"","amphoe":"อ.ห้วยเม็ก","lat":16.5984,"lng":103.228,"approx":true},{"code":"009","name":"สพป. กาฬสินธุ์ เขต 3","venue":"","address":"","contact":"","amphoe":"อ.ห้วยผึ้ง","lat":16.6482,"lng":103.908,"approx":true},{"code":"139","name":"สพป. สกลนคร เขต 2","venue":"","address":"","contact":"","amphoe":"อ.สว่างแดนดิน","lat":17.4809,"lng":103.4599,"approx":true},{"code":"049","name":"สพป. นครพนม เขต 2","venue":"","address":"","contact":"","amphoe":"อ.ศรีสงคราม","lat":17.621,"lng":104.2824,"approx":true},{"code":"048","name":"สพป. นครพนม เขต 1","venue":"","address":"","contact":"","amphoe":"อ.เมืองนครพนม","lat":17.4173,"lng":104.7712,"approx":true},{"code":"199","name":"สพม. นครพนม","venue":"","address":"","contact":"","amphoe":"อ.เมืองนครพนม","lat":17.4039,"lng":104.7818,"approx":true}]},{"id":27,"line":"สาย 27 ศรีสะเกษ/อุบลฯ/อำนาจเจริญ/มุกดาหาร","origin":"CSP","plate":"","driver":"","phone":"","chauffeur":"","chauffeurPhone":"","remark":"","stops":[{"code":"135","name":"สพป. ศรีสะเกษ เขต 2","venue":"","address":"","contact":"","amphoe":"อ.อุทุมพรพิสัย","lat":15.1119,"lng":104.1472,"approx":true},{"code":"230","name":"สพม. ศรีสะเกษ ยโสธร","venue":"","address":"","contact":"","amphoe":"อ.เมืองศรีสะเกษ","lat":15.1127,"lng":104.3253,"approx":true},{"code":"183","name":"สพป. อุบลราชธานี เขต 5","venue":"","address":"","contact":"","amphoe":"อ.เดชอุดม","lat":14.9414,"lng":105.0325,"approx":true},{"code":"245","name":"สพม. อุบลราชธานี อำนาจเจริญ","venue":"","address":"","contact":"","amphoe":"อ.เมืองอุบลราชธานี","lat":15.2669,"lng":104.9258,"approx":true},{"code":"170","name":"สพป. อำนาจเจริญ","venue":"","address":"","contact":"","amphoe":"อ.เมืองอำนาจเจริญ","lat":15.8778,"lng":104.6215,"approx":true},{"code":"108","name":"สพป. มุกดาหาร","venue":"","address":"","contact":"","amphoe":"อ.เมืองมุกดาหาร","lat":16.5465,"lng":104.7265,"approx":true}]}]};
+const CFG = Object.assign({
+  API_URL: '',          // URL ของ Apps Script Web App (…/exec)
+  LIFF_ID: '',          // LIFF ID จาก LINE Developers
+  VIEW_KEY: '',         // ถ้าตั้ง VIEW_KEY ไว้ใน Apps Script
+  STALE_MIN: 180,       // ไม่มีรายงานเกินกี่นาทีถือว่า "ขาดการติดต่อ"
+  REFRESH_SEC: 60
+}, window.CONFIG || {});
+const DEMO = !CFG.API_URL;
+// รหัสเข้าดูส่งผ่านลิงก์ได้ เช่น …/dashboard/?key=XXXX (จำไว้ในเครื่องหลังเปิดครั้งแรก) ไม่ต้องเขียนไว้ใน config.js
+(() => {
+  let k = new URLSearchParams(location.search).get('key');
+  try { if (k) localStorage.setItem('et-key', k); else k = localStorage.getItem('et-key'); } catch (e) {}
+  if (k) CFG.VIEW_KEY = k;
+})();
+
+const VEH = [];
+const VMAP = {};
+
+/* ----- แผนรถ: ฝังมากับหน้าเว็บ และอัปเดตสดจากชีต "รถ" + "ปลายทาง" ใน Google Sheet ----- */
+function hav(a, b) { const R = 6371, t = Math.PI / 180, dLa = (b.lat - a.lat) * t, dLo = (b.lng - a.lng) * t; const x = Math.sin(dLa / 2) ** 2 + Math.cos(a.lat * t) * Math.cos(b.lat * t) * Math.sin(dLo / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(x)); }
+// ระยะถนนโดยประมาณ ใช้ค่าเดียวกับไฟล์แผน: ตัวคูณ 1.35 (เส้นตรง < 60 กม.) / 1.22, ความเร็ว 70 กม./ชม., เผื่อ 15 นาทีต่อช่วง, ส่งมอบ 30 นาทีต่อจุด
+function roadKm(a, b) { const d = hav(a, b); return d * (d < 60 ? 1.35 : 1.22); }
+function applyPlan(plan) {
+  if (!plan || !plan.vehicles || !plan.vehicles.length) return false;
+  if (plan.origins) DATA.origins = plan.origins;
+  VEH.length = 0; Object.keys(VMAP).forEach(k => delete VMAP[k]);
+  plan.vehicles.forEach(v => {
+    v.line = v.line || v.route || ('สาย ' + v.id);
+    v.route = v.line;
+    v.stops.forEach(s => { s.label = s.venue || s.name; });
+    let prev = DATA.origins[v.origin], km = 0, h = 0;
+    v.stops.forEach(s => { const k = roadKm(prev, s); km += k; h += k / 70 + .25 + .5; prev = s; });
+    v.km = Math.round(km); v.hours = Math.round(h * 10) / 10;
+    v.approxCount = v.stops.filter(s => s.approx).length;
+    VEH.push(v); VMAP[v.id] = v;
+  });
+  DATA.vehicles = VEH;
+  return true;
+}
+applyPlan({ origins: DATA.origins, vehicles: DATA.vehicles });
+
+/** ดึงแผนรถล่าสุดจาก Google Sheet (ถ้าตั้ง API_URL) — ถ้าไม่สำเร็จใช้แผนที่ฝังมากับหน้าเว็บ */
+async function loadPlan() {
+  if (DEMO) return 'embedded';
+  try {
+    const res = await fetch(CFG.API_URL + '?action=plan&key=' + encodeURIComponent(CFG.VIEW_KEY || ''));
+    const j = await res.json();
+    if (j.ok && applyPlan(j.plan)) return 'sheet';
+  } catch (e) {}
+  return 'embedded';
+}
+// ขาไป: ออกเดินทางได้จาก CSP หรือ TUC เท่านั้น · ขากลับ: ปลายทางเดียวคือ TUC
+const DEPOTS = Object.entries(DATA.origins).map(([code, o]) => Object.assign({ code }, o));
+const HOME = Object.assign({ code: 'TUC' }, DATA.origins.TUC);
+
+const STAGE_TH = { DEPART: 'ออกเดินทาง', ENROUTE: 'ระหว่างทาง', ARRIVE: 'ถึงจุดหมาย' };
+const LEG_TH = { go: 'ขาไป', back: 'ขากลับ' };
+const SUBS = ['แวะพัก', 'รถเสีย', 'เปลี่ยนยาง', 'เดินทางต่อ', 'อื่นๆ'];
+const INCIDENT_RE = /รถเสีย|เปลี่ยนยาง/;
+
+const STATUS = {
+  incident:  { th: 'เหตุขัดข้อง',        rank: 0 },
+  stale:     { th: 'ขาดการติดต่อ',       rank: 1 },
+  paused:    { th: 'แวะพัก',             rank: 2 },
+  going:     { th: 'ขาไป · กำลังส่ง',    rank: 3 },
+  returning: { th: 'ขากลับ',             rank: 4 },
+  delivered: { th: 'ส่งครบ รอขากลับ',    rank: 5 },
+  idle:      { th: 'ยังไม่ออกเดินทาง',   rank: 6 },
+  done:      { th: 'กลับถึงศูนย์แล้ว',    rank: 7 }
+};
+
+function originOf(v) { return Object.assign({ code: v.origin }, DATA.origins[v.origin]); }
+function pointByCode(v, code) {
+  if (DATA.origins[code]) return Object.assign({ code }, DATA.origins[code]);
+  return v.stops.find(s => s.code === code);
+}
+
+/** สรุปสถานะล่าสุดของรถหนึ่งคันจากรายการรายงาน (เรียงเวลาแล้ว) */
+function deriveStatus(v, reps, now) {
+  const goDone = new Set(), backDone = new Set();
+  let lastPos = null;
+  let home = false;
+  reps.forEach(r => {
+    if (r.leg === 'go' && r.stage === 'ARRIVE' && r.destCode) goDone.add(r.destCode);
+    if (r.leg === 'back' && r.stage === 'DEPART' && r.destCode) backDone.add(r.destCode);
+    if (r.leg === 'back' && r.stage === 'ARRIVE') home = true;
+    if (r.lat !== '' && r.lat != null) lastPos = r;
+  });
+  const last = reps[reps.length - 1];
+  const n = v.stops.length;
+  const out = { v, reps, last, lastPos, goDone, backDone, leg: last ? last.leg : 'go', key: 'idle', stale: false };
+  if (!last) return out;
+  if (last.stage === 'ENROUTE' && INCIDENT_RE.test(last.sub)) out.key = 'incident';
+  else if (last.stage === 'ENROUTE' && last.sub === 'แวะพัก') out.key = 'paused';
+  else if (last.leg === 'go') out.key = goDone.size >= n && last.stage === 'ARRIVE' ? 'delivered' : 'going';
+  else out.key = home && last.stage === 'ARRIVE' ? 'done' : 'returning';
+  const mins = (now - new Date(last.serverTime || last.clientTime)) / 60000;
+  out.ageMin = mins;
+  out.stale = ['going', 'returning', 'paused', 'incident'].includes(out.key) && mins > CFG.STALE_MIN;
+  out.progress = out.leg === 'back'
+    ? { done: backDone.size, total: n, label: 'ออกจากสนาม' }
+    : { done: [...goDone].length, total: n, label: 'ส่งแล้ว' };
+  out.home = home;
+  return out;
+}
+
+function describe(r) {
+  if (!r) return 'ยังไม่มีรายงาน';
+  let t = STAGE_TH[r.stage];
+  if (r.sub) t += ' · ' + r.sub;
+  if (r.destName) {
+    const v = VMAP[r.vehicle], i = v ? v.stops.findIndex(s => s.code === r.destCode) : -1;
+    t += ' · ' + (i >= 0 ? (r.leg === 'go' ? 'ปลายทางที่ ' : 'สนามที่ ') + (i + 1) + ' ' : '') + r.destName;
+  }
+  return t;
+}
+
+/* ----- เวลา (แสดงเป็นเวลาไทยเสมอ) ----- */
+const TZ = 'Asia/Bangkok';
+const fmtTime = d => new Date(d).toLocaleTimeString('th-TH', { timeZone: TZ, hour: '2-digit', minute: '2-digit' });
+const fmtDate = d => new Date(d).toLocaleDateString('th-TH', { timeZone: TZ, day: 'numeric', month: 'short' });
+const fmtDT = d => fmtDate(d) + ' ' + fmtTime(d) + ' น.';
+function ago(min) {
+  if (min < 1) return 'เมื่อสักครู่';
+  if (min < 60) return Math.round(min) + ' นาทีที่แล้ว';
+  const h = Math.floor(min / 60), m = Math.round(min % 60);
+  return h < 24 ? h + ' ชม. ' + (m ? m + ' นาที' : '') + 'ที่แล้ว' : Math.floor(h / 24) + ' วันที่แล้ว';
+}
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const mapsUrl = r => 'https://www.google.com/maps?q=' + r.lat + ',' + r.lng;
+
+/* ----- API ----- */
+const LS_KEY = 'exam-tracker-demo-reports';
+function lsGet() { try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch (e) { return []; } }
+function lsSet(a) { try { localStorage.setItem(LS_KEY, JSON.stringify(a)); } catch (e) {} }
+
+async function fetchReports(params) {
+  if (DEMO) {
+    let rows = demoReports(new Date()).concat(lsGet());
+    if (params && params.vehicle) rows = rows.filter(r => String(r.vehicle) === String(params.vehicle));
+    return rows.sort((a, b) => a.serverTime < b.serverTime ? -1 : 1);
+  }
+  const q = new URLSearchParams(Object.assign({ key: CFG.VIEW_KEY }, params || {}));
+  const res = await fetch(CFG.API_URL + '?' + q.toString());
+  const j = await res.json();
+  if (!j.ok) throw new Error(j.error || 'โหลดข้อมูลไม่สำเร็จ');
+  return j.reports.sort((a, b) => a.serverTime < b.serverTime ? -1 : 1);
+}
+
+async function postReport(data) {
+  if (DEMO) {
+    const r = Object.assign({}, data, { id: Math.random().toString(36).slice(2, 10), serverTime: new Date().toISOString(), verified: false });
+    delete r.idToken;
+    const a = lsGet(); a.push(r); lsSet(a);
+    return r;
+  }
+  // text/plain เพื่อไม่ให้เกิด CORS preflight กับ Apps Script
+  const res = await fetch(CFG.API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(data) });
+  const j = await res.json();
+  if (!j.ok) throw new Error(j.error || 'ส่งรายงานไม่สำเร็จ');
+  return j.report;
+}
+
+/* ----- ข้อมูลตัวอย่าง (ใช้เมื่อยังไม่ได้ตั้ง API_URL) ----- */
+function demoReports(now) {
+  const names = ['ครูสมชาย ใจดี', 'อ.วิภาวรรณ ศรีสุข', 'นายประเสริฐ ทองคำ', 'ครูอรอุมา แก้วใส', 'นายธนพล รุ่งเรือง', 'อ.กมลชนก พรหมมา', 'นายสุรเชษฐ์ บุญมา', 'ครูจิราพร มณีวงศ์', 'นายอนุชา แสงทอง'];
+  // สัดส่วนความคืบหน้าของแต่ละคัน (0 = เพิ่งออก, 1 = จบทริป, <0 = ยังไม่ออก)
+  const frac = [1.05, .97, .88, .74, .62, .30, .34, .99, .70, .55, .80, .58, .42, .36, .40, .66, .50, .38, .45, .33, .28, .47, .52, .44, .37, .31, -.1];
+  const hav = (a, b) => { const R = 6371, t = Math.PI / 180, dLa = (b.lat - a.lat) * t, dLo = (b.lng - a.lng) * t; const x = Math.sin(dLa / 2) ** 2 + Math.cos(a.lat * t) * Math.cos(b.lat * t) * Math.sin(dLo / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(x)); };
+  const lerp = (a, b, f) => ({ lat: a.lat + (b.lat - a.lat) * f, lng: a.lng + (b.lng - a.lng) * f });
+  const out = [];
+  VEH.forEach((v, i) => {
+    const who = names[i % names.length];
+    const ev = []; const H = 3600e3;
+    const push = (t, leg, stage, p, extra) => ev.push(Object.assign({ t, leg, stage, lat: +p.lat.toFixed(5), lng: +p.lng.toFixed(5), sub: '', destCode: '', destName: '' }, extra || {}));
+    const travel = (from, to, t, leg) => {
+      const km = hav(from, to) * 1.25, h = km / 70 + .25;
+      const legs = Math.ceil(h / 2.5); let add = 0;
+      for (let j = 1; j < legs; j++) {
+        const f = j / legs, at = t + (h * f + add) * H;
+        push(at, leg, 'ENROUTE', lerp(from, to, f), { sub: 'แวะพัก', note: j % 2 ? 'พักรถ เติมน้ำมัน' : 'พักทานอาหาร' });
+        push(at + .33 * H, leg, 'ENROUTE', lerp(from, to, f), { sub: 'เดินทางต่อ' }); add += .33;
+      }
+      return t + (h + add) * H;
+    };
+    const o = originOf(v);
+    let t = 0;
+    push(t, 'go', 'DEPART', o, { destCode: o.code, destName: o.name });
+    let prev = o;
+    v.stops.forEach(s => { t = travel(prev, s, t, 'go'); push(t, 'go', 'ARRIVE', s, { destCode: s.code, destName: s.label, sub: 'ส่งมอบแล้ว' }); t += .5 * H; prev = s; });
+    t += 2 * H;
+    const rev = v.stops.slice().reverse();
+    prev = rev[0];
+    rev.forEach((s, j) => { if (j) t = travel(prev, s, t, 'back') + .4 * H; push(t, 'back', 'DEPART', s, { destCode: s.code, destName: s.label, note: 'รับกระดาษคำตอบแล้ว' }); prev = s; });
+    t = travel(prev, HOME, t, 'back'); push(t, 'back', 'ARRIVE', HOME, { destCode: HOME.code, destName: HOME.name, sub: 'ส่งคืนครบ' });
+    const total = t, start = now.getTime() - frac[i] * total;
+    let kept = ev.filter(e => start + e.t <= now.getTime());
+    if ((v.id === 14 || v.id === 20) && kept.length) {
+      const l = kept[kept.length - 1], nx = ev[kept.length] || l;
+      const p = lerp(l, nx, .4);
+      kept.push({ t: Math.max(l.t + 5 * 60e3, now.getTime() - start - 35 * 60e3), leg: l.leg, stage: 'ENROUTE', lat: +p.lat.toFixed(5), lng: +p.lng.toFixed(5), sub: v.id === 14 ? 'รถเสีย' : 'เปลี่ยนยาง', destCode: '', destName: '', note: v.id === 14 ? 'หม้อน้ำรั่ว รอช่างประมาณ 1 ชม. กล่องข้อสอบปลอดภัย' : 'ยางหลังขวารั่ว กำลังเปลี่ยนยางอะไหล่' });
+    }
+    if (v.id === 9 && kept.length) kept[kept.length - 1].t -= 3.6 * H; // ตัวอย่างคันที่เงียบหาย
+    kept.forEach((e, k) => out.push({
+      id: 'd' + v.id + '-' + k, serverTime: new Date(start + e.t).toISOString(), clientTime: '', vehicle: v.id, leg: e.leg, stage: e.stage, sub: e.sub,
+      destCode: e.destCode, destName: e.destName, lat: e.lat, lng: e.lng, accuracy: 12 + (k * 7) % 30, note: e.note || '',
+      lineUserId: 'demo' + i, lineName: who, linePicture: '', verified: true
+    }));
+  });
+  return out;
+}
+
+const OUTLINE = {"type":"FeatureCollection","features":[{"type":"Feature","id":"THA","properties":{"name":"Thailand"},"geometry":{"type":"Polygon","coordinates":[[[102.584932,12.186595],[101.687158,12.64574],[100.83181,12.627085],[100.978467,13.412722],[100.097797,13.406856],[100.018733,12.307001],[99.478921,10.846367],[99.153772,9.963061],[99.222399,9.239255],[99.873832,9.207862],[100.279647,8.295153],[100.459274,7.429573],[101.017328,6.856869],[101.623079,6.740622],[102.141187,6.221636],[101.814282,5.810808],[101.154219,5.691384],[101.075516,6.204867],[100.259596,6.642825],[100.085757,6.464489],[99.690691,6.848213],[99.519642,7.343454],[98.988253,7.907993],[98.503786,8.382305],[98.339662,7.794512],[98.150009,8.350007],[98.25915,8.973923],[98.553551,9.93296],[99.038121,10.960546],[99.587286,11.892763],[99.196354,12.804748],[99.212012,13.269294],[99.097755,13.827503],[98.430819,14.622028],[98.192074,15.123703],[98.537376,15.308497],[98.903348,16.177824],[98.493761,16.837836],[97.859123,17.567946],[97.375896,18.445438],[97.797783,18.62708],[98.253724,19.708203],[98.959676,19.752981],[99.543309,20.186598],[100.115988,20.41785],[100.548881,20.109238],[100.606294,19.508344],[101.282015,19.462585],[101.035931,18.408928],[101.059548,17.512497],[102.113592,18.109102],[102.413005,17.932782],[102.998706,17.961695],[103.200192,18.309632],[103.956477,18.240954],[104.716947,17.428859],[104.779321,16.441865],[105.589039,15.570316],[105.544338,14.723934],[105.218777,14.273212],[104.281418,14.416743],[102.988422,14.225721],[102.348099,13.394247],[102.584932,12.186595]]]}}]};
+
+const $ = s => document.querySelector(s);
+const state = { reports: [], status: [], filter: '', tab: 'v', sel: null, feedSort: { k: 'time', d: -1 } };
+const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const effKey = s => s.stale ? 'stale' : s.key;
+
+/* ---------- map ---------- */
+let map, layer, routeLayer;
+function initMap() {
+  if (!window.L) { $('#map').innerHTML = '<p class="empty">โหลดแผนที่ไม่ได้</p>'; return; }
+  map = L.map('map', { zoomSnap: .25, attributionControl: true }).setView([13.4, 100.9], 5.5);
+  if (OUTLINE) L.geoJSON(OUTLINE, { style: { color: cssVar('--line'), weight: 1, fillColor: cssVar('--land'), fillOpacity: 1 }, interactive: false }).addTo(map);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap' }).addTo(map);
+  layer = L.layerGroup().addTo(map); routeLayer = L.layerGroup().addTo(map);
+  Object.entries(DATA.origins).forEach(([k, o]) => L.marker([o.lat, o.lng], { icon: L.divIcon({ className: '', html: '<div class="vm" style="--c:var(--brand);border-radius:5px;width:34px;height:20px;font-size:10px">' + k + '</div>', iconSize: [34, 20] }) }).bindTooltip(o.name).addTo(map));
+}
+function drawMap() {
+  if (!map) return;
+  layer.clearLayers(); routeLayer.clearLayers();
+  state.status.forEach(s => {
+    const p = s.lastPos || (s.last ? null : originOf(s.v));
+    if (!p) return;
+    const k = effKey(s), big = state.sel === s.v.id;
+    const m = L.marker([p.lat, p.lng], { zIndexOffset: big ? 1000 : STATUS[k].rank < 2 ? 500 : 0, icon: L.divIcon({ className: '', html: '<div class="vm' + (big ? ' big' : '') + '" style="--c:var(--s-' + k + ')">' + s.v.id + '</div>', iconSize: [28, 28] }) });
+    m.bindTooltip('คันที่ ' + s.v.id + ' · ' + STATUS[k].th);
+    m.on('click', () => openDrawer(s.v.id));
+    m.addTo(layer);
+  });
+  if (state.sel) {
+    const s = state.status.find(x => x.v.id === state.sel), v = s.v;
+    const plan = [originOf(v), ...v.stops].map(p => [p.lat, p.lng]);
+    L.polyline(plan, { color: cssVar('--muted'), weight: 2, dashArray: '4 6' }).addTo(routeLayer);
+    v.stops.forEach((p, i) => L.circleMarker([p.lat, p.lng], { radius: 5, color: p.approx ? cssVar('--s-stale') : cssVar('--panel'), weight: 2, dashArray: p.approx ? '2 2' : null, fillColor: s.goDone.has(p.code) ? cssVar('--s-done') : cssVar('--muted'), fillOpacity: 1 }).bindTooltip((i + 1) + '. ' + p.label + (p.approx ? ' (พิกัดประมาณ)' : '')).addTo(routeLayer));
+    const track = s.reps.filter(r => r.lat !== '' && r.lat != null).map(r => [r.lat, r.lng]);
+    if (track.length > 1) L.polyline(track, { color: cssVar('--s-' + effKey(s)), weight: 3 }).addTo(routeLayer);
+    map.fitBounds(L.latLngBounds(plan.concat(track)).pad(.15), { maxZoom: 10 });
+  }
+}
+
+/* ---------- summary ---------- */
+function drawSummary() {
+  const order = ['incident', 'stale', 'paused', 'going', 'delivered', 'returning', 'done', 'idle'];
+  const c = {}; order.forEach(k => c[k] = 0);
+  state.status.forEach(s => c[effKey(s)]++);
+  $('#summary').innerHTML = '<button class="sum" type="button" data-k="" aria-pressed="' + (!state.filter) + '"><b>' + VEH.length + '</b><span>ทั้งหมด</span></button>' +
+    order.map(k => '<button class="sum' + (c[k] ? '' : ' zero') + '" type="button" data-k="' + k + '" style="--c:var(--s-' + k + ')" aria-pressed="' + (state.filter === k) + '"><b>' + c[k] + '</b><span>' + STATUS[k].th + '</span></button>').join('');
+  $('#legend').innerHTML = order.map(k => '<span><i style="--c:var(--s-' + k + ')"></i>' + STATUS[k].th + '</span>').join('');
+}
+
+/* ---------- vehicle list ---------- */
+function dots(s) {
+  const p = s.progress || { done: 0, total: s.v.stops.length, label: 'ส่งแล้ว' };
+  let h = '';
+  for (let i = 0; i < p.total; i++) h += '<i class="' + (i < p.done ? 'on' : '') + '"></i>';
+  return '<span class="dots" style="--c:var(--s-' + (s.leg === 'back' ? 'returning' : 'going') + ')">' + h + '<em>' + (s.leg === 'back' ? 'ขากลับ ' : 'ขาไป ') + p.label + ' ' + p.done + '/' + p.total + '</em></span>';
+}
+function drawList() {
+  const q = $('#q').value.trim().toLowerCase();
+  let rows = state.status.filter(s => (!state.filter || effKey(s) === state.filter) &&
+    (!state.line || s.v.line === state.line) &&
+    (!q || String(s.v.id) === q || (s.v.line + ' ' + (s.v.driver || '') + ' ' + (s.v.plate || '') + ' ' + s.v.stops.map(x => x.name + ' ' + (x.venue || '') + ' ' + (x.amphoe || '')).join(' ')).toLowerCase().includes(q)));
+  const sort = $('#sort').value;
+  const t = s => s.last ? new Date(s.last.serverTime).getTime() : 0;
+  rows.sort({
+    id: (a, b) => a.v.id - b.v.id,
+    recent: (a, b) => t(b) - t(a),
+    progress: (a, b) => (STATUS[b.key].rank - STATUS[a.key].rank) || ((b.progress ? b.progress.done / b.progress.total : 0) - (a.progress ? a.progress.done / a.progress.total : 0)),
+    status: (a, b) => STATUS[effKey(a)].rank - STATUS[effKey(b)].rank || a.v.id - b.v.id
+  }[sort]);
+  if (!rows.length) { $('#list').innerHTML = '<div class="empty">ไม่พบรถที่ตรงกับตัวกรอง</div>'; return; }
+  $('#list').innerHTML = rows.map(s => {
+    const k = effKey(s), l = s.last;
+    return '<button type="button" class="vrow' + (state.sel === s.v.id ? ' sel' : '') + (k === 'incident' ? ' alert' : '') + '" data-id="' + s.v.id + '" style="--c:var(--s-' + k + ')">' +
+      '<span class="vno">' + s.v.id + '</span>' +
+      '<span class="vmain"><b>' + esc(s.v.line) + '</b><small>ออกจาก ' + s.v.origin + ' · ' + s.v.stops.length + ' สนาม · ~' + s.v.km + ' กม.' + (s.v.plate ? ' · ' + esc(s.v.plate) : '') + (s.v.approxCount ? ' · <span class="apx">พิกัดประมาณ ' + s.v.approxCount + '</span>' : '') + '</small>' + dots(s) + '</span>' +
+      '<span class="vstat"><span class="pill ' + k + '" style="--c:var(--s-' + k + ')">' + STATUS[k].th + '</span><small>' + esc(describe(l)) + '</small></span>' +
+      '<span class="vtime">' + (l ? '<span class="num">' + fmtTime(l.serverTime) + ' น.</span><small' + (s.stale ? ' class="warn"' : '') + '>' + ago(s.ageMin) + '</small><small>' + esc(l.lineName) + '</small>' : '<small>—</small>') + '</span>' +
+      '</button>';
+  }).join('');
+}
+
+/* ---------- feed ---------- */
+function drawFeed() {
+  const fv = $('#fVeh').value, fs = $('#fStage').value, fl = $('#fLeg').value;
+  let rows = state.reports.filter(r => (!fv || String(r.vehicle) === fv) && (!fl || r.leg === fl) &&
+    (!fs || (fs === 'INC' ? (r.stage === 'ENROUTE' && INCIDENT_RE.test(r.sub)) : r.stage === fs)));
+  const { k, d } = state.feedSort;
+  const key = { time: r => r.serverTime, veh: r => r.vehicle, who: r => r.lineName || '' }[k];
+  rows = rows.slice().sort((a, b) => (key(a) < key(b) ? -1 : key(a) > key(b) ? 1 : 0) * d);
+  const th = (id, label) => '<th data-sort="' + id + '" class="' + (k === id ? (d > 0 ? 'asc' : 'desc') : '') + '">' + label + '</th>';
+  $('#feed').innerHTML = '<div class="feedwrap"><table><thead><tr>' + th('time', 'เวลา') + th('veh', 'คัน') + '<th>ขา</th><th>สถานะ</th><th>รายละเอียด</th>' + th('who', 'ผู้รายงาน (LINE)') + '<th>พิกัด</th></tr></thead><tbody>' +
+    (rows.length ? rows.slice(0, 400).map(r => {
+      const inc = r.stage === 'ENROUTE' && INCIDENT_RE.test(r.sub);
+      const c = inc ? 'incident' : r.stage === 'ARRIVE' ? 'done' : r.leg === 'back' ? 'returning' : 'going';
+      return '<tr data-id="' + r.vehicle + '"><td class="num">' + fmtDT(r.serverTime) + '</td><td class="num">' + r.vehicle + '</td><td>' + LEG_TH[r.leg] + '</td>' +
+        '<td><span class="pill" style="--c:var(--s-' + c + ')">' + STAGE_TH[r.stage] + (r.sub ? ' · ' + esc(r.sub) : '') + '</span></td>' +
+        '<td>' + esc(r.destName || '') + (r.note ? '<div style="color:var(--muted)">' + esc(r.note) + '</div>' : '') + '</td>' +
+        '<td>' + whoHtml(r) + '</td><td>' + (r.lat !== '' && r.lat != null ? '<a href="' + mapsUrl(r) + '" target="_blank" rel="noopener">เปิดแผนที่</a>' : '–') + '</td></tr>';
+    }).join('') : '<tr><td colspan="7" class="empty">ยังไม่มีรายงานตามตัวกรองนี้</td></tr>') + '</tbody></table></div>';
+}
+function whoHtml(r) {
+  const ini = esc((r.lineName || '?').replace(/^(ครู|อ\.|นาย|นาง|นางสาว)/, '').trim().slice(0, 1));
+  return '<span class="who"><span class="ava">' + (r.linePicture ? '<img src="' + esc(r.linePicture) + '" alt="">' : ini) + '</span><span>' + esc(r.lineName || '-') + (r.verified ? ' <span class="ok" title="ยืนยันตัวตนผ่าน LINE">✓</span>' : '') + '</span></span>';
+}
+
+/* ---------- drawer ---------- */
+function openDrawer(id) { state.sel = id; renderDrawer(); $('#drawer').hidden = false; $('#scrim').hidden = false; drawList(); drawMap(); $('#drawer .close').focus(); }
+function closeDrawer() { state.sel = null; $('#drawer').hidden = true; $('#scrim').hidden = true; drawList(); drawMap(); map && map.setView([13.4, 100.9], 5.5); }
+function crew(v) {
+  const it = [['ทะเบียนรถ', v.plate], ['ผู้ควบคุมรถ', v.driver, v.phone], ['พนักงานขับรถ', v.chauffeur, v.chauffeurPhone]].filter(x => x[1]);
+  return it.length ? '<div class="crew">' + it.map(x => '<div><span>' + x[0] + '</span>' + esc(x[1]) + (x[2] ? '<br><a href="tel:' + esc(x[2].replace(/[^0-9+]/g, '')) + '" class="num">' + esc(x[2]) + '</a>' : '') + '</div>').join('') + '</div>' : '';
+}
+function renderDrawer() {
+  const s = state.status.find(x => x.v.id === state.sel); if (!s) return;
+  const v = s.v, k = effKey(s), o = originOf(v);
+  const arrT = (leg, code) => { const r = s.reps.find(r => r.leg === leg && (r.stage === 'ARRIVE' || (leg === 'back' && r.stage === 'DEPART')) && r.destCode === code); return r ? fmtTime(r.serverTime) : ''; };
+  const chk = (leg, code) => { const t = arrT(leg, code); return '<span class="chk' + (t ? ' y' : '') + '">' + (leg === 'go' ? 'ถึง ' : 'ออก ') + (t || '–') + '</span>'; };
+  $('#drawer').innerHTML =
+    '<div class="dhead"><span class="vno" style="--c:var(--s-' + k + ')">' + v.id + '</span><div><h2>คันที่ ' + v.id + ' · ' + esc(v.line) + '</h2><p><span class="pill" style="--c:var(--s-' + k + ')">' + STATUS[k].th + '</span> ' + (s.last ? 'ล่าสุด ' + ago(s.ageMin) : '') + '</p></div><button class="close" type="button" aria-label="ปิด">✕</button></div>' +
+    '<div class="dbody">' +
+    '<div class="facts"><div><span>ออกเดินทางขาไป</span><b style="font-family:var(--f-body);font-size:.85rem">' + esc(o.name) + '</b></div><div><span>ระยะทาง (ขาไป)</span><b>~' + v.km + ' กม.</b></div><div><span>เวลาโดยประมาณ</span><b>' + v.hours + ' ชม.</b></div></div>' +
+    crew(v) +
+    '<div><h3>ปลายทาง ' + v.stops.length + ' สนาม · ขาไปถึงตามลำดับ ขากลับออกวนกลับ</h3><ol class="stops">' + v.stops.map((p, i) => '<li><span class="seq">' + (i + 1) + '</span><span>' + esc(p.label) + (p.approx ? ' <span class="apx" title="ยังไม่มีพิกัดสนามสอบจริง ใช้พิกัดสำนักงานเขต">พิกัดประมาณ</span>' : '') + '<br><small style="color:var(--muted)">' + (p.venue ? esc(p.name) + ' · ' : '') + esc(p.amphoe || '') + ' · รหัส ' + p.code + (p.contact ? ' · ผู้รับ ' + esc(p.contact) : '') + '</small></span>' + chk('go', p.code) + chk('back', p.code) + '</li>').join('') +
+    '<li><span class="seq">⌂</span><span>' + esc(HOME.name) + '<br><small style="color:var(--muted)">ปลายทางขากลับ (จุดเดียว)</small></span><span></span>' + (function () { const r = s.reps.find(r => r.leg === 'back' && r.stage === 'ARRIVE'); return '<span class="chk' + (r ? ' y' : '') + '">ถึง ' + (r ? fmtTime(r.serverTime) : '–') + '</span>'; })() + '</li></ol></div>' +
+    '<div><h3>ลำดับรายงาน</h3>' + (s.reps.length ? '<ol class="tl">' + s.reps.slice().reverse().map(r => {
+      const inc = r.stage === 'ENROUTE' && INCIDENT_RE.test(r.sub);
+      const c = inc ? 'incident' : r.stage === 'ARRIVE' ? 'done' : r.sub === 'แวะพัก' ? 'paused' : r.leg === 'back' ? 'returning' : 'going';
+      return '<li style="--c:var(--s-' + c + ')"><div class="t">' + fmtDT(r.serverTime) + ' · ' + LEG_TH[r.leg] + '</div><div class="h">' + STAGE_TH[r.stage] + (r.sub ? ' · ' + esc(r.sub) : '') + '</div>' + (r.destName ? '<div>' + esc(r.destName) + '</div>' : '') +
+        (r.note ? '<div class="n">' + esc(r.note) + '</div>' : '') + '<div class="m">' + whoHtml(r) + (r.lat !== '' && r.lat != null ? '<a href="' + mapsUrl(r) + '" target="_blank" rel="noopener">พิกัด ±' + Math.round(r.accuracy || 0) + ' ม.</a>' : '<span>ไม่มีพิกัด</span>') + '</div></li>';
+    }).join('') + '</ol>' : '<p class="empty">ยังไม่มีรายงานจากคันนี้</p>') + '</div></div>';
+  $('#drawer .close').onclick = closeDrawer;
+}
+
+/* ---------- load ---------- */
+async function load() {
+  try {
+    state.reports = await fetchReports();
+    $('#errBox').hidden = true;
+  } catch (e) { $('#errBox').textContent = 'โหลดข้อมูลไม่สำเร็จ: ' + e.message + ' — ตรวจสอบ API_URL และ VIEW_KEY ใน config.js'; $('#errBox').hidden = false; }
+  const now = new Date();
+  const by = {}; state.reports.forEach(r => (by[r.vehicle] = by[r.vehicle] || []).push(r));
+  state.status = VEH.map(v => deriveStatus(v, by[v.id] || [], now));
+  $('#upd').textContent = fmtTime(now) + ' น.';
+  drawSummary(); drawList(); drawFeed(); drawMap();
+  if (state.sel && !$('#drawer').hidden) renderDrawer();
+}
+
+/* ---------- events ---------- */
+$('#demoBadge').hidden = !DEMO;
+function fillPlanUi() {
+  $('#hdrCount').textContent = VEH.length + ' คัน · ' + VEH.reduce((a, v) => a + v.stops.length, 0) + ' สนามสอบ';
+  $('#fVeh').innerHTML = '<option value="">ทุกคัน</option>' + VEH.map(v => '<option value="' + v.id + '">คันที่ ' + v.id + ' · ' + esc(v.line) + '</option>').join('');
+  const lines = [...new Set(VEH.map(v => v.line))];
+  $('#line').innerHTML = '<option value="">ทุกสายรถ</option>' + lines.map(l => '<option>' + esc(l) + '</option>').join('');
+}
+$('#summary').addEventListener('click', e => { const b = e.target.closest('.sum'); if (!b) return; state.filter = state.filter === b.dataset.k ? '' : b.dataset.k; if (state.tab !== 'v') setTab('v'); drawSummary(); drawList(); });
+$('#list').addEventListener('click', e => { const b = e.target.closest('.vrow'); if (b) openDrawer(+b.dataset.id); });
+$('#feed').addEventListener('click', e => {
+  const h = e.target.closest('th[data-sort]');
+  if (h) { const k = h.dataset.sort; state.feedSort = { k, d: state.feedSort.k === k ? -state.feedSort.d : (k === 'time' ? -1 : 1) }; drawFeed(); return; }
+  const tr = e.target.closest('tr[data-id]'); if (tr && !e.target.closest('a')) openDrawer(+tr.dataset.id);
+});
+['#q', '#sort'].forEach(s => $(s).addEventListener('input', drawList));
+$('#line').addEventListener('input', e => { state.line = e.target.value; drawList(); });
+['#fVeh', '#fStage', '#fLeg'].forEach(s => $(s).addEventListener('input', drawFeed));
+$('#scrim').onclick = closeDrawer;
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#drawer').hidden) closeDrawer(); });
+$('#refresh').onclick = load;
+function setTab(t) {
+  state.tab = t;
+  $('#tabV').setAttribute('aria-selected', t === 'v'); $('#tabF').setAttribute('aria-selected', t === 'f'); $('#tabM').setAttribute('aria-selected', t === 'm');
+  $('#list').hidden = t !== 'v'; $('#feed').hidden = t !== 'f'; $('#toolsV').hidden = t !== 'v'; $('#toolsF').hidden = t !== 'f';
+  document.body.classList.toggle('tab-m', t === 'm');
+  if (t === 'm' && map) setTimeout(() => map.invalidateSize(), 50);
+  try { localStorage.setItem('et-tab', t); } catch (e) {}
+}
+$('#tabV').onclick = () => setTab('v'); $('#tabF').onclick = () => setTab('f'); $('#tabM').onclick = () => setTab('m');
+// มือถือ: กลับจากแผนที่ไปหน้าจอกว้างแล้ว แท็บแผนที่ไม่มี ให้กลับไปรายคัน
+matchMedia('(min-width:961px)').addEventListener('change', e => { if (e.matches && state.tab === 'm') setTab('v'); else if (map) map.invalidateSize(); });
+try { const s = localStorage.getItem('et-sort'); if (s) $('#sort').value = s; } catch (e) {}
+$('#sort').addEventListener('change', () => { try { localStorage.setItem('et-sort', $('#sort').value); } catch (e) {} });
+
+(async () => { await loadPlan(); fillPlanUi(); initMap(); load(); })();
+setInterval(async () => { if (await loadPlan() === 'sheet') fillPlanUi(); }, 10 * 60 * 1000);
+setInterval(load, CFG.REFRESH_SEC * 1000);
+</script>
+
+</body>
+</html>

@@ -228,8 +228,7 @@ applyPlan({ origins: DATA.origins, vehicles: DATA.vehicles });
 async function loadPlan() {
   if (DEMO) return 'embedded';
   try {
-    const res = await fetch(CFG.API_URL + '?action=plan&key=' + encodeURIComponent(CFG.VIEW_KEY || ''));
-    const j = await res.json();
+    const j = await getJson(CFG.API_URL + '?action=plan&key=' + encodeURIComponent(CFG.VIEW_KEY || ''), 20000);
     if (j.ok && applyPlan(j.plan)) return 'sheet';
   } catch (e) {}
   return 'embedded';
@@ -319,6 +318,21 @@ const LS_KEY = 'exam-tracker-demo-reports';
 function lsGet() { try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch (e) { return []; } }
 function lsSet(a) { try { localStorage.setItem(LS_KEY, JSON.stringify(a)); } catch (e) {} }
 
+/** GET JSON จาก Apps Script: ตั้งเวลารอ และลองใหม่ 1 ครั้ง (บางครั้ง Google ตอบเป็นหน้า HTML ชั่วคราวเมื่อเน็ตช้า) */
+async function getJson(url, timeoutMs) {
+  let lastErr;
+  for (let i = 0; i < 2; i++) {
+    const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), timeoutMs || 30000);
+    try {
+      const res = await fetch(url, { signal: ctl.signal });
+      const text = await res.text();
+      clearTimeout(timer);
+      try { return JSON.parse(text); } catch (e) { lastErr = new Error('เซิร์ฟเวอร์ตอบกลับไม่สมบูรณ์'); }
+    } catch (e) { clearTimeout(timer); lastErr = new Error(e.name === 'AbortError' ? 'เครือข่ายช้า รอนานเกินไป' : 'เชื่อมต่อไม่ได้'); }
+  }
+  throw lastErr;
+}
+
 async function fetchReports(params) {
   if (DEMO) {
     let rows = demoReports(new Date()).concat(lsGet());
@@ -326,8 +340,7 @@ async function fetchReports(params) {
     return rows.sort((a, b) => a.serverTime < b.serverTime ? -1 : 1);
   }
   const q = new URLSearchParams(Object.assign({ key: CFG.VIEW_KEY }, params || {}));
-  const res = await fetch(CFG.API_URL + '?' + q.toString());
-  const j = await res.json();
+  const j = await getJson(CFG.API_URL + '?' + q.toString(), 30000);
   if (!j.ok) throw new Error(j.error || 'โหลดข้อมูลไม่สำเร็จ');
   return j.reports.sort((a, b) => a.serverTime < b.serverTime ? -1 : 1);
 }
@@ -340,8 +353,14 @@ async function postReport(data) {
     return r;
   }
   // text/plain เพื่อไม่ให้เกิด CORS preflight กับ Apps Script
-  const res = await fetch(CFG.API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(data) });
-  const j = await res.json();
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 45000);
+  let j;
+  try {
+    const res = await fetch(CFG.API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(data), signal: ctl.signal });
+    j = JSON.parse(await res.text());
+  } catch (e) {
+    throw new Error(e.name === 'AbortError' ? 'สัญญาณช้า ส่งไม่ทันเวลา' : 'ส่งไม่สำเร็จ');
+  } finally { clearTimeout(timer); }
   if (!j.ok) throw new Error(j.error || 'ส่งรายงานไม่สำเร็จ');
   return j.report;
 }
@@ -431,9 +450,27 @@ async function setVehicle(id) {
   if (!st.vehicle) { $('#vehInfo').textContent = 'เลือกคันที่ของคุณ (ลิงก์ประจำคันจะเลือกให้อัตโนมัติ)'; $('#hist').innerHTML = ''; renderAll(); return; }
   const v = st.vehicle;
   $('#vehInfo').textContent = 'ออกจาก ' + originOf(v).name + ' · ' + v.stops.length + ' สนามสอบ · ~' + v.km + ' กม.' + (v.plate ? ' · ทะเบียน ' + v.plate : '');
-  $('#hist').innerHTML = '<li><small>กำลังโหลด…</small></li>';
-  try { st.reps = await fetchReports({ vehicle: v.id }); } catch (e) { st.reps = []; }
+  // แสดงฟอร์มทันทีจากประวัติที่จำไว้ในเครื่อง แล้วค่อยอัปเดตจากเซิร์ฟเวอร์ตามหลัง (เน็ตช้าก็กรอกได้เลย)
+  st.reps = repsCache(v.id); st.touched = false;
   suggest(); renderAll(); renderHist();
+  if (!st.reps.length) $('#hist').innerHTML = '<li><small>กำลังโหลดประวัติ… (กรอกรายงานได้เลย ไม่ต้องรอ)</small></li>';
+  const want = v.id;
+  try {
+    const reps = await fetchReports({ vehicle: v.id });
+    if (!st.vehicle || st.vehicle.id !== want) return;      // ผู้ใช้เปลี่ยนคันไปแล้ว
+    st.reps = reps; repsCache(v.id, reps);
+    if (!st.touched) suggest();                               // ยังไม่ได้แตะอะไร ค่อยเดาขั้นถัดไปใหม่
+    renderAll(); renderHist();
+  } catch (e) {
+    if (!st.reps.length) $('#hist').innerHTML = '<li><small>โหลดประวัติไม่ได้ (' + esc(e.message) + ') — ส่งรายงานได้ตามปกติ</small></li>';
+  }
+}
+function repsCache(id, reps) {
+  const k = 'et-reps-' + id;
+  try {
+    if (reps) localStorage.setItem(k, JSON.stringify(reps.slice(-40)));
+    else return JSON.parse(localStorage.getItem(k) || '[]');
+  } catch (e) { return []; }
 }
 
 /** เดาขั้นถัดไปจากรายงานก่อนหน้า เพื่อลดการกด */
@@ -501,7 +538,8 @@ function renderAll() {
 function renderSum() {
   const v = st.vehicle;
   let msg = '';
-  if (!v) msg = 'เลือกคันที่ก่อน';
+  if (!st.profile) msg = 'กำลังเชื่อมต่อ LINE…';
+  else if (!v) msg = 'เลือกคันที่ก่อน';
   else if (!st.stage) msg = 'เลือกสถานะ';
   else if (st.stage === 'ENROUTE' && !st.sub) msg = 'เลือกเหตุการณ์ระหว่างทาง';
   else if (st.sub === 'อื่นๆ' && !$('#note').value.trim()) msg = 'กรุณาระบุรายละเอียดในหมายเหตุ';
@@ -530,6 +568,7 @@ function gpsFail(m) { st.pos = null; $('#gpsSt').className = 'st bad'; $('#gpsSt
 
 /* ----- events ----- */
 $('#veh').addEventListener('change', e => setVehicle(e.target.value));
+$('#f').addEventListener('click', () => { st.touched = true; }, true);
 $('#leg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; st.leg = b.dataset.v; st.dest = null; renderAll(); });
 $('#stages').addEventListener('click', e => { const b = e.target.closest('.stage'); if (!b) return; st.stage = b.dataset.v; st.dest = null; if (st.stage !== 'ENROUTE') st.sub = ''; renderAll(); });
 $('#subs').addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; st.sub = b.dataset.v; renderAll(); });
@@ -552,7 +591,7 @@ $('#f').addEventListener('submit', async e => {
   $('#send').disabled = true; $('#send').textContent = 'กำลังส่ง…';
   try {
     const r = await postReport(payload);
-    st.reps.push(r);
+    st.reps.push(r); repsCache(v.id, st.reps);
     $('#doneCard').innerHTML = '<b>คันที่ ' + v.id + ' · ' + LEG_TH[r.leg] + '</b><br>' + esc(describe(r)) + '<br><span style="color:var(--muted)">' + fmtDT(r.serverTime) + (r.lat !== '' ? ' · พิกัด ±' + r.accuracy + ' ม.' : ' · ไม่มีพิกัด') + '</span>';
     $('#done').hidden = false;
   } catch (err) {
@@ -565,8 +604,11 @@ $('#again').onclick = () => { $('#done').hidden = true; $('#note').value = ''; s
 $('#closeBtn').onclick = () => { if (window.liff && CFG.LIFF_ID && liff.isInClient()) liff.closeWindow(); else $('#again').click(); };
 
 (async () => {
-  try { if (!(await initLine())) return; } catch (e) { $('#hello').textContent = 'เชื่อมต่อ LINE ไม่สำเร็จ'; $('#sum').innerHTML = '<span class="err">' + esc(e.message) + '</span>'; return; }
-  await loadPlan(); pickVehicle(); readGps();
+  // แสดงฟอร์มและเริ่มอ่าน GPS ก่อน ระหว่างรอเชื่อมต่อ LINE
+  pickVehicle(); readGps();
+  try { if (!(await initLine())) return; } catch (e) { $('#hello').textContent = 'เชื่อมต่อ LINE ไม่สำเร็จ'; $('#sum').innerHTML = '<span class="err">' + esc(e.message) + ' — ปิดแล้วเปิดลิงก์ใหม่ในแอป LINE</span>'; return; }
+  renderSum();
+  loadPlan().then(s => { if (s === 'sheet') { const keep = st.vehicle && st.vehicle.id; pickVehicle(); if (keep && VMAP[keep]) { $('#veh').value = keep; } } });
 })();
 </script>
 

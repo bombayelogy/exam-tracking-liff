@@ -977,8 +977,7 @@ applyPlan({ origins: DATA.origins, vehicles: DATA.vehicles });
 async function loadPlan() {
   if (DEMO) return 'embedded';
   try {
-    const res = await fetch(CFG.API_URL + '?action=plan&key=' + encodeURIComponent(CFG.VIEW_KEY || ''));
-    const j = await res.json();
+    const j = await getJson(CFG.API_URL + '?action=plan&key=' + encodeURIComponent(CFG.VIEW_KEY || ''), 20000);
     if (j.ok && applyPlan(j.plan)) return 'sheet';
   } catch (e) {}
   return 'embedded';
@@ -1068,6 +1067,21 @@ const LS_KEY = 'exam-tracker-demo-reports';
 function lsGet() { try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch (e) { return []; } }
 function lsSet(a) { try { localStorage.setItem(LS_KEY, JSON.stringify(a)); } catch (e) {} }
 
+/** GET JSON จาก Apps Script: ตั้งเวลารอ และลองใหม่ 1 ครั้ง (บางครั้ง Google ตอบเป็นหน้า HTML ชั่วคราวเมื่อเน็ตช้า) */
+async function getJson(url, timeoutMs) {
+  let lastErr;
+  for (let i = 0; i < 2; i++) {
+    const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), timeoutMs || 30000);
+    try {
+      const res = await fetch(url, { signal: ctl.signal });
+      const text = await res.text();
+      clearTimeout(timer);
+      try { return JSON.parse(text); } catch (e) { lastErr = new Error('เซิร์ฟเวอร์ตอบกลับไม่สมบูรณ์'); }
+    } catch (e) { clearTimeout(timer); lastErr = new Error(e.name === 'AbortError' ? 'เครือข่ายช้า รอนานเกินไป' : 'เชื่อมต่อไม่ได้'); }
+  }
+  throw lastErr;
+}
+
 async function fetchReports(params) {
   if (DEMO) {
     let rows = demoReports(new Date()).concat(lsGet());
@@ -1075,8 +1089,7 @@ async function fetchReports(params) {
     return rows.sort((a, b) => a.serverTime < b.serverTime ? -1 : 1);
   }
   const q = new URLSearchParams(Object.assign({ key: CFG.VIEW_KEY }, params || {}));
-  const res = await fetch(CFG.API_URL + '?' + q.toString());
-  const j = await res.json();
+  const j = await getJson(CFG.API_URL + '?' + q.toString(), 30000);
   if (!j.ok) throw new Error(j.error || 'โหลดข้อมูลไม่สำเร็จ');
   return j.reports.sort((a, b) => a.serverTime < b.serverTime ? -1 : 1);
 }
@@ -1089,8 +1102,14 @@ async function postReport(data) {
     return r;
   }
   // text/plain เพื่อไม่ให้เกิด CORS preflight กับ Apps Script
-  const res = await fetch(CFG.API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(data) });
-  const j = await res.json();
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 45000);
+  let j;
+  try {
+    const res = await fetch(CFG.API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(data), signal: ctl.signal });
+    j = JSON.parse(await res.text());
+  } catch (e) {
+    throw new Error(e.name === 'AbortError' ? 'สัญญาณช้า ส่งไม่ทันเวลา' : 'ส่งไม่สำเร็จ');
+  } finally { clearTimeout(timer); }
   if (!j.ok) throw new Error(j.error || 'ส่งรายงานไม่สำเร็จ');
   return j.report;
 }
@@ -1280,16 +1299,28 @@ function renderDrawer() {
 
 /* ---------- load ---------- */
 async function load() {
+  if (state.loading) return;          // กันโหลดซ้อนเมื่อเน็ตช้า
+  state.loading = true;
+  $('#upd').textContent = 'กำลังโหลด…';
   try {
-    state.reports = await fetchReports();
+    // ดึงเต็มทุก 10 นาที ระหว่างนั้นดึงเฉพาะรายงานใหม่ (ข้อมูลเล็ก เร็วแม้มีรถ 120 คัน)
+    const full = !state.lastFull || Date.now() - state.lastFull > 10 * 60e3 || !state.reports.length;
+    if (full) { state.reports = await fetchReports(); state.lastFull = Date.now(); }
+    else {
+      const since = state.reports[state.reports.length - 1].serverTime;
+      const add = await fetchReports({ since });
+      const seen = new Set(state.reports.map(r => r.id));
+      add.forEach(r => { if (!seen.has(r.id)) state.reports.push(r); });
+    }
     $('#errBox').hidden = true;
-  } catch (e) { $('#errBox').textContent = 'โหลดข้อมูลไม่สำเร็จ: ' + e.message + ' — ตรวจสอบ API_URL และ VIEW_KEY ใน config.js'; $('#errBox').hidden = false; }
+  } catch (e) { $('#errBox').textContent = 'โหลดข้อมูลล่าสุดไม่สำเร็จ (' + e.message + ') — ระบบจะลองใหม่อัตโนมัติ ข้อมูลที่เห็นอยู่คือรอบก่อนหน้า'; $('#errBox').hidden = false; }
   const now = new Date();
   const by = {}; state.reports.forEach(r => (by[r.vehicle] = by[r.vehicle] || []).push(r));
   state.status = VEH.map(v => deriveStatus(v, by[v.id] || [], now));
   $('#upd').textContent = fmtTime(now) + ' น.';
   drawSummary(); drawList(); drawFeed(); drawMap();
   if (state.sel && !$('#drawer').hidden) renderDrawer();
+  state.loading = false;
 }
 
 /* ---------- events ---------- */
@@ -1327,8 +1358,10 @@ matchMedia('(min-width:961px)').addEventListener('change', e => { if (e.matches 
 try { const s = localStorage.getItem('et-sort'); if (s) $('#sort').value = s; } catch (e) {}
 $('#sort').addEventListener('change', () => { try { localStorage.setItem('et-sort', $('#sort').value); } catch (e) {} });
 
-(async () => { await loadPlan(); fillPlanUi(); initMap(); load(); })();
-setInterval(async () => { if (await loadPlan() === 'sheet') fillPlanUi(); }, 10 * 60 * 1000);
+// แสดงผลทันทีด้วยแผนที่ฝังมา แล้วค่อยอัปเดตแผนจาก Google Sheet ตามหลัง
+fillPlanUi(); initMap(); load();
+loadPlan().then(s => { if (s === 'sheet') { fillPlanUi(); load(); } });
+setInterval(async () => { if (await loadPlan() === 'sheet') { fillPlanUi(); load(); } }, 10 * 60 * 1000);
 setInterval(load, CFG.REFRESH_SEC * 1000);
 </script>
 

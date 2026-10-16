@@ -88,6 +88,9 @@ textarea{min-height:80px;resize:vertical}
 .done .box{max-width:420px;width:100%;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
 .done .ring{width:72px;height:72px;border-radius:50%;background:color-mix(in srgb,var(--s-done) 15%,var(--panel));display:grid;place-items:center}
 .done .ring svg{width:38px;height:38px;stroke:var(--s-done);stroke-width:3;fill:none}
+.sendst{margin:0;font-weight:600;font-size:.92rem}
+.sendst.ok{color:var(--s-done)}.sendst.wait{color:var(--s-paused)}
+.hist .pend{color:var(--s-paused);font-weight:600}
 .done h2{font-family:var(--f-display);margin:0}
 .done .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;text-align:left;width:100%;font-size:.9rem}
 .done .btns{display:flex;gap:8px;width:100%}
@@ -171,9 +174,10 @@ textarea{min-height:80px;resize:vertical}
 <div class="done" id="done" hidden>
   <div class="box">
     <div class="ring"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg></div>
-    <h2>บันทึกรายงานแล้ว</h2>
+    <h2>รับรายงานแล้ว</h2>
     <div class="card" id="doneCard"></div>
-    <p class="hint">ผู้บริหารเห็นสถานะนี้บนแดชบอร์ดทันที ไม่ต้องพิมพ์ซ้ำในกลุ่มไลน์</p>
+    <p class="sendst" id="sendSt" aria-live="polite"></p>
+    <p class="hint">ผู้บริหารเห็นสถานะนี้บนแดชบอร์ดเมื่อส่งเข้าระบบเสร็จ ไม่ต้องพิมพ์ซ้ำในกลุ่มไลน์</p>
     <div class="btns"><button type="button" id="again">รายงานต่อ</button><button type="button" class="primary" id="closeBtn">ปิดหน้านี้</button></div>
   </div>
 </div>
@@ -430,7 +434,7 @@ async function initLine() {
   }
   const p = st.profile;
   $('#hello').textContent = 'สวัสดี ' + p.displayName;
-  $('#ava').innerHTML = p.pictureUrl ? '<img src="' + esc(p.pictureUrl) + '" alt="">' : esc(p.displayName.slice(0, 1));
+  $('#ava').textContent = p.displayName.slice(0, 1);   // ไม่ใช้รูปโปรไฟล์
   return true;
 }
 
@@ -458,7 +462,8 @@ async function setVehicle(id) {
   try {
     const reps = await fetchReports({ vehicle: v.id });
     if (!st.vehicle || st.vehicle.id !== want) return;      // ผู้ใช้เปลี่ยนคันไปแล้ว
-    st.reps = reps; repsCache(v.id, reps);
+    const pend = st.reps.filter(x => x.pending && !reps.some(r => r.clientTime === x.clientTime));
+    st.reps = reps.concat(pend); repsCache(v.id, st.reps);
     if (!st.touched) suggest();                               // ยังไม่ได้แตะอะไร ค่อยเดาขั้นถัดไปใหม่
     renderAll(); renderHist();
   } catch (e) {
@@ -549,7 +554,7 @@ function renderSum() {
 }
 function renderHist() {
   const r = st.reps.slice(-5).reverse();
-  $('#hist').innerHTML = r.length ? r.map(x => '<li><span class="t">' + fmtTime(x.serverTime) + '</span><span>' + LEG_TH[x.leg] + ' · ' + esc(describe(x)) + '</span><small>' + fmtDate(x.serverTime) + ' · ' + esc(x.lineName) + '</small></li>').join('') : '<li><small>ยังไม่มีรายงานของคันนี้</small></li>';
+  $('#hist').innerHTML = r.length ? r.map(x => '<li><span class="t">' + fmtTime(x.serverTime) + '</span><span>' + LEG_TH[x.leg] + ' · ' + esc(describe(x)) + '</span><small>' + (x.pending ? '<span class="pend">รอส่งเข้าระบบ</span> · ' : '') + fmtDate(x.serverTime) + ' · ' + esc(x.lineName) + '</small></li>').join('') : '<li><small>ยังไม่มีรายงานของคันนี้</small></li>';
 }
 
 /* ----- GPS ----- */
@@ -586,20 +591,50 @@ $('#f').addEventListener('submit', async e => {
     destCode: dest ? dest.code : '', destName: dest ? (dest.label || dest.name) : '',
     lat: st.pos ? st.pos.lat : '', lng: st.pos ? st.pos.lng : '', accuracy: st.pos ? st.pos.accuracy : '',
     note: $('#note').value.trim(), clientTime: new Date().toISOString(),
-    lineUserId: st.profile.userId, lineName: st.profile.displayName, linePicture: st.profile.pictureUrl || '', idToken: st.idToken
+    lineUserId: st.profile.userId, lineName: st.profile.displayName
   };
-  $('#send').disabled = true; $('#send').textContent = 'กำลังส่ง…';
-  try {
-    const r = await postReport(payload);
-    st.reps.push(r); repsCache(v.id, st.reps);
-    $('#doneCard').innerHTML = '<b>คันที่ ' + v.id + ' · ' + LEG_TH[r.leg] + '</b><br>' + esc(describe(r)) + '<br><span style="color:var(--muted)">' + fmtDT(r.serverTime) + (r.lat !== '' ? ' · พิกัด ±' + r.accuracy + ' ม.' : ' · ไม่มีพิกัด') + '</span>';
-    $('#done').hidden = false;
-  } catch (err) {
-    $('#sum').innerHTML = '<span class="err">' + esc(err.message) + ' — สัญญาณอาจไม่ดี ลองกดส่งอีกครั้ง</span>';
-    $('#send').disabled = false;
-  }
-  $('#send').textContent = 'ส่งรายงาน';
+  // เก็บลงคิวในเครื่องก่อน แล้วขึ้นหน้าสำเร็จทันที ส่งเข้าระบบเบื้องหลัง (สัญญาณหายก็ไม่หาย ส่งต่อเองเมื่อมีสัญญาณ)
+  outbox.add(payload);
+  const local = Object.assign({ serverTime: payload.clientTime, pending: true }, payload);
+  st.reps.push(local); repsCache(v.id, st.reps);
+  $('#doneCard').innerHTML = '<b>คันที่ ' + v.id + ' · ' + LEG_TH[payload.leg] + '</b><br>' + esc(describe(payload)) + '<br><span style="color:var(--muted)">' + fmtDT(payload.clientTime) + (payload.lat !== '' ? ' · พิกัด ±' + payload.accuracy + ' ม.' : ' · ไม่มีพิกัด') + '</span>';
+  $('#done').hidden = false;
+  outbox.flush();
 });
+
+/* ----- คิวส่งรายงาน (outbox) ----- */
+const outbox = {
+  key: 'et-outbox',
+  list() { try { return JSON.parse(localStorage.getItem(this.key) || '[]'); } catch (e) { return this._mem || []; } },
+  save(a) { this._mem = a; try { localStorage.setItem(this.key, JSON.stringify(a)); } catch (e) {} },
+  add(p) { const a = this.list(); a.push(p); this.save(a); this.show(); },
+  busy: false,
+  async flush() {
+    if (this.busy) return; this.busy = true;
+    try {
+      let a = this.list();
+      while (a.length) {
+        const p = a[0];
+        try {
+          const r = await postReport(Object.assign({}, p, { idToken: st.idToken }));
+          a = this.list().filter(x => x.clientTime !== p.clientTime); this.save(a);
+          const i = st.reps.findIndex(x => x.pending && x.clientTime === p.clientTime);
+          if (i >= 0) st.reps[i] = r; else st.reps.push(r);
+          if (st.vehicle && st.vehicle.id === p.vehicle) repsCache(p.vehicle, st.reps);
+        } catch (e) { this.lastErr = e.message; break; }
+      }
+    } finally { this.busy = false; this.show(); renderHist(); }
+  },
+  show() {
+    const n = this.list().length, el = $('#sendSt');
+    if (!el) return;
+    if (!n) { el.className = 'sendst ok'; el.textContent = '✓ ส่งเข้าระบบแล้ว'; }
+    else if (this.busy || !this.lastErr) { el.className = 'sendst wait'; el.textContent = 'กำลังส่งเข้าระบบ… (' + n + ' รายการ) ปิดหน้านี้ได้ ระบบจะส่งต่อเมื่อเปิดครั้งหน้า'; }
+    else { el.className = 'sendst wait'; el.textContent = 'ยังส่งไม่ได้ (' + this.lastErr + ') — เก็บไว้ในเครื่อง ' + n + ' รายการ จะลองส่งใหม่อัตโนมัติ'; }
+  }
+};
+setInterval(() => { if (outbox.list().length && st.profile) outbox.flush(); }, 20000);
+window.addEventListener('online', () => outbox.flush());
 $('#again').onclick = () => { $('#done').hidden = true; $('#note').value = ''; suggest(); renderAll(); renderHist(); readGps(); window.scrollTo(0, 0); };
 $('#closeBtn').onclick = () => { if (window.liff && CFG.LIFF_ID && liff.isInClient()) liff.closeWindow(); else $('#again').click(); };
 
@@ -608,6 +643,7 @@ $('#closeBtn').onclick = () => { if (window.liff && CFG.LIFF_ID && liff.isInClie
   pickVehicle(); readGps();
   try { if (!(await initLine())) return; } catch (e) { $('#hello').textContent = 'เชื่อมต่อ LINE ไม่สำเร็จ'; $('#sum').innerHTML = '<span class="err">' + esc(e.message) + ' — ปิดแล้วเปิดลิงก์ใหม่ในแอป LINE</span>'; return; }
   renderSum();
+  if (outbox.list().length) outbox.flush();   // มีรายงานค้างจากครั้งก่อน ส่งต่อ
   loadPlan().then(s => { if (s === 'sheet') { const keep = st.vehicle && st.vehicle.id; pickVehicle(); if (keep && VMAP[keep]) { $('#veh').value = keep; } } });
 })();
 </script>

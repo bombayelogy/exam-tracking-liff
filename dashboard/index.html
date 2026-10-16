@@ -1266,7 +1266,7 @@ function drawFeed() {
 }
 function whoHtml(r) {
   const ini = esc((r.lineName || '?').replace(/^(ครู|อ\.|นาย|นาง|นางสาว)/, '').trim().slice(0, 1));
-  return '<span class="who"><span class="ava">' + (r.linePicture ? '<img src="' + esc(r.linePicture) + '" alt="">' : ini) + '</span><span>' + esc(r.lineName || '-') + (r.verified ? ' <span class="ok" title="ยืนยันตัวตนผ่าน LINE">✓</span>' : '') + '</span></span>';
+  return '<span class="who"><span class="ava">' + ini + '</span><span>' + esc(r.lineName || '-') + (r.verified ? ' <span class="ok" title="ยืนยันตัวตนผ่าน LINE">✓</span>' : '') + '</span></span>';
 }
 
 /* ---------- drawer ---------- */
@@ -1315,6 +1315,9 @@ async function load() {
     $('#errBox').hidden = true;
   } catch (e) { $('#errBox').textContent = 'โหลดข้อมูลล่าสุดไม่สำเร็จ (' + e.message + ') — ระบบจะลองใหม่อัตโนมัติ ข้อมูลที่เห็นอยู่คือรอบก่อนหน้า'; $('#errBox').hidden = false; }
   const now = new Date();
+  // ตัดรายงานซ้ำ (ส่งซ้ำตอนสัญญาณไม่ดี) ด้วยเวลาที่กดส่งบนมือถือ
+  const seenK = new Set();
+  state.reports = state.reports.filter(r => { const k = r.vehicle + '|' + r.lineUserId + '|' + (r.clientTime || r.id); if (seenK.has(k)) return false; seenK.add(k); return true; });
   const by = {}; state.reports.forEach(r => (by[r.vehicle] = by[r.vehicle] || []).push(r));
   state.status = VEH.map(v => deriveStatus(v, by[v.id] || [], now));
   $('#upd').textContent = fmtTime(now) + ' น.';

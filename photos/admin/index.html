@@ -66,6 +66,10 @@ td .sub{color:var(--muted);font-size:13px}
 .thumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .th{position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:#e9edf2}
 .th img{width:100%;height:100%;object-fit:cover;cursor:zoom-in;display:block}
+.th.add{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:2px dashed var(--line);background:#f7f9fb;color:var(--muted);cursor:pointer;font:inherit;font-size:13px}
+.th.add b{font-size:22px;line-height:1}
+.th.add:disabled{cursor:progress;opacity:.7}
+.form .grp{margin-top:12px;padding-top:8px;border-top:1px solid var(--line);font-weight:600;font-size:14px}
 .th .cap{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.55);color:#fff;font-size:11px;padding:2px 5px}
 .th .del{position:absolute;top:3px;right:3px;width:24px;height:24px;border:0;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;cursor:pointer}
 .empty{color:var(--muted);font-size:13px}
@@ -173,7 +177,7 @@ function logout() { KEY = ''; try { localStorage.removeItem('w14p_admin_session'
 async function load(quiet) {
   try {
     const j = await api('admin_summary');
-    S.districts = j.districts; S.steps = j.steps; S.exportOpen = j.exportOpen;
+    S.districts = j.districts; S.steps = j.steps; S.exportOpen = j.exportOpen; S.max = j.maxPerStep || 3; S.pdfTitle = j.pdfTitle || '';
     if (!quiet || !document.getElementById('list')) shell();
     renderList();
   } catch (e) {
@@ -198,10 +202,10 @@ function shell() {
       <input id="q" placeholder="ค้นหา รหัส / เขต / สนามสอบ / ผู้ประสานงาน" value="${esc(S.q)}" oninput="S.q=this.value;renderList()">
       <select onchange="S.region=this.value;renderList()"><option value="">ทุกสายภูมิภาค</option>${regions.map(r => `<option ${S.region === r ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select>
       <select onchange="S.status=this.value;renderList()">
-        <option value="">ทุกสถานะ</option><option value="ok">ครบ 6 ขั้น</option><option value="part">ส่งบางขั้น</option>
+        <option value="">ทุกสถานะ</option><option value="ok">ครบทุกขั้น</option><option value="part">ส่งบางขั้น</option>
         <option value="none">ยังไม่ส่งเลย</option><option value="sub">ยืนยันส่งครบแล้ว</option></select>
       <button class="btn ghost" onclick="load()">รีเฟรช</button>
-      <button class="btn ghost" onclick="editSteps()">แก้หัวข้อขั้นตอน</button>
+      <button class="btn ghost" onclick="editSteps()">แก้ข้อความหัวข้อ / PDF</button>
       <button class="btn ghost" style="color:var(--err)" onclick="resetAll()">ล้างข้อมูลทั้งหมด</button>
       <button class="btn ghost" onclick="exportLinks()">ลิงก์ประจำเขต (CSV)</button>
     </div>
@@ -235,7 +239,7 @@ function renderList() {
   const all = S.districts;
   const ok = all.filter(d => statusOf(d) === 'ok').length, part = all.filter(d => statusOf(d) === 'part').length;
   document.getElementById('stats').innerHTML =
-    `<div class="stat"><b>${ok}/${all.length}</b><span>เขตส่งครบ 6 ขั้น</span></div>
+    `<div class="stat"><b>${ok}/${all.length}</b><span>เขตส่งครบ ${S.steps.length} ขั้น</span></div>
      <div class="stat"><b>${part}</b><span>ส่งบางขั้น</span></div>
      <div class="stat"><b>${all.length - ok - part}</b><span>ยังไม่ส่งเลย</span></div>
      <div class="stat"><b>${all.reduce((a, d) => a + nPhotos(d), 0)}</b><span>รูปทั้งหมด · ยืนยันแล้ว ${all.filter(d => d.submittedAt).length} เขต</span></div>`;
@@ -246,7 +250,7 @@ function renderList() {
       <td class="c-chk" onclick="event.stopPropagation()"><input type="checkbox" class="chk" ${S.sel.has(d.code) ? 'checked' : ''} onchange="toggleSel('${esc(d.code)}',this.checked)" aria-label="เลือก ${esc(d.code)}"></td>
       <td class="c-name"><span class="code">${esc(d.code)}</span> ${esc(d.name)}<div class="sub">${esc(d.venue || 'ยังไม่กรอกสนามสอบ')}${d.coordinator ? ' · ' + esc(d.coordinator) : (d.owners && d.owners.length ? ' · ' + esc(d.owners.join(', ')) : '')}${d.vehicle ? ' · คัน ' + esc(d.vehicle) : ''}</div></td>
       <td class="c-dots"><div class="dots">${S.steps.map(s => `<span class="dot ${(d.counts[s.n] || 0) ? 'y' : ''}" title="ขั้น ${s.n}: ${esc(s.title)} (${d.counts[s.n] || 0} รูป)">${s.n}</span>`).join('')}</div></td>
-      <td class="c-st"><span class="pill ${st}">${st === 'ok' ? 'ครบ' : n + '/6'}</span>${d.submittedAt ? ' <span class="pill ok" title="ผู้ประสานงานยืนยันส่งครบ">ยืนยัน</span>' : ''}</td>
+      <td class="c-st"><span class="pill ${st}">${st === 'ok' ? 'ครบ' : n + '/' + S.steps.length}</span>${d.submittedAt ? ' <span class="pill ok" title="ผู้ประสานงานยืนยันส่งครบ">ยืนยัน</span>' : ''}</td>
       <td class="c-last"><span class="sub">${esc(th(d.lastPhoto)) || '-'}</span></td>
       <td class="c-pdf" onclick="event.stopPropagation()"><label class="sw" style="background:none;padding:0"><input type="checkbox" ${d.pdfAllowed ? 'checked' : ''} onchange="setAllowed('${esc(d.code)}',this)"></label></td></tr>`;
   }).join('') || '<tr><td colspan="6" class="empty">ไม่พบเขตตามเงื่อนไข</td></tr>';
@@ -290,13 +294,17 @@ function drawerHtml(d, photos) {
       <span>ผู้ดูแล (ไลน์)</span><div>${d.owners && d.owners.length ? esc(d.owners.join(', ')) + ` <button class="btn ghost sm" onclick="resetOwners('${esc(d.code)}')">ล้าง</button>` : '-'}</div></div>
       <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap"><button class="btn ghost sm" onclick="previewPdf('${esc(d.code)}')">ดูตัวอย่าง PDF</button>
       <button class="btn sm" onclick="exportPdf('one','${esc(d.code)}')">ดาวน์โหลด PDF เขตนี้</button>
-      <button class="btn ghost sm" onclick="editDistrict('${esc(d.code)}')">แก้รหัส / ชื่อเขต</button></div></div>`;
+      <button class="btn ghost sm" onclick="editInfo('${esc(d.code)}')">แก้ข้อมูลขั้นที่ 1</button>
+      <button class="btn ghost sm" onclick="editDistrict('${esc(d.code)}')">แก้รหัส / ชื่อเขต</button></div>
+      <div class="empty" style="margin-top:6px">PDF แสดงเฉพาะ รหัสเขต · เขตพื้นที่ · สนามสอบ (ไม่แสดงผู้ประสานงาน คันที่ สาย) · แอดมินเพิ่ม/ลบรูปได้ในแต่ละขั้นด้านล่าง</div></div>`;
   for (const s of S.steps) {
     const list = photos ? photos.filter(p => p.step === s.n) : null;
-    h += `<div class="sec"><h3>${s.n}. ${esc(s.title)}</h3>` + (list === null ? '<div class="empty">กำลังโหลด…</div>'
-      : list.length ? '<div class="thumbs">' + list.map(p => `<div class="th"><img src="${esc(p.thumb || '')}" alt="" onclick="viewPhoto('${p.id}')">
-          <button class="del" title="ลบรูป" onclick="delPhoto('${p.id}')">✕</button><div class="cap">${esc(th(p.time))}${p.by ? ' · ' + esc(p.by) : ''}</div></div>`).join('') + '</div>'
-      : '<div class="empty">ยังไม่มีรูป</div>') + '</div>';
+    const add = list && list.length < (S.max || 3)
+      ? `<button class="th add" onclick="adminPick(${s.n}, this)"><b>＋</b>เพิ่มรูป</button>` : '';
+    h += `<div class="sec"><h3>${s.n}. ${esc(s.full || s.title)}</h3>` + (list === null ? '<div class="empty">กำลังโหลด…</div>'
+      : '<div class="thumbs">' + list.map(p => `<div class="th"><img src="${esc(p.thumb || '')}" alt="" onclick="viewPhoto('${p.id}')">
+          <button class="del" title="ลบรูป" onclick="delPhoto('${p.id}')">✕</button><div class="cap">${esc(th(p.time))}${p.by ? ' · ' + esc(p.by) : ''}</div></div>`).join('') + add + '</div>'
+        + (list.length ? '' : '<div class="empty">ยังไม่มีรูป</div>')) + '</div>';
   }
   return h;
 }
@@ -337,7 +345,7 @@ async function exportPdf(mode, one) {
   const codes = mode === 'one' ? [one] : [...S.sel].sort();
   if (!codes.length) return;
   const incomplete = codes.filter(c => statusOf(S.districts.find(d => d.code === c)) !== 'ok');
-  if (mode !== 'one' && incomplete.length && !confirm(`${incomplete.length} เขตยังส่งรูปไม่ครบ 6 ขั้น จะส่งออกเท่าที่มีหรือไม่?`)) return;
+  if (mode !== 'one' && incomplete.length && !confirm(`${incomplete.length} เขตยังส่งรูปไม่ครบ ${S.steps.length} ขั้น จะส่งออกเท่าที่มีหรือไม่?`)) return;
   S.busy = true; S.cancel = false;
   const log = document.getElementById('mLog'), bar = document.getElementById('mBar'), txt = document.getElementById('mText');
   log.innerHTML = ''; bar.style.width = '0'; document.getElementById('mBtn').textContent = 'ยกเลิก';
@@ -380,7 +388,7 @@ async function exportPdf(mode, one) {
 function formBox(title, note, fields, onSave, saveLabel) {
   const el = document.createElement('div'); el.className = 'form';
   el.innerHTML = `<div class="box"><h3>${esc(title)}</h3><div class="empty">${note}</div>
-    ${fields.map((f, i) => `<label for="ff${i}">${esc(f.label)}</label><input id="ff${i}" type="${f.type || 'text'}" value="${esc(f.value)}">`).join('')}
+    ${fields.map((f, i) => `${f.group ? `<div class="grp">${esc(f.group)}</div>` : ''}<label for="ff${i}">${esc(f.label)}</label><input id="ff${i}" type="${f.type || 'text'}" value="${esc(f.value)}">`).join('')}
     <div class="msg err" id="ffErr" hidden></div>
     <div class="row"><button class="btn ghost" id="ffCancel">ยกเลิก</button><button class="btn" id="ffSave">${esc(saveLabel || 'บันทึก')}</button></div></div>`;
   document.body.appendChild(el);
@@ -393,9 +401,65 @@ function formBox(title, note, fields, onSave, saveLabel) {
   };
 }
 function editSteps() {
-  formBox('แก้หัวข้อขั้นตอน', 'มีผลกับหน้าส่งรูปของทุกเขตและ PDF ที่ส่งออกหลังจากนี้ (ลำดับขั้นยังเหมือนเดิม รูปเดิมไม่หาย)',
-    S.steps.map(s => ({ label: 'ขั้นที่ ' + s.n, value: s.title })),
-    async vals => { const j = await api('admin_steps', { titles: vals }, true); S.steps = j.steps; renderList(); });
+  const fields = [{ label: 'หัวเรื่องบนหน้าแรกของ PDF', value: S.pdfTitle || '' }];
+  S.steps.forEach(s => {
+    fields.push({ group: 'ขั้นที่ ' + s.n, label: 'ข้อความสั้น (หน้าส่งรูป)', value: s.title });
+    fields.push({ label: 'ข้อความเต็ม (PDF)', value: s.full || s.title });
+  });
+  formBox('แก้ข้อความหัวข้อ', 'มีผลกับหน้าส่งรูปของทุกเขตและ PDF ทันที (ลำดับขั้นเหมือนเดิม รูปเดิมไม่หาย)', fields,
+    async vals => {
+      const steps = S.steps.map((s, i) => ({ title: vals[1 + i * 2], full: vals[2 + i * 2] }));
+      const j = await api('admin_steps', { pdfTitle: vals[0], steps }, true);
+      S.steps = j.steps; S.pdfTitle = j.pdfTitle; renderList();
+      if (S.cur) openDistrict(S.cur.code);
+    });
+}
+function editInfo(code) {
+  const d = S.districts.find(x => x.code === code);
+  formBox('แก้ข้อมูลขั้นที่ 1 · ' + code, 'สนามสอบแสดงใน PDF · ผู้ประสานงานและเบอร์โทรเก็บไว้ในระบบ ไม่แสดงใน PDF',
+    [{ label: 'สนามสอบ', value: d.venue || '' }, { label: 'ชื่อผู้ประสานงาน', value: d.coordinator || '' }, { label: 'เบอร์โทร', value: d.phone || '', type: 'tel' }],
+    async vals => { await api('info', { d: code, venue: vals[0], coordinator: vals[1], phone: vals[2] }, true); await load(true); openDistrict(code); });
+}
+
+/* ---------- แอดมินเพิ่มรูป (ย่อในเครื่องเหมือนหน้าส่งรูป) ---------- */
+function adminPick(step, btn) {
+  const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*'; inp.multiple = true;
+  inp.onchange = async () => {
+    const code = S.cur && S.cur.code; if (!code) return;
+    const have = (S.cur.photos || []).filter(p => p.step === step).length;
+    const files = [...inp.files].slice(0, Math.max(0, (S.max || 3) - have));
+    if (inp.files.length > files.length) alert('ขั้นละไม่เกิน ' + (S.max || 3) + ' รูป จะเพิ่มเพียง ' + files.length + ' รูป');
+    btn.disabled = true;
+    try {
+      for (let i = 0; i < files.length; i++) {
+        btn.innerHTML = `<b>…</b>กำลังส่ง ${i + 1}/${files.length}`;
+        const out = await shrinkImage(files[i]);
+        await api('upload', { d: code, step, image: out.image, thumb: out.thumb, clientTime: new Date().toISOString() }, true);
+      }
+    } catch (e) { alert(e.message); }
+    await load(true); if (S.cur && S.cur.code === code) openDistrict(code);
+  };
+  inp.click();
+}
+function shrinkImage(file) {
+  return new Promise((ok, bad) => {
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onerror = () => { URL.revokeObjectURL(url); bad(new Error('ไฟล์ไม่ใช่รูปภาพที่รองรับ')); };
+    img.onload = () => {
+      const max = CFG.MAX_EDGE || 1600, sc = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+      const c = document.createElement('canvas'); c.width = Math.round(img.naturalWidth * sc); c.height = Math.round(img.naturalHeight * sc);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+      let thumb = '';
+      for (const [edge, q] of [[320, 0.6], [240, 0.5], [180, 0.45]]) {
+        const ts = Math.min(1, edge / Math.max(c.width, c.height)), t = document.createElement('canvas');
+        t.width = Math.round(c.width * ts); t.height = Math.round(c.height * ts);
+        t.getContext('2d').drawImage(c, 0, 0, t.width, t.height); thumb = t.toDataURL('image/jpeg', q);
+        if (thumb.length < 45000) break;
+      }
+      ok({ image: c.toDataURL('image/jpeg', CFG.JPEG_QUALITY || 0.82), thumb });
+    };
+    img.src = url;
+  });
 }
 function editDistrict(code) {
   const d = S.districts.find(x => x.code === code);

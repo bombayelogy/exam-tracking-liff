@@ -84,6 +84,12 @@ td .sub{color:var(--muted);font-size:13px}
 .msg{border-radius:10px;padding:10px 12px;margin-bottom:10px}
 .msg.err{background:var(--err-bg);color:var(--err)}
 .demo{background:#fff4cc;color:#6b5200;font-size:13px;text-align:center;padding:6px}
+.form{position:fixed;inset:0;background:rgba(10,20,35,.5);display:flex;align-items:center;justify-content:center;z-index:60;padding:16px}
+.form .box{background:#fff;border-radius:14px;padding:16px;width:min(520px,100%);max-height:90vh;overflow:auto}
+.form h3{margin:0 0 4px}
+.form label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+.form input{width:100%;font:inherit;padding:9px 10px;border:1px solid var(--line);border-radius:9px}
+.form .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
 .key{max-width:420px;margin:60px auto;background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px}
 .key input{width:100%;font:inherit;padding:10px;border:1px solid var(--line);border-radius:9px;margin:8px 0}
 @media (max-width:760px){
@@ -177,6 +183,7 @@ function shell() {
         <option value="">ทุกสถานะ</option><option value="ok">ครบ 6 ขั้น</option><option value="part">ส่งบางขั้น</option>
         <option value="none">ยังไม่ส่งเลย</option><option value="sub">ยืนยันส่งครบแล้ว</option></select>
       <button class="btn ghost" onclick="load()">รีเฟรช</button>
+      <button class="btn ghost" onclick="editSteps()">แก้หัวข้อขั้นตอน</button>
       <button class="btn ghost" onclick="exportLinks()">ลิงก์ประจำเขต (CSV)</button>
     </div>
     <div class="bulk"><span class="n" id="selN"></span>
@@ -262,7 +269,8 @@ function drawerHtml(d, photos) {
       <span>กรอกโดย</span><div>${esc(d.infoBy || '-')} ${d.infoTime ? '· ' + esc(th(d.infoTime)) : ''}</div>
       <span>ยืนยันส่งครบ</span><div>${d.submittedAt ? esc(th(d.submittedAt)) : '-'}</div>
       <span>ผู้ดูแล (ไลน์)</span><div>${d.owners && d.owners.length ? esc(d.owners.join(', ')) + ` <button class="btn ghost sm" onclick="resetOwners('${esc(d.code)}')">ล้าง</button>` : '-'}</div></div>
-      <div style="margin-top:8px"><button class="btn sm" onclick="exportPdf('one','${esc(d.code)}')">ดาวน์โหลด PDF เขตนี้</button></div></div>`;
+      <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm" onclick="exportPdf('one','${esc(d.code)}')">ดาวน์โหลด PDF เขตนี้</button>
+      <button class="btn ghost sm" onclick="editDistrict('${esc(d.code)}')">แก้รหัส / ชื่อเขต</button></div></div>`;
   for (const s of S.steps) {
     const list = photos ? photos.filter(p => p.step === s.n) : null;
     h += `<div class="sec"><h3>${s.n}. ${esc(s.title)}</h3>` + (list === null ? '<div class="empty">กำลังโหลด…</div>'
@@ -282,7 +290,7 @@ async function viewPhoto(id) {
   const p = S.cur && S.cur.photos && S.cur.photos.find(x => x.id === id); if (!p) return;
   const v = document.getElementById('viewer'), im = document.getElementById('vImg');
   im.src = p.thumb || '';
-  document.getElementById('vCap').textContent = `ขั้นที่ ${p.step} · ${th(p.time)}${p.by ? ' · ' + p.by : ''}${p.lat ? ` · GPS ${(+p.lat).toFixed(5)}, ${(+p.lng).toFixed(5)}` : ''}`;
+  document.getElementById('vCap').textContent = `ขั้นที่ ${p.step} · ${th(p.time)}${p.by ? ' · ' + p.by : ''}`;
   v.classList.add('on');
   try { if (!p.full) p.full = (await api('image', { id })).image; if (v.classList.contains('on')) im.src = p.full; } catch (e) { }
 }
@@ -346,6 +354,34 @@ async function exportPdf(mode, one) {
   } catch (e) { txt.textContent = e.message; }
   S.busy = false; document.getElementById('mBtn').textContent = 'ปิด';
   if (mode === 'one' && got.length) modal(false);
+}
+
+/* ---------- ฟอร์มแอดมิน: หัวข้อขั้นตอน / รหัสเขต ---------- */
+function formBox(title, note, fields, onSave) {
+  const el = document.createElement('div'); el.className = 'form';
+  el.innerHTML = `<div class="box"><h3>${esc(title)}</h3><div class="empty">${note}</div>
+    ${fields.map((f, i) => `<label for="ff${i}">${esc(f.label)}</label><input id="ff${i}" value="${esc(f.value)}">`).join('')}
+    <div class="msg err" id="ffErr" hidden></div>
+    <div class="row"><button class="btn ghost" id="ffCancel">ยกเลิก</button><button class="btn" id="ffSave">บันทึก</button></div></div>`;
+  document.body.appendChild(el);
+  el.querySelector('#ffCancel').onclick = () => el.remove();
+  el.querySelector('#ffSave').onclick = async function () {
+    const vals = fields.map((f, i) => el.querySelector('#ff' + i).value.trim());
+    this.disabled = true; this.textContent = 'กำลังบันทึก…';
+    try { await onSave(vals); el.remove(); }
+    catch (e) { const m = el.querySelector('#ffErr'); m.textContent = e.message; m.hidden = false; this.disabled = false; this.textContent = 'บันทึก'; }
+  };
+}
+function editSteps() {
+  formBox('แก้หัวข้อขั้นตอน', 'มีผลกับหน้าส่งรูปของทุกเขตและ PDF ที่ส่งออกหลังจากนี้ (ลำดับขั้นยังเหมือนเดิม รูปเดิมไม่หาย)',
+    S.steps.map(s => ({ label: 'ขั้นที่ ' + s.n, value: s.title })),
+    async vals => { const j = await api('admin_steps', { titles: vals }, true); S.steps = j.steps; renderList(); });
+}
+function editDistrict(code) {
+  const d = S.districts.find(x => x.code === code);
+  formBox('แก้รหัส / ชื่อเขต', 'รูปที่ส่งแล้วย้ายไปอยู่กับรหัสใหม่อัตโนมัติ · ลิงก์เดียวใช้ได้ตามเดิม · ลิงก์สำรองรายเขตของรหัสเดิมจะใช้ไม่ได้ ให้ดาวน์โหลด CSV ลิงก์ใหม่',
+    [{ label: 'รหัสเขต', value: d.code }, { label: 'ชื่อเขต', value: d.name }],
+    async vals => { const j = await api('admin_rename', { d: code, newCode: vals[0], newName: vals[1] }, true); await load(true); openDistrict(j.district.code); });
 }
 
 /* ---------- ลิงก์ประจำเขต ---------- */

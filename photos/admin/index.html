@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>แดชบอร์ดรูปรายงาน ว.14</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="../config.js"></script>
+<style>
+:root{
+  --bg:#f3f5f8; --card:#fff; --ink:#18202b; --muted:#667085; --line:#e3e7ee;
+  --brand:#1f4e79; --brand-2:#e8f0f8; --ok:#16794c; --ok-bg:#e5f5ec; --part:#c98a0b; --part-bg:#fdf3dc;
+  --none:#d0d6df; --err:#b42318; --err-bg:#fdecea;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Sarabun",system-ui,sans-serif;font-size:15px;line-height:1.45}
+header{background:var(--brand);color:#fff;padding:14px 16px;padding-top:calc(14px + env(safe-area-inset-top));display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+header h1{font-size:19px;margin:0;flex:1;min-width:220px}
+header small{display:block;font-weight:400;opacity:.8;font-size:13px}
+.sw{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.12);padding:6px 10px;border-radius:10px;font-size:14px;cursor:pointer;user-select:none}
+.sw input{width:40px;height:22px;appearance:none;background:#8aa2bb;border-radius:22px;position:relative;cursor:pointer;margin:0;flex:none}
+.sw input::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .2s}
+.sw input:checked{background:#3cc47c}
+.sw input:checked::after{left:21px}
+main{max-width:1200px;margin:0 auto;padding:12px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.stat b{display:block;font-size:24px;line-height:1.2}
+.stat span{color:var(--muted);font-size:13px}
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;align-items:center}
+.tools input,.tools select{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink)}
+.tools input{flex:1;min-width:160px}
+.btn{font:inherit;font-weight:600;border:0;border-radius:9px;padding:8px 12px;cursor:pointer;background:var(--brand);color:#fff;white-space:nowrap}
+.btn.ghost{background:var(--brand-2);color:var(--brand)}
+.btn.sm{padding:4px 9px;font-size:13px}
+.btn:disabled{opacity:.45;cursor:default}
+.bulk{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin-bottom:10px}
+.bulk .n{flex:1;min-width:140px;color:var(--muted);font-size:14px}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+th{font-size:13px;color:var(--muted);font-weight:600;background:#f8fafc;position:sticky;top:0;cursor:pointer;white-space:nowrap}
+tr.r{cursor:pointer}
+tr.r:hover td{background:#f8fbff}
+td.code{font-weight:700;white-space:nowrap}
+td .sub{color:var(--muted);font-size:13px}
+.dots{display:flex;gap:4px}
+.dot{width:24px;height:24px;border-radius:6px;background:#eef1f5;color:#9aa4b2;font-size:11px;font-weight:700;display:grid;place-items:center}
+.dot.y{background:var(--ok);color:#fff}
+.pill{font-size:12px;padding:2px 8px;border-radius:20px;white-space:nowrap}
+.pill.ok{background:var(--ok-bg);color:var(--ok)}
+.pill.part{background:var(--part-bg);color:var(--part)}
+.pill.none{background:#eef1f5;color:var(--muted)}
+.chk{width:18px;height:18px}
+.drawer{position:fixed;inset:0;background:rgba(10,20,35,.45);display:none;z-index:20}
+.drawer.on{display:block}
+.panel{position:absolute;top:0;right:0;bottom:0;width:min(560px,100%);background:var(--bg);overflow:auto;padding:0 0 30px}
+.panel .top{position:sticky;top:0;background:var(--brand);color:#fff;padding:12px 14px;padding-top:calc(12px + env(safe-area-inset-top));display:flex;gap:10px;align-items:flex-start;z-index:1}
+.panel .top h2{margin:0;font-size:17px;flex:1}
+.panel .top h2 small{display:block;font-weight:400;font-size:13px;opacity:.85}
+.panel .x{background:rgba(255,255,255,.15);border:0;color:#fff;width:34px;height:34px;border-radius:50%;font-size:18px;cursor:pointer;flex:none}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:12px;margin:10px 12px;padding:10px 12px}
+.sec h3{margin:0 0 6px;font-size:15px}
+.kv{display:grid;grid-template-columns:110px 1fr;gap:2px 8px;font-size:14px}
+.kv span{color:var(--muted)}
+.thumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.th{position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:#e9edf2}
+.th img{width:100%;height:100%;object-fit:cover;cursor:zoom-in;display:block}
+.th .cap{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.55);color:#fff;font-size:11px;padding:2px 5px}
+.th .del{position:absolute;top:3px;right:3px;width:24px;height:24px;border:0;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;cursor:pointer}
+.empty{color:var(--muted);font-size:13px}
+.viewer{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;z-index:40;flex-direction:column}
+.viewer.on{display:flex}
+.viewer img{max-width:96%;max-height:86vh}
+.viewer p{color:#ddd;font-size:13px;margin:8px}
+.viewer button{position:absolute;top:12px;right:12px;background:rgba(255,255,255,.15);color:#fff;border:0;border-radius:50%;width:40px;height:40px;font-size:20px;cursor:pointer}
+.modal{position:fixed;inset:0;background:rgba(10,20,35,.5);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+.modal.on{display:flex}
+.modal .box{background:#fff;border-radius:14px;padding:16px;width:min(440px,100%)}
+.modal h3{margin:0 0 8px}
+.pbar{height:10px;border-radius:10px;background:#e6ebf1;overflow:hidden;margin:10px 0}
+.pbar i{display:block;height:100%;width:0;background:var(--ok);transition:width .3s}
+.log{font-size:13px;color:var(--muted);max-height:140px;overflow:auto}
+.msg{border-radius:10px;padding:10px 12px;margin-bottom:10px}
+.msg.err{background:var(--err-bg);color:var(--err)}
+.demo{background:#fff4cc;color:#6b5200;font-size:13px;text-align:center;padding:6px}
+.key{max-width:420px;margin:60px auto;background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px}
+.key input{width:100%;font:inherit;padding:10px;border:1px solid var(--line);border-radius:9px;margin:8px 0}
+@media (max-width:760px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  thead{display:none}
+  table,tbody,tr,td{display:block;width:100%}
+  table{border:0;background:none}
+  tr.r{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:8px;padding:8px 10px;display:grid;grid-template-columns:24px 1fr auto;gap:4px 8px;align-items:center}
+  tr.r td{border:0;padding:0}
+  td.c-chk{grid-row:1}
+  td.c-name{grid-column:2/4}
+  td.c-dots{grid-column:2/3}
+  td.c-st{grid-column:3/4;text-align:right}
+  td.c-pdf,td.c-last{display:none}
+}
+</style>
+</head>
+<body>
+<div id="demo" class="demo" hidden>โหมดตัวอย่าง: ยังไม่ได้ตั้งค่า API_URL ใน photos/config.js</div>
+<div id="app"></div>
+<div class="drawer" id="drawer" onclick="if(event.target===this)closeDrawer()"><div class="panel" id="panel"></div></div>
+<div class="viewer" id="viewer"><button onclick="closeViewer()" aria-label="ปิด">✕</button><img id="vImg" alt=""><p id="vCap"></p></div>
+<div class="modal" id="modal"><div class="box"><h3 id="mTitle">กำลังส่งออก PDF</h3>
+  <div id="mText" class="empty"></div><div class="pbar"><i id="mBar"></i></div><div class="log" id="mLog"></div>
+  <div style="text-align:right;margin-top:10px"><button class="btn ghost" id="mBtn" onclick="cancelExport()">ยกเลิก</button></div></div></div>
+
+<script>
+const CFG = window.PHOTO_CONFIG || {};
+const DEMO = !CFG.API_URL && (/^(localhost|127\.)/.test(location.hostname) || location.protocol === 'file:' || new URLSearchParams(location.search).has('demo'));
+const NOT_READY = !CFG.API_URL && !DEMO;
+const qs = new URLSearchParams(location.search);
+let KEY = qs.get('key') || store('get', 'w14p_admin_key') || '';
+if (qs.get('key')) { store('set', 'w14p_admin_key', KEY); history.replaceState(null, '', location.pathname); }
+const S = { districts: [], steps: [], exportOpen: false, sel: new Set(), q: '', region: '', status: '', sort: 'code', cur: null, cancel: false };
+
+function store(op, k, v) { try { return op === 'get' ? localStorage.getItem(k) : localStorage.setItem(k, v); } catch (e) { return null; } }
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function th(t) { if (!t) return ''; const d = new Date(t); return isNaN(d) ? t : d.toLocaleString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); }
+
+async function api(action, data, post) {
+  if (DEMO) return demoApi(action, data || {});
+  const base = Object.assign({ action, key: KEY }, data || {});
+  const res = post
+    ? await fetch(CFG.API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(base) })
+    : await fetch(CFG.API_URL + '?' + new URLSearchParams(base));
+  const j = await res.json();
+  if (!j.ok) throw new Error(j.error || 'เกิดข้อผิดพลาด');
+  return j;
+}
+
+/* ---------- เริ่ม ---------- */
+if (DEMO) document.getElementById('demo').hidden = false;
+if (NOT_READY) document.getElementById('app').innerHTML = '<main><div class="msg err">ยังไม่ได้ใส่ API_URL ใน photos/config.js</div></main>';
+else if (!KEY && !DEMO) askKey(); else load();
+setInterval(() => { if (!document.hidden && !S.busy && S.districts.length) load(true); }, 60000);
+
+function askKey(err) {
+  document.getElementById('app').innerHTML = `<div class="key"><h3 style="margin:0">แดชบอร์ดรูปรายงาน ว.14</h3>
+    ${err ? '<div class="msg err" style="margin-top:8px">' + esc(err) + '</div>' : ''}
+    <label for="k">รหัสแอดมิน</label><input id="k" type="password" autocomplete="current-password">
+    <button class="btn" onclick="KEY=document.getElementById('k').value.trim();store('set','w14p_admin_key',KEY);load()">เข้าสู่แดชบอร์ด</button></div>`;
+}
+
+async function load(quiet) {
+  try {
+    const j = await api('admin_summary');
+    S.districts = j.districts; S.steps = j.steps; S.exportOpen = j.exportOpen;
+    if (!quiet || !document.getElementById('list')) shell();
+    renderList();
+  } catch (e) {
+    if (/รหัสแอดมิน/.test(e.message)) return askKey(e.message);
+    if (!quiet) document.getElementById('app').innerHTML = '<main><div class="msg err">' + esc(e.message) + '</div></main>';
+  }
+}
+
+function nDone(d) { return S.steps.filter(s => (d.counts[s.n] || 0) > 0).length; }
+function nPhotos(d) { return Object.values(d.counts).reduce((a, b) => a + b, 0); }
+function statusOf(d) { const n = nDone(d); return n === S.steps.length ? 'ok' : (n ? 'part' : 'none'); }
+
+function shell() {
+  const regions = [...new Set(S.districts.map(d => d.region).filter(Boolean))].sort();
+  document.getElementById('app').innerHTML = `
+  <header><h1>แดชบอร์ดรูปรายงานประจำเขต<small>ว.14 ครูผู้ช่วย · แยกจากแดชบอร์ดรถ</small></h1>
+    <label class="sw" title="เปิดแล้วผู้ประสานงานทุกเขตดาวน์โหลด PDF ของเขตตัวเองได้"><input type="checkbox" id="swOpen" ${S.exportOpen ? 'checked' : ''} onchange="setOpen(this)">อนุญาตให้ทุกเขตส่งออก PDF</label></header>
+  <main>
+    <div class="stats" id="stats"></div>
+    <div class="tools">
+      <input id="q" placeholder="ค้นหา รหัส / เขต / สนามสอบ / ผู้ประสานงาน" value="${esc(S.q)}" oninput="S.q=this.value;renderList()">
+      <select onchange="S.region=this.value;renderList()"><option value="">ทุกสายภูมิภาค</option>${regions.map(r => `<option ${S.region === r ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select>
+      <select onchange="S.status=this.value;renderList()">
+        <option value="">ทุกสถานะ</option><option value="ok">ครบ 6 ขั้น</option><option value="part">ส่งบางขั้น</option>
+        <option value="none">ยังไม่ส่งเลย</option><option value="sub">ยืนยันส่งครบแล้ว</option></select>
+      <button class="btn ghost" onclick="load()">รีเฟรช</button>
+      <button class="btn ghost" onclick="exportLinks()">ลิงก์ประจำเขต (CSV)</button>
+    </div>
+    <div class="bulk"><span class="n" id="selN"></span>
+      <button class="btn ghost sm" onclick="selectShown()">เลือกทั้งหมดที่แสดง</button>
+      <button class="btn ghost sm" onclick="S.sel.clear();renderList()">ล้างที่เลือก</button>
+      <button class="btn sm" id="bMerge" onclick="exportPdf('merge')">ส่งออก PDF รวมไฟล์เดียว</button>
+      <button class="btn sm" id="bZip" onclick="exportPdf('zip')">ส่งออกแยกเขต (ZIP)</button></div>
+    <table><thead><tr><th style="width:30px"></th><th onclick="sortBy('code')">เขต / สนามสอบ</th>
+      <th>ขั้น 2–7</th><th onclick="sortBy('status')">สถานะ</th><th onclick="sortBy('last')">ส่งล่าสุด</th><th>อนุญาต PDF</th></tr></thead>
+      <tbody id="list"></tbody></table>
+  </main>`;
+}
+
+function filtered() {
+  const q = S.q.trim().toLowerCase();
+  let list = S.districts.filter(d => {
+    if (S.region && d.region !== S.region) return false;
+    if (S.status === 'sub') { if (!d.submittedAt) return false; }
+    else if (S.status && statusOf(d) !== S.status) return false;
+    if (q && ![d.code, d.name, d.venue, d.coordinator, d.place].join(' ').toLowerCase().includes(q)) return false;
+    return true;
+  });
+  const by = { code: (a, b) => a.code.localeCompare(b.code), status: (a, b) => nDone(a) - nDone(b) || a.code.localeCompare(b.code),
+    last: (a, b) => (b.lastPhoto || '').localeCompare(a.lastPhoto || '') };
+  return list.sort(by[S.sort]);
+}
+function sortBy(k) { S.sort = k; renderList(); }
+
+function renderList() {
+  const all = S.districts;
+  const ok = all.filter(d => statusOf(d) === 'ok').length, part = all.filter(d => statusOf(d) === 'part').length;
+  document.getElementById('stats').innerHTML =
+    `<div class="stat"><b>${ok}/${all.length}</b><span>เขตส่งครบ 6 ขั้น</span></div>
+     <div class="stat"><b>${part}</b><span>ส่งบางขั้น</span></div>
+     <div class="stat"><b>${all.length - ok - part}</b><span>ยังไม่ส่งเลย</span></div>
+     <div class="stat"><b>${all.reduce((a, d) => a + nPhotos(d), 0)}</b><span>รูปทั้งหมด · ยืนยันแล้ว ${all.filter(d => d.submittedAt).length} เขต</span></div>`;
+  const list = filtered();
+  document.getElementById('list').innerHTML = list.map(d => {
+    const st = statusOf(d), n = nDone(d);
+    return `<tr class="r" onclick="openDistrict('${esc(d.code)}')">
+      <td class="c-chk" onclick="event.stopPropagation()"><input type="checkbox" class="chk" ${S.sel.has(d.code) ? 'checked' : ''} onchange="toggleSel('${esc(d.code)}',this.checked)" aria-label="เลือก ${esc(d.code)}"></td>
+      <td class="c-name"><span class="code">${esc(d.code)}</span> ${esc(d.name)}<div class="sub">${esc(d.venue || 'ยังไม่กรอกสนามสอบ')}${d.coordinator ? ' · ' + esc(d.coordinator) : (d.owners && d.owners.length ? ' · ' + esc(d.owners.join(', ')) : '')}${d.vehicle ? ' · คัน ' + esc(d.vehicle) : ''}</div></td>
+      <td class="c-dots"><div class="dots">${S.steps.map(s => `<span class="dot ${(d.counts[s.n] || 0) ? 'y' : ''}" title="ขั้น ${s.n}: ${esc(s.title)} (${d.counts[s.n] || 0} รูป)">${s.n}</span>`).join('')}</div></td>
+      <td class="c-st"><span class="pill ${st}">${st === 'ok' ? 'ครบ' : n + '/6'}</span>${d.submittedAt ? ' <span class="pill ok" title="ผู้ประสานงานยืนยันส่งครบ">ยืนยัน</span>' : ''}</td>
+      <td class="c-last"><span class="sub">${esc(th(d.lastPhoto)) || '-'}</span></td>
+      <td class="c-pdf" onclick="event.stopPropagation()"><label class="sw" style="background:none;padding:0"><input type="checkbox" ${d.pdfAllowed ? 'checked' : ''} onchange="setAllowed('${esc(d.code)}',this)"></label></td></tr>`;
+  }).join('') || '<tr><td colspan="6" class="empty">ไม่พบเขตตามเงื่อนไข</td></tr>';
+  document.getElementById('selN').textContent = S.sel.size ? `เลือก ${S.sel.size} เขต` : `แสดง ${list.length} เขต · ติ๊กเลือกเขตเพื่อส่งออก`;
+  document.getElementById('bMerge').disabled = document.getElementById('bZip').disabled = !S.sel.size;
+}
+function toggleSel(c, on) { on ? S.sel.add(c) : S.sel.delete(c); renderList(); }
+function selectShown() { filtered().forEach(d => S.sel.add(d.code)); renderList(); }
+
+async function setOpen(el) {
+  try { const j = await api('admin_set', { exportOpen: el.checked ? '1' : '0' }, true); S.exportOpen = j.exportOpen; }
+  catch (e) { alert(e.message); el.checked = !el.checked; }
+}
+async function setAllowed(code, el) {
+  try { await api('admin_set', { d: code, pdfAllowed: el.checked ? '1' : '0' }, true); S.districts.find(d => d.code === code).pdfAllowed = el.checked; }
+  catch (e) { alert(e.message); el.checked = !el.checked; }
+}
+
+/* ---------- รายละเอียดเขต ---------- */
+async function openDistrict(code) {
+  const d = S.districts.find(x => x.code === code);
+  S.cur = { code, photos: null };
+  const panel = document.getElementById('panel');
+  document.getElementById('drawer').classList.add('on');
+  panel.innerHTML = drawerHtml(d, null);
+  try {
+    const j = await api('admin_photos', { d: code });
+    if (!S.cur || S.cur.code !== code) return;
+    S.cur.photos = j.photos;
+    panel.innerHTML = drawerHtml(j.district, j.photos);
+  } catch (e) { panel.insertAdjacentHTML('beforeend', '<div class="sec msg err">' + esc(e.message) + '</div>'); }
+}
+function drawerHtml(d, photos) {
+  let h = `<div class="top"><h2>${esc(d.code)} ${esc(d.name)}<small>${esc(d.region || '')}${d.vehicle ? ' · คันที่ ' + esc(d.vehicle) : ''}</small></h2>
+    <button class="x" onclick="closeDrawer()" aria-label="ปิด">✕</button></div>
+    <div class="sec"><h3>1. ข้อมูลเขต</h3><div class="kv">
+      <span>สนามสอบ</span><div>${esc(d.venue || '-')}</div>
+      <span>ผู้ประสานงาน</span><div>${esc(d.coordinator || '-')} ${d.phone ? `· <a href="tel:${esc(d.phone)}">${esc(d.phone)}</a>` : ''}</div>
+      <span>กรอกโดย</span><div>${esc(d.infoBy || '-')} ${d.infoTime ? '· ' + esc(th(d.infoTime)) : ''}</div>
+      <span>ยืนยันส่งครบ</span><div>${d.submittedAt ? esc(th(d.submittedAt)) : '-'}</div>
+      <span>ผู้ดูแล (ไลน์)</span><div>${d.owners && d.owners.length ? esc(d.owners.join(', ')) + ` <button class="btn ghost sm" onclick="resetOwners('${esc(d.code)}')">ล้าง</button>` : '-'}</div></div>
+      <div style="margin-top:8px"><button class="btn sm" onclick="exportPdf('one','${esc(d.code)}')">ดาวน์โหลด PDF เขตนี้</button></div></div>`;
+  for (const s of S.steps) {
+    const list = photos ? photos.filter(p => p.step === s.n) : null;
+    h += `<div class="sec"><h3>${s.n}. ${esc(s.title)}</h3>` + (list === null ? '<div class="empty">กำลังโหลด…</div>'
+      : list.length ? '<div class="thumbs">' + list.map(p => `<div class="th"><img src="${esc(p.thumb || '')}" alt="" onclick="viewPhoto('${p.id}')">
+          <button class="del" title="ลบรูป" onclick="delPhoto('${p.id}')">✕</button><div class="cap">${esc(th(p.time))}${p.by ? ' · ' + esc(p.by) : ''}</div></div>`).join('') + '</div>'
+      : '<div class="empty">ยังไม่มีรูป</div>') + '</div>';
+  }
+  return h;
+}
+async function resetOwners(code) {
+  if (!confirm('ล้างบัญชีไลน์ที่ผูกกับเขต ' + code + '? (ใช้เมื่อมีคนเลือกเขตผิด หรือเปลี่ยนผู้ประสานงาน รูปเดิมไม่หาย)')) return;
+  try { await api('admin_set', { d: code, resetOwners: '1' }, true); await load(true); openDistrict(code); } catch (e) { alert(e.message); }
+}
+function closeDrawer() { document.getElementById('drawer').classList.remove('on'); S.cur = null; }
+
+async function viewPhoto(id) {
+  const p = S.cur && S.cur.photos && S.cur.photos.find(x => x.id === id); if (!p) return;
+  const v = document.getElementById('viewer'), im = document.getElementById('vImg');
+  im.src = p.thumb || '';
+  document.getElementById('vCap').textContent = `ขั้นที่ ${p.step} · ${th(p.time)}${p.by ? ' · ' + p.by : ''}${p.lat ? ` · GPS ${(+p.lat).toFixed(5)}, ${(+p.lng).toFixed(5)}` : ''}`;
+  v.classList.add('on');
+  try { if (!p.full) p.full = (await api('image', { id })).image; if (v.classList.contains('on')) im.src = p.full; } catch (e) { }
+}
+function closeViewer() { document.getElementById('viewer').classList.remove('on'); }
+async function delPhoto(id) {
+  if (!confirm('ลบรูปนี้? (ไฟล์ย้ายไปโฟลเดอร์ _ลบแล้ว ใน Drive ไม่หายถาวร)')) return;
+  try { await api('delete', { id }, true); const c = S.cur.code; await load(true); openDistrict(c); }
+  catch (e) { alert(e.message); }
+}
+
+/* ---------- ส่งออก PDF ---------- */
+function loadScript(src) {
+  return new Promise((ok, bad) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => bad(new Error('โหลดไลบรารีไม่ได้')); document.head.appendChild(s); });
+}
+function b64ToBytes(b64) { const bin = atob(b64), a = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i); return a; }
+function saveBlob(blob, name) {
+  const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+function modal(on, title) { document.getElementById('modal').classList.toggle('on', on); if (title) document.getElementById('mTitle').textContent = title; }
+function cancelExport() { if (S.busy) S.cancel = true; else modal(false); }
+
+async function exportPdf(mode, one) {
+  const codes = mode === 'one' ? [one] : [...S.sel].sort();
+  if (!codes.length) return;
+  const incomplete = codes.filter(c => statusOf(S.districts.find(d => d.code === c)) !== 'ok');
+  if (mode !== 'one' && incomplete.length && !confirm(`${incomplete.length} เขตยังส่งรูปไม่ครบ 6 ขั้น จะส่งออกเท่าที่มีหรือไม่?`)) return;
+  S.busy = true; S.cancel = false;
+  const log = document.getElementById('mLog'), bar = document.getElementById('mBar'), txt = document.getElementById('mText');
+  log.innerHTML = ''; bar.style.width = '0'; document.getElementById('mBtn').textContent = 'ยกเลิก';
+  modal(true, mode === 'one' ? 'กำลังสร้าง PDF' : `กำลังส่งออก PDF ${codes.length} เขต`);
+  const got = [];
+  try {
+    if (mode === 'merge') await loadScript('https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js');
+    if (mode === 'zip') await loadScript('https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js');
+    for (let i = 0; i < codes.length && !S.cancel; i++) {
+      txt.textContent = `เขต ${codes[i]} (${i + 1}/${codes.length}) · เขตที่สร้างไว้แล้วและไม่มีรูปใหม่จะเร็วขึ้น`;
+      try {
+        const j = await api('pdf', { d: codes[i] });
+        got.push({ code: codes[i], name: j.name, bytes: b64ToBytes(j.pdf) });
+      } catch (e) { log.insertAdjacentHTML('beforeend', `<div>✕ ${esc(codes[i])}: ${esc(e.message)}</div>`); }
+      bar.style.width = ((i + 1) / codes.length * 100) + '%';
+    }
+    if (!got.length) throw new Error('ไม่มีไฟล์ที่สร้างสำเร็จ');
+    const stamp = new Date().toLocaleDateString('th-TH').replace(/\//g, '-');
+    if (mode === 'one') saveBlob(new Blob([got[0].bytes], { type: 'application/pdf' }), got[0].name);
+    else if (mode === 'merge') {
+      txt.textContent = 'กำลังรวมไฟล์…';
+      const out = await PDFLib.PDFDocument.create();
+      for (const g of got) {
+        const src = await PDFLib.PDFDocument.load(g.bytes);
+        (await out.copyPages(src, src.getPageIndices())).forEach(p => out.addPage(p));
+      }
+      saveBlob(new Blob([await out.save()], { type: 'application/pdf' }), `รูปรายงาน_ว14_รวม${got.length}เขต_${stamp}.pdf`);
+    } else {
+      txt.textContent = 'กำลังทำไฟล์ ZIP…';
+      const zip = new JSZip(); got.forEach(g => zip.file(g.name, g.bytes));
+      saveBlob(await zip.generateAsync({ type: 'blob' }), `รูปรายงาน_ว14_${got.length}เขต_${stamp}.zip`);
+    }
+    txt.textContent = (S.cancel ? 'ยกเลิกแล้ว · ' : '') + `ส่งออกสำเร็จ ${got.length}/${codes.length} เขต`;
+  } catch (e) { txt.textContent = e.message; }
+  S.busy = false; document.getElementById('mBtn').textContent = 'ปิด';
+  if (mode === 'one' && got.length) modal(false);
+}
+
+/* ---------- ลิงก์ประจำเขต ---------- */
+async function exportLinks() {
+  try {
+    const j = await api('admin_links');
+    const web = location.origin + location.pathname.replace(/admin\/?(index\.html)?$/, '');
+    const liff = CFG.LIFF_ID ? `https://liff.line.me/${CFG.LIFF_ID}/photos/` : '';
+    const rows = [['รหัส', 'เขตพื้นที่', 'ลิงก์เปิดในไลน์', 'ลิงก์สำรอง']].concat(j.links.map(l => {
+      const q = `?d=${encodeURIComponent(l.code)}&t=${l.t}`; return [l.code, l.name, liff ? liff + q : '', web + q];
+    }));
+    const csv = '﻿' + rows.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\r\n');
+    saveBlob(new Blob([csv], { type: 'text/csv' }), 'ลิงก์ส่งรูปประจำเขต.csv');
+  } catch (e) { alert(e.message); }
+}
+
+/* ---------- โหมดตัวอย่าง ---------- */
+function demoApi(action, p) {
+  const steps = [{ n: 2, title: 'การรับแบบทดสอบและกล่องกระดาษคำตอบ' }, { n: 3, title: 'ดำเนินการส่งแบบทดสอบฯ วันที่ 14 พ.ย.' },
+    { n: 4, title: 'รับมอบกล่องกระดาษคำตอบ วันที่ 14 พ.ย.' }, { n: 5, title: 'รับมอบกล่องแบบทดสอบ วันที่ 14–15 พ.ย.' },
+    { n: 6, title: 'ห้องมั่นคง' }, { n: 7, title: 'ส่งมอบศูนย์สอบธรรมศาสตร์' }];
+  if (!S._demo) {
+    const names = ['สพป. กระบี่', 'สพป. กาญจนบุรี เขต 2', 'สพป. กาญจนบุรี เขต 3', 'สพป. กาญจนบุรี เขต 4', 'สพม. ปัตตานี', 'สพป. นราธิวาส เขต 1', 'สศศ. (ภาคเหนือ)', 'สพป. ขอนแก่น เขต 1'];
+    const regions = ['ใต้', 'ตะวันตก', 'ตะวันตก', 'ตะวันตก', 'ใต้ (ไกลมาก)', 'ใต้ (ไกลมาก)', 'เหนือตอนบน', 'อีสานตอนบน'];
+    S._demo = names.map((n, i) => {
+      const counts = {}; const k = [6, 3, 0, 6, 1, 0, 4, 2][i]; for (let s = 2; s < 2 + k; s++) counts[s] = 1 + (s % 3 === 0 ? 1 : 0);
+      return { code: String(i + 1).padStart(3, '0'), name: n, region: regions[i], vehicle: 10 + i, venue: k ? 'โรงเรียนตัวอย่าง ' + (i + 1) : '',
+        coordinator: k ? 'ผู้ประสานงาน ' + (i + 1) : '', phone: '', counts, pdfAllowed: i === 0, submittedAt: k === 6 && i === 0 ? new Date().toISOString() : '',
+        lastPhoto: k ? new Date(Date.now() - i * 3.6e6).toISOString() : '' };
+    });
+  }
+  return new Promise(r => setTimeout(r, 200)).then(() => {
+    switch (action) {
+      case 'admin_summary': return { districts: S._demo, steps, exportOpen: false };
+      case 'admin_photos': {
+        const d = S._demo.find(x => x.code === p.d); const photos = [];
+        Object.entries(d.counts).forEach(([s, n]) => { for (let i = 0; i < n; i++) photos.push({ id: s + '-' + i, step: +s, time: d.lastPhoto, by: d.coordinator, thumb: demoThumb(s) }); });
+        return { district: d, photos };
+      }
+      case 'admin_set': return { exportOpen: p.exportOpen === '1' };
+      case 'image': return { image: demoThumb(String(p.id).split('-')[0]) };
+      default: throw new Error('โหมดตัวอย่างทำรายการนี้ไม่ได้ ต้องเชื่อม Apps Script ก่อน');
+    }
+  });
+}
+function demoThumb(s) {
+  const c = document.createElement('canvas'); c.width = 240; c.height = 180; const g = c.getContext('2d');
+  g.fillStyle = ['#8fb3d9', '#9ccfb0', '#e3c08d', '#c9a3d6', '#e39b9b', '#a9c1c9'][s % 6]; g.fillRect(0, 0, 240, 180);
+  g.fillStyle = '#fff'; g.font = '600 22px Sarabun'; g.fillText('ขั้นที่ ' + s, 80, 95); return c.toDataURL('image/jpeg', .7);
+}
+</script>
+</body>
+</html>

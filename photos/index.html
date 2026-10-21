@@ -380,7 +380,15 @@ async function pump() {
         S.photos.push(Object.assign(j.photo, { thumb: p.thumb }));
         toast('ส่งรูปขั้นที่ ' + p.step + ' แล้ว');
       } catch (e) {
-        p.failed = true;
+        // ข้อผิดพลาดชั่วคราว (เน็ต/ระบบมีคนส่งพร้อมกันมาก) ลองส่งใหม่เองสูงสุด 3 ครั้ง
+        const fatal = /ครบ|ขั้นตอนไม่ถูกต้อง|ไม่มีรูป|ใหญ่เกิน|ลิงก์|ไลน์|ลงทะเบียน|ไม่พบเขต|เลือกเขต/.test(e.message || '');
+        p.tries = (p.tries || 0) + 1;
+        if (!fatal && p.tries <= 3) {
+          toast('ระบบมีผู้ส่งพร้อมกันมาก กำลังลองส่งใหม่อัตโนมัติ (' + p.tries + '/3)', 3500);
+          await new Promise(r => setTimeout(r, 3000 * p.tries + Math.random() * 4000));
+          continue;
+        }
+        p.failed = true; p.tries = 0;
         toast('ส่งไม่สำเร็จ: ' + e.message, 4500);
       }
       rerenderStep(p.step);

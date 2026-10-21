@@ -164,7 +164,7 @@ async function showPicker(err) {
     const j = await api('list');
     S.list = j.districts;
     const mine = S.list.filter(d => d.mine);
-    if (mine.length === 1 && !err && !S._picked) return pickDistrict(mine[0].code, true);
+    if (mine.length === 1 && (!err || /ไม่พบเขต/.test(err)) && !S._picked) return pickDistrict(mine[0].code, true);
     main.innerHTML = (err ? '<div class="msg err">' + esc(err) + '</div>' : '') +
       (S.lineName ? `<div class="note" style="margin:0 4px 8px">เข้าใช้ในนาม ${esc(S.lineName)} (ไลน์)</div>` : '') +
       `<input id="fq" placeholder="พิมพ์ค้นหา เช่น กระบี่ หรือ 001" oninput="renderPick(this.value)" autocomplete="off">
@@ -309,7 +309,7 @@ async function saveInfo(btn) {
 
 /* ---------- เลือก/ย่อ/ส่งรูป ---------- */
 const fileInput = document.getElementById('file');
-function pick(step) { if (!tokenFresh()) return; S.pickStep = step; fileInput.value = ''; fileInput.click(); getPos(); }
+function pick(step) { if (!tokenFresh()) return; S.pickStep = step; fileInput.value = ''; fileInput.click(); }
 fileInput.addEventListener('change', async () => {
   const step = S.pickStep;
   const room = S.max - stepPhotos(step).length - S.pending.filter(p => p.step === step).length;
@@ -344,13 +344,6 @@ async function processImage(file, step) {
   const g = c.getContext('2d');
   g.drawImage(img, 0, 0, w, h);
   URL.revokeObjectURL(url);
-  // แถบข้อมูลกำกับรูป (หลักฐาน): เขต · ขั้น · วันเวลา
-  const fs = Math.max(16, Math.round(w / 45));
-  const now = new Date().toLocaleString('th-TH', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-  const label = `${S.district.code} ${S.district.name} · ขั้นที่ ${step} · ${now} น.`;
-  g.fillStyle = 'rgba(0,0,0,.55)'; g.fillRect(0, h - fs * 1.8, w, fs * 1.8);
-  g.fillStyle = '#fff'; g.font = `600 ${fs}px Sarabun, sans-serif`; g.textBaseline = 'middle';
-  g.fillText(label, fs * 0.6, h - fs * 0.9, w - fs * 1.2);
   const image = c.toDataURL('image/jpeg', CFG.JPEG_QUALITY || 0.82);
   let thumb = '';
   for (const [edge, q] of [[320, 0.6], [240, 0.5], [180, 0.45]]) {
@@ -381,8 +374,7 @@ async function pump() {
       try {
         const j = await api('upload', {
           step: p.step, image: p.image, thumb: p.thumb, clientTime: p.clientTime,
-          name: S.lineName || (S.district.coordinator || ''), idToken: S.idToken,
-          lat: S.pos ? S.pos.lat : '', lng: S.pos ? S.pos.lng : '', acc: S.pos ? S.pos.acc : ''
+          name: S.lineName || (S.district.coordinator || ''), idToken: S.idToken
         }, true);
         S.pending = S.pending.filter(x => x !== p);
         S.photos.push(Object.assign(j.photo, { thumb: p.thumb }));

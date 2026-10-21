@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ส่งรูปรายงานประจำเขต ว.14</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script src="config.js"></script>
+<style>
+:root{
+  --bg:#f3f5f8; --card:#fff; --ink:#18202b; --muted:#667085; --line:#e3e7ee;
+  --brand:#1f4e79; --brand-2:#e8f0f8; --ok:#16794c; --ok-bg:#e5f5ec; --warn:#b4560b; --warn-bg:#fdf1e4;
+  --err:#b42318; --err-bg:#fdecea; --radius:14px;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Sarabun",system-ui,sans-serif;font-size:16px;line-height:1.45}
+header{background:var(--brand);color:#fff;padding:16px 16px 18px;padding-top:calc(16px + env(safe-area-inset-top))}
+header .k{font-size:13px;opacity:.8}
+header h1{margin:2px 0 0;font-size:20px;font-weight:700}
+header .sub{font-size:14px;opacity:.9;margin-top:2px}
+.prog{display:flex;align-items:center;gap:10px;margin-top:12px}
+.bar{flex:1;height:8px;border-radius:8px;background:rgba(255,255,255,.25);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:#7ee2a8;transition:width .3s}
+.prog b{font-size:14px;white-space:nowrap}
+main{max-width:640px;margin:0 auto;padding:12px 12px 120px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:12px}
+.head{display:flex;align-items:flex-start;gap:10px}
+.num{flex:none;width:30px;height:30px;border-radius:50%;background:var(--brand-2);color:var(--brand);font-weight:700;display:grid;place-items:center}
+.done .num{background:var(--ok);color:#fff}
+.ttl{flex:1;font-weight:600}
+.ttl small{display:block;font-weight:400;color:var(--muted);font-size:13px}
+.badge{flex:none;font-size:12px;padding:2px 8px;border-radius:20px;background:#eef1f5;color:var(--muted)}
+.done .badge{background:var(--ok-bg);color:var(--ok)}
+label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+input{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+input[readonly]{background:#f6f7f9;color:var(--muted)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font:inherit;font-weight:600;border:0;border-radius:10px;padding:11px 14px;cursor:pointer;background:var(--brand);color:#fff}
+.btn.ghost{background:var(--brand-2);color:var(--brand)}
+.btn.ok{background:var(--ok)}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.block{width:100%;margin-top:12px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.tile{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:#e9edf2;border:1px solid var(--line)}
+.tile img{width:100%;height:100%;object-fit:cover;display:block}
+.tile .x{position:absolute;top:4px;right:4px;width:28px;height:28px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#fff;font-size:16px;line-height:1;cursor:pointer}
+.tile .st{position:absolute;left:0;right:0;bottom:0;font-size:11px;padding:3px 6px;background:rgba(0,0,0,.55);color:#fff}
+.tile.up::after{content:"";position:absolute;inset:0;background:rgba(255,255,255,.55)}
+.tile.up .spin{position:absolute;z-index:1;top:50%;left:50%;width:26px;height:26px;margin:-13px;border:3px solid var(--brand);border-right-color:transparent;border-radius:50%;animation:r 0.8s linear infinite}
+.tile.fail{outline:2px solid var(--err)}
+.tile.fail .st{background:var(--err)}
+@keyframes r{to{transform:rotate(360deg)}}
+.add{aspect-ratio:1;border-radius:10px;border:2px dashed #b8c4d4;background:#f8fafc;color:var(--brand);display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:600;font-size:13px;cursor:pointer;text-align:center}
+.add span{font-size:26px;line-height:1}
+.note{font-size:13px;color:var(--muted);margin-top:8px}
+.msg{border-radius:10px;padding:10px 12px;font-size:14px;margin-bottom:12px}
+.msg.err{background:var(--err-bg);color:var(--err)}
+.msg.warn{background:var(--warn-bg);color:var(--warn)}
+.msg.ok{background:var(--ok-bg);color:var(--ok)}
+.foot{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:10px 12px calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px;justify-content:center}
+.foot .btn{flex:1;max-width:310px}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#1d2633;color:#fff;padding:9px 14px;border-radius:10px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%;z-index:20}
+.toast.on{opacity:1}
+.viewer{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;z-index:30;flex-direction:column}
+.viewer.on{display:flex}
+.viewer img{max-width:100%;max-height:85vh}
+.viewer p{color:#ddd;font-size:13px;margin:8px 12px;text-align:center}
+.viewer button{position:absolute;top:calc(10px + env(safe-area-inset-top));right:12px;background:rgba(255,255,255,.15);color:#fff;border:0;border-radius:50%;width:40px;height:40px;font-size:20px}
+.skel{height:90px;border-radius:var(--radius);background:linear-gradient(90deg,#e8ecf1,#f4f6f9,#e8ecf1);background-size:200% 100%;animation:sk 1.2s infinite;margin-bottom:12px}
+@keyframes sk{to{background-position:-200% 0}}
+header{position:relative}
+header .k,header h1{padding-right:90px}
+.chg{position:absolute;top:calc(14px + env(safe-area-inset-top));right:14px;z-index:2;background:rgba(255,255,255,.15);color:#fff;border:0;border-radius:8px;font:inherit;font-size:13px;padding:4px 10px;cursor:pointer}
+.pick{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.pick button{display:block;width:100%;text-align:left;font:inherit;background:none;border:0;border-bottom:1px solid var(--line);padding:11px 14px;cursor:pointer;color:var(--ink)}
+.pick button:last-child{border-bottom:0}
+.pick button b{margin-right:6px}
+.pick button small{display:block;color:var(--muted);font-size:13px}
+.pick .tag{float:right;font-size:12px;padding:1px 8px;border-radius:20px;background:var(--ok-bg);color:var(--ok)}
+.pick .tag.t{background:#eef1f5;color:var(--muted)}
+.ghd{font-size:13px;color:var(--muted);margin:14px 4px 6px}
+.demo{background:#fff4cc;color:#6b5200;font-size:13px;text-align:center;padding:6px}
+</style>
+</head>
+<body>
+<div id="demo" class="demo" hidden>โหมดตัวอย่าง: ยังไม่ได้ตั้งค่า API_URL ข้อมูลจะไม่ถูกส่งจริง</div>
+<header>
+  <button class="chg" id="bChg" hidden onclick="changeDistrict()">เปลี่ยนเขต</button><div class="k">ส่งรูปรายงานประจำเขต · ว.14 ครูผู้ช่วย</div>
+  <h1 id="hName">กำลังโหลด…</h1>
+  <div class="sub" id="hSub"></div>
+  <div class="prog" id="prog"><div class="bar"><i id="pBar"></i></div><b id="pTxt">0/6 ขั้น</b></div>
+</header>
+<main id="main">
+  <div class="skel"></div><div class="skel"></div><div class="skel"></div>
+</main>
+<div class="foot" id="foot" hidden>
+  <button class="btn ok" id="bSubmit">ยืนยันส่งครบแล้ว</button>
+  <button class="btn ghost" id="bPdf" hidden>ดาวน์โหลด PDF</button>
+</div>
+<div class="toast" id="toast"></div>
+<div class="viewer" id="viewer"><button aria-label="ปิด" onclick="closeViewer()">✕</button><img id="vImg" alt=""><p id="vCap"></p></div>
+<input type="file" id="file" accept="image/*" multiple hidden>
+
+<script>
+const CFG = window.PHOTO_CONFIG || {};
+const DEMO = !CFG.API_URL && (/^(localhost|127\.)/.test(location.hostname) || location.protocol === 'file:' || new URLSearchParams(location.search).has('demo'));
+const NOT_READY = !CFG.API_URL && !DEMO;
+const qs = new URLSearchParams(location.search);
+function store(op, k, v) { try { return op === 'get' ? localStorage.getItem(k) : op === 'del' ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) { return null; } }
+const S = { d: qs.get('d') || (qs.get('t') ? '' : store('get', 'w14p_d') || ''), t: qs.get('t') || '', district: null, photos: [], steps: [], max: 3,
+  canPdf: false, lineName: '', idToken: '', pending: [], pickStep: 0, pos: null };
+
+/* ---------- API ---------- */
+async function api(action, data, post) {
+  if (DEMO) return demoApi(action, data || {});
+  const base = { action, d: S.d, t: S.t, idToken: S.idToken };
+  let res;
+  if (post) {
+    res = await fetch(CFG.API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(Object.assign(base, data || {})) });
+  } else {
+    res = await fetch(CFG.API_URL + '?' + new URLSearchParams(Object.assign(base, data || {})));
+  }
+  const j = await res.json();
+  if (!j.ok) throw new Error(j.error || 'เกิดข้อผิดพลาด');
+  return j;
+}
+
+/* ---------- เริ่ม ---------- */
+init();
+async function init() {
+  if (DEMO) { document.getElementById('demo').hidden = false; }
+  if (NOT_READY) return fatal('ระบบส่งรูปยังไม่เปิดใช้งาน (แอดมินกำลังติดตั้ง) กรุณาลองใหม่ภายหลัง');
+  await initLine();
+  if (!DEMO && !S.t && !S.idToken) return fatal('กรุณาเปิดลิงก์นี้ในแอปไลน์ (ระบบใช้ไลน์ยืนยันตัวตนผู้ส่ง ไม่ต้องล็อกอิน Google)');
+  if (!S.d) return showPicker();
+  await loadDistrict();
+}
+
+async function loadDistrict() {
+  document.getElementById('bChg').hidden = !!S.t;
+  try {
+    const j = await api('district');
+    S.district = j.district; S.photos = j.photos; S.steps = j.steps; S.max = j.maxPerStep; S.canPdf = j.canPdf;
+    S.pending = [];
+    render();
+  } catch (e) {
+    if (!S.t) { store('del', 'w14p_d'); S.d = ''; return showPicker(e.message); }
+    fatal(e.message);
+  }
+}
+
+/* ---------- เลือกเขต (ลิงก์เดียว) ---------- */
+async function showPicker(err) {
+  document.getElementById('hName').textContent = 'เลือกเขตที่คุณดูแล';
+  document.getElementById('hSub').textContent = 'เลือกครั้งเดียว ครั้งต่อไปเปิดลิงก์แล้วเข้าเขตของคุณทันที';
+  document.getElementById('foot').hidden = true; document.getElementById('bChg').hidden = true; document.getElementById('prog').hidden = true;
+  const main = document.getElementById('main');
+  main.innerHTML = (err ? '<div class="msg err">' + esc(err) + '</div>' : '') + '<div class="skel"></div>';
+  try {
+    const j = await api('list');
+    S.list = j.districts;
+    const mine = S.list.filter(d => d.mine);
+    if (mine.length === 1 && !err && !S._picked) return pickDistrict(mine[0].code, true);
+    main.innerHTML = (err ? '<div class="msg err">' + esc(err) + '</div>' : '') +
+      (S.lineName ? `<div class="note" style="margin:0 4px 8px">เข้าใช้ในนาม ${esc(S.lineName)} (ไลน์)</div>` : '') +
+      `<input id="fq" placeholder="พิมพ์ค้นหา เช่น กระบี่ หรือ 001" oninput="renderPick(this.value)" autocomplete="off">
+       <div id="plist"></div>`;
+    renderPick('');
+  } catch (e) { main.innerHTML = '<div class="msg err">' + esc(e.message) + '</div>'; }
+}
+function renderPick(q) {
+  q = q.trim().toLowerCase();
+  const hit = S.list.filter(d => !q || (d.code + ' ' + d.name + ' ' + (d.venue || '') + ' ' + (d.region || '')).toLowerCase().includes(q));
+  const row = d => `<button onclick="pickDistrict('${esc(d.code)}')">${d.mine ? '<span class="tag">เขตของคุณ</span>' : d.taken ? '<span class="tag t">มีผู้ดูแลแล้ว</span>' : ''}
+      <b>${esc(d.code)}</b>${esc(d.name)}<small>${esc([d.venue, d.region].filter(Boolean).join(' · '))}</small></button>`;
+  const mine = hit.filter(d => d.mine), rest = hit.filter(d => !d.mine);
+  document.getElementById('plist').innerHTML =
+    (mine.length ? '<div class="ghd">เขตของคุณ</div><div class="pick">' + mine.map(row).join('') + '</div>' : '') +
+    '<div class="ghd">' + (q ? 'ผลการค้นหา ' + rest.length + ' เขต' : 'ทุกเขต (' + rest.length + ')') + '</div>' +
+    (rest.length ? '<div class="pick">' + rest.map(row).join('') + '</div>' : '<div class="note">ไม่พบเขต</div>');
+}
+function pickDistrict(code, auto) {
+  const d = S.list.find(x => x.code === code);
+  if (!auto && !d.mine && !confirm(`ยืนยันว่าคุณเป็นผู้ประสานงานของ\n${d.code} ${d.name}\n\nเมื่อส่งข้อมูลครั้งแรก ระบบจะผูกบัญชีไลน์ของคุณกับเขตนี้`)) return;
+  S.d = code; S._picked = true; store('set', 'w14p_d', code);
+  document.getElementById('main').innerHTML = '<div class="skel"></div><div class="skel"></div>';
+  loadDistrict();
+}
+function changeDistrict() {
+  if (S.pending.length && !confirm('ยังมีรูปที่กำลังส่ง ออกจากเขตนี้หรือไม่?')) return;
+  S.d = ''; S._picked = true; store('del', 'w14p_d'); showPicker();
+}
+
+async function initLine() {
+  try {
+    if (DEMO || !window.liff || !CFG.LIFF_ID) return;
+    await liff.init({ liffId: CFG.LIFF_ID });
+    if (!liff.isLoggedIn()) { if (!S.t) liff.login({ redirectUri: location.href }); return; }
+    S.idToken = liff.getIDToken() || '';
+    const p = await liff.getProfile();
+    S.lineName = p.displayName || '';
+  } catch (e) { /* เปิดนอกไลน์ด้วยลิงก์ประจำเขต ใช้ชื่อที่พิมพ์แทน */ }
+}
+
+/** ID token ของไลน์อายุราว 1 ชม. ถ้าเปิดหน้าทิ้งไว้นาน ให้โหลดหน้าใหม่ก่อนส่ง */
+function tokenFresh() {
+  try {
+    if (DEMO || !S.idToken || !window.liff) return true;
+    const dec = liff.getDecodedIDToken();
+    if (dec && dec.exp * 1000 < Date.now() + 120000) {
+      if (S.pending.length) return true;
+      toast('กำลังรีเฟรชการเชื่อมต่อไลน์…'); setTimeout(() => location.reload(), 800); return false;
+    }
+  } catch (e) { }
+  return true;
+}
+
+function fatal(m) {
+  document.getElementById('hName').textContent = 'เปิดหน้าส่งรูปไม่ได้';
+  document.getElementById('main').innerHTML = '<div class="msg err">' + esc(m) + '</div>';
+}
+
+/* ---------- แสดงผล ---------- */
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function stepPhotos(n) { return S.photos.filter(p => p.step === n); }
+function th(t) { if (!t) return ''; const d = new Date(t); return isNaN(d) ? t : d.toLocaleString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); }
+
+function render() {
+  const d = S.district;
+  document.getElementById('bChg').hidden = !!S.t; document.getElementById('prog').hidden = false;
+  document.getElementById('hName').textContent = d.code + ' ' + d.name;
+  document.getElementById('hSub').textContent = [d.venue || 'ยังไม่กรอกสนามสอบ', d.vehicle ? 'คันที่ ' + d.vehicle : ''].filter(Boolean).join(' · ');
+  const main = document.getElementById('main');
+  const infoDone = !!(d.venue && d.coordinator);
+  let h = '';
+  if (d.submittedAt) h += '<div class="msg ok">ยืนยันส่งครบแล้วเมื่อ ' + esc(th(d.submittedAt)) + ' · ยังเพิ่ม/เปลี่ยนรูปได้</div>';
+  h += `<section class="card ${infoDone ? 'done' : ''}" id="c1">
+    <div class="head"><div class="num">1</div><div class="ttl">ข้อมูลเขตและสนามสอบ<small>กรอกครั้งเดียว ไม่ต้องอัปโหลดรูป</small></div>
+    <span class="badge">${infoDone ? 'บันทึกแล้ว' : 'ยังไม่กรอก'}</span></div>
+    <div class="row2"><div><label>รหัสเขต</label><input value="${esc(d.code)}" readonly></div>
+    <div><label>คันที่</label><input value="${esc(d.vehicle || '-')}" readonly></div></div>
+    <label>ชื่อเขต</label><input value="${esc(d.name)}" readonly>
+    <label for="fVenue">สนามสอบ</label><input id="fVenue" value="${esc(d.venue)}" placeholder="เช่น โรงเรียนอนุบาลกระบี่">
+    <div class="row2"><div><label for="fCoord">ชื่อผู้ประสานงาน</label><input id="fCoord" value="${esc(d.coordinator)}" autocomplete="name"></div>
+    <div><label for="fPhone">เบอร์โทร</label><input id="fPhone" type="tel" value="${esc(d.phone)}" autocomplete="tel"></div></div>
+    <div class="note" id="whoLine">${S.lineName ? 'ส่งในนาม: ' + esc(S.lineName) + ' (ไลน์)' : ''}${d.owners && d.owners.length ? ' · ผู้ดูแลเขต: ' + esc(d.owners.join(', ')) : ''}</div>
+    <button class="btn block" onclick="saveInfo(this)">บันทึกข้อมูล</button></section>`;
+  for (const s of S.steps) h += stepCard(s);
+  main.innerHTML = h;
+  updateProgress();
+  document.getElementById('foot').hidden = false;
+  document.getElementById('bPdf').hidden = !S.canPdf;
+}
+
+function stepCard(s) {
+  const list = stepPhotos(s.n);
+  const pend = S.pending.filter(p => p.step === s.n);
+  const done = list.length > 0;
+  let tiles = list.map(p => `<div class="tile"><img src="${esc(p.thumb || '')}" alt="" onclick="viewPhoto('${p.id}')">
+      <button class="x" aria-label="ลบรูป" onclick="delPhoto('${p.id}')">✕</button><div class="st">${esc(th(p.time))}</div></div>`).join('');
+  tiles += pend.map(p => `<div class="tile ${p.failed ? 'fail' : 'up'}"><img src="${p.thumb}" alt="">
+      ${p.failed ? `<button class="x" aria-label="ยกเลิก" onclick="dropPending('${p.key}')">✕</button><div class="st" onclick="retry('${p.key}')">ส่งไม่สำเร็จ · แตะเพื่อส่งใหม่</div>` : '<div class="spin"></div>'}</div>`).join('');
+  const left = S.max - list.length - pend.length;
+  if (left > 0) tiles += `<div class="add" role="button" tabindex="0" onclick="pick(${s.n})"><span>＋</span>${list.length ? 'เพิ่มรูป' : 'ถ่าย / เลือกรูป'}</div>`;
+  return `<section class="card ${done ? 'done' : ''}" id="c${s.n}">
+    <div class="head"><div class="num">${s.n}</div><div class="ttl">${esc(s.title)}</div>
+    <span class="badge">${done ? list.length + ' รูป' : 'ยังไม่ส่ง'}</span></div>
+    <div class="grid">${tiles}</div></section>`;
+}
+
+function rerenderStep(n) {
+  const s = S.steps.find(x => x.n === n);
+  const el = document.getElementById('c' + n);
+  if (s && el) el.outerHTML = stepCard(s);
+  updateProgress();
+}
+
+function updateProgress() {
+  const n = S.steps.filter(s => stepPhotos(s.n).length).length;
+  document.getElementById('pTxt').textContent = n + '/' + S.steps.length + ' ขั้น';
+  document.getElementById('pBar').style.width = (n / S.steps.length * 100) + '%';
+  const b = document.getElementById('bSubmit');
+  b.disabled = n < S.steps.length;
+  b.textContent = S.district.submittedAt ? 'ยืนยันแล้ว ✓' : (n < S.steps.length ? `ยืนยันส่งครบ (${n}/${S.steps.length})` : 'ยืนยันส่งครบแล้ว');
+}
+
+function toast(m, ms) {
+  const t = document.getElementById('toast'); t.textContent = m; t.classList.add('on');
+  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('on'), ms || 2500);
+}
+
+/* ---------- ขั้นที่ 1 ---------- */
+async function saveInfo(btn) {
+  const venue = document.getElementById('fVenue').value.trim();
+  const coordinator = document.getElementById('fCoord').value.trim();
+  const phone = document.getElementById('fPhone').value.trim();
+  if (!venue || !coordinator) return toast('กรุณากรอกสนามสอบและชื่อผู้ประสานงาน');
+  if (!tokenFresh()) return;
+  btn.disabled = true; btn.textContent = 'กำลังบันทึก…';
+  try {
+    const j = await api('info', { venue, coordinator, phone, name: S.lineName || coordinator, idToken: S.idToken }, true);
+    S.district = j.district; render(); toast('บันทึกข้อมูลแล้ว');
+  } catch (e) { toast(e.message, 4000); btn.disabled = false; btn.textContent = 'บันทึกข้อมูล'; }
+}
+
+/* ---------- เลือก/ย่อ/ส่งรูป ---------- */
+const fileInput = document.getElementById('file');
+function pick(step) { if (!tokenFresh()) return; S.pickStep = step; fileInput.value = ''; fileInput.click(); getPos(); }
+fileInput.addEventListener('change', async () => {
+  const step = S.pickStep;
+  const room = S.max - stepPhotos(step).length - S.pending.filter(p => p.step === step).length;
+  const files = Array.from(fileInput.files || []).slice(0, Math.max(0, room));
+  if ((fileInput.files || []).length > files.length) toast('ขั้นละไม่เกิน ' + S.max + ' รูป ส่งได้อีก ' + room + ' รูป', 3500);
+  for (const f of files) {
+    try {
+      const out = await processImage(f, step);
+      S.pending.push(Object.assign(out, { key: Math.random().toString(36).slice(2), step, failed: false, clientTime: new Date().toISOString() }));
+    } catch (e) { toast('เปิดรูปไม่ได้: ' + e.message, 4000); }
+  }
+  rerenderStep(step);
+  pump();
+});
+
+function loadImage(file) {
+  return new Promise((ok, bad) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => ok({ img, url });
+    img.onerror = () => { URL.revokeObjectURL(url); bad(new Error('ไฟล์ไม่ใช่รูปภาพที่รองรับ')); };
+    img.src = url;
+  });
+}
+
+async function processImage(file, step) {
+  const { img, url } = await loadImage(file);
+  const max = CFG.MAX_EDGE || 1600;
+  const sc = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+  const w = Math.round(img.naturalWidth * sc), h = Math.round(img.naturalHeight * sc);
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const g = c.getContext('2d');
+  g.drawImage(img, 0, 0, w, h);
+  URL.revokeObjectURL(url);
+  // แถบข้อมูลกำกับรูป (หลักฐาน): เขต · ขั้น · วันเวลา
+  const fs = Math.max(16, Math.round(w / 45));
+  const now = new Date().toLocaleString('th-TH', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  const label = `${S.district.code} ${S.district.name} · ขั้นที่ ${step} · ${now} น.`;
+  g.fillStyle = 'rgba(0,0,0,.55)'; g.fillRect(0, h - fs * 1.8, w, fs * 1.8);
+  g.fillStyle = '#fff'; g.font = `600 ${fs}px Sarabun, sans-serif`; g.textBaseline = 'middle';
+  g.fillText(label, fs * 0.6, h - fs * 0.9, w - fs * 1.2);
+  const image = c.toDataURL('image/jpeg', CFG.JPEG_QUALITY || 0.82);
+  let thumb = '';
+  for (const [edge, q] of [[320, 0.6], [240, 0.5], [180, 0.45]]) {
+    const ts = Math.min(1, edge / Math.max(w, h));
+    const t = document.createElement('canvas'); t.width = Math.round(w * ts); t.height = Math.round(h * ts);
+    t.getContext('2d').drawImage(c, 0, 0, t.width, t.height);
+    thumb = t.toDataURL('image/jpeg', q);
+    if (thumb.length < 45000) break;
+  }
+  return { image, thumb };
+}
+
+function getPos() {
+  if (S.pos && Date.now() - S.pos.at < 5 * 60e3) return;
+  if (!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(
+    p => { S.pos = { lat: p.coords.latitude, lng: p.coords.longitude, acc: Math.round(p.coords.accuracy), at: Date.now() }; },
+    () => {}, { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 });
+}
+
+let pumping = false;
+async function pump() {
+  if (pumping) return;
+  pumping = true;
+  try {
+    let p;
+    while ((p = S.pending.find(x => !x.failed))) {
+      try {
+        const j = await api('upload', {
+          step: p.step, image: p.image, thumb: p.thumb, clientTime: p.clientTime,
+          name: S.lineName || (S.district.coordinator || ''), idToken: S.idToken,
+          lat: S.pos ? S.pos.lat : '', lng: S.pos ? S.pos.lng : '', acc: S.pos ? S.pos.acc : ''
+        }, true);
+        S.pending = S.pending.filter(x => x !== p);
+        S.photos.push(Object.assign(j.photo, { thumb: p.thumb }));
+        toast('ส่งรูปขั้นที่ ' + p.step + ' แล้ว');
+      } catch (e) {
+        p.failed = true;
+        toast('ส่งไม่สำเร็จ: ' + e.message, 4500);
+      }
+      rerenderStep(p.step);
+    }
+  } finally { pumping = false; }
+}
+function retry(key) { const p = S.pending.find(x => x.key === key); if (p) { p.failed = false; rerenderStep(p.step); pump(); } }
+function dropPending(key) { const p = S.pending.find(x => x.key === key); S.pending = S.pending.filter(x => x.key !== key); if (p) rerenderStep(p.step); }
+window.addEventListener('beforeunload', e => { if (S.pending.length) { e.preventDefault(); e.returnValue = ''; } });
+
+async function delPhoto(id) {
+  const p = S.photos.find(x => x.id === id);
+  if (!p || !confirm('ลบรูปนี้? (ส่งรูปใหม่แทนได้)')) return;
+  try {
+    await api('delete', { id }, true);
+    S.photos = S.photos.filter(x => x.id !== id);
+    rerenderStep(p.step); toast('ลบรูปแล้ว');
+  } catch (e) { toast(e.message, 4000); }
+}
+
+/* ---------- ดูรูปเต็ม ---------- */
+async function viewPhoto(id) {
+  const p = S.photos.find(x => x.id === id); if (!p) return;
+  const v = document.getElementById('viewer'), im = document.getElementById('vImg');
+  im.src = p.thumb || ''; document.getElementById('vCap').textContent = 'ขั้นที่ ' + p.step + ' · ' + th(p.time) + (p.by ? ' · ' + p.by : '');
+  v.classList.add('on');
+  try { if (!p.full) p.full = (await api('image', { id })).image; if (v.classList.contains('on')) im.src = p.full; } catch (e) { }
+}
+function closeViewer() { document.getElementById('viewer').classList.remove('on'); }
+
+/* ---------- ยืนยัน / PDF ---------- */
+document.getElementById('bSubmit').onclick = async function () {
+  if (S.district.submittedAt) return toast('ยืนยันไปแล้ว ยังแก้ไขรูปได้ตามปกติ');
+  if (!confirm('ยืนยันว่าส่งรูปครบทุกขั้นแล้ว?')) return;
+  try { await api('submit', { on: true }, true); S.district.submittedAt = new Date().toISOString(); render(); toast('ยืนยันแล้ว ขอบคุณครับ'); }
+  catch (e) { toast(e.message, 4000); }
+};
+document.getElementById('bPdf').onclick = async function () {
+  const b = this; b.disabled = true; b.textContent = 'กำลังสร้าง PDF…';
+  try {
+    const j = await api('pdf');
+    if (j.pdf) downloadB64(j.pdf, j.name, 'application/pdf');
+  } catch (e) { toast(e.message, 4000); }
+  b.disabled = false; b.textContent = 'ดาวน์โหลด PDF';
+};
+function downloadB64(b64, name, type) {
+  const bin = atob(b64), arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  const url = URL.createObjectURL(new Blob([arr], { type }));
+  const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
+}
+
+/* ---------- โหมดตัวอย่าง (ไม่มี API_URL) ---------- */
+function demoApi(action, p) {
+  const steps = [
+    { n: 2, title: 'การรับแบบทดสอบและกล่องกระดาษคำตอบ' }, { n: 3, title: 'ดำเนินการส่งแบบทดสอบฯ วันที่ 14 พ.ย.' },
+    { n: 4, title: 'รับมอบกล่องกระดาษคำตอบ วันที่ 14 พ.ย.' }, { n: 5, title: 'รับมอบกล่องแบบทดสอบ วันที่ 14–15 พ.ย.' },
+    { n: 6, title: 'ห้องมั่นคง' }, { n: 7, title: 'ส่งมอบศูนย์สอบธรรมศาสตร์' }];
+  S._demo = S._demo || { district: { code: S.d, name: 'สพป. กระบี่', venue: '', vehicle: 10, region: 'ใต้', coordinator: '', phone: '' } };
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  return wait(action === 'upload' ? 700 : 250).then(() => {
+    switch (action) {
+      case 'list': return { me: '', districts: [['001','สพป. กระบี่','ใต้'],['004','สพป. กาญจนบุรี เขต 2','ตะวันตก'],['005','สพป. กาญจนบุรี เขต 3','ตะวันตก'],['066','สพป. นราธิวาส เขต 1','ใต้ (ไกลมาก)'],['246-2','สศศ. (ภาคเหนือ)','เหนือตอนบน']].map((x, i) => ({ code: x[0], name: x[1], region: x[2], venue: '', taken: i === 3 ? 1 : 0, mine: false })) };
+      case 'district': S._demo.district.code = S.d; S._demo.district.name = (S.list || []).concat([{ code: S.d, name: 'สพป. กระบี่' }]).find(x => x.code === S.d).name; return { district: S._demo.district, photos: [], steps, maxPerStep: 3, canPdf: true };
+      case 'info': Object.assign(S._demo.district, { venue: p.venue, coordinator: p.coordinator, phone: p.phone }); return { district: S._demo.district };
+      case 'upload': return { photo: { id: Math.random().toString(36).slice(2, 10), step: p.step, time: new Date().toISOString(), by: p.name } };
+      case 'image': return { image: (S.photos.find(x => x.id === p.id) || {}).thumb };
+      case 'pdf': throw new Error('โหมดตัวอย่างสร้าง PDF ไม่ได้ ต้องเชื่อม Apps Script ก่อน');
+      default: return {};
+    }
+  });
+}
+</script>
+</body>
+</html>

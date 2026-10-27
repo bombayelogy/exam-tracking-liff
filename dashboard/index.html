@@ -680,7 +680,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 :root{
   --bg:#f3f4f7; --panel:#ffffff; --ink:#1b2130; --muted:#5d6577; --line:#dfe2ea; --soft:#eceef4;
   --brand:#8c1d2c; --brand-ink:#ffffff; --gold:#d9a521;
-  --s-incident:#d0312d; --s-stale:#c46a12; --s-late:#b5487a; --s-paused:#b08800; --s-going:#2563c9; --s-returning:#7a45c2;
+  --s-incident:#d0312d; --s-stale:#c46a12; --s-late:#b5487a; --s-paused:#b08800; --s-overnight:#5b5fc7; --s-going:#2563c9; --s-returning:#7a45c2;
   --s-delivered:#0f8a83; --s-between:#4e7d96; --s-idle:#8a90a0; --s-done:#2b8a3e;
   --land:#e4e7ee; --sea:#f7f8fb;
   --f-display:'Anuphan','IBM Plex Sans Thai',system-ui,sans-serif;
@@ -691,12 +691,12 @@ svg.leaflet-image-layer.leaflet-interactive path {
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#12151d; --panel:#1a1e29; --ink:#e7e9ef; --muted:#9aa2b4; --line:#2c3242; --soft:#232837;
   --brand:#b8384a; --brand-ink:#ffffff; --gold:#e6b93c;
-  --s-incident:#f0605a; --s-stale:#e58a3a; --s-late:#e07aa6; --s-paused:#d8b23a; --s-going:#5b93ec; --s-returning:#a57ce4;
+  --s-incident:#f0605a; --s-stale:#e58a3a; --s-late:#e07aa6; --s-paused:#d8b23a; --s-overnight:#8e92ec; --s-going:#5b93ec; --s-returning:#a57ce4;
   --s-delivered:#2fb5ac; --s-between:#7fb0c9; --s-idle:#7d8496; --s-done:#4cb563; --land:#252b3a; --sea:#171b25; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#12151d; --panel:#1a1e29; --ink:#e7e9ef; --muted:#9aa2b4; --line:#2c3242; --soft:#232837;
   --brand:#b8384a; --brand-ink:#ffffff; --gold:#e6b93c;
-  --s-incident:#f0605a; --s-stale:#e58a3a; --s-late:#e07aa6; --s-paused:#d8b23a; --s-going:#5b93ec; --s-returning:#a57ce4;
+  --s-incident:#f0605a; --s-stale:#e58a3a; --s-late:#e07aa6; --s-paused:#d8b23a; --s-overnight:#8e92ec; --s-going:#5b93ec; --s-returning:#a57ce4;
   --s-delivered:#2fb5ac; --s-between:#7fb0c9; --s-idle:#7d8496; --s-done:#4cb563; --land:#252b3a; --sea:#171b25; color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -989,7 +989,7 @@ const HOME = Object.assign({ code: 'TUC' }, DATA.origins.TUC);
 
 const STAGE_TH = { DEPART: 'ออกเดินทาง', ENROUTE: 'ระหว่างทาง', ARRIVE: 'ถึงจุดหมาย' };
 const LEG_TH = { go: 'ขาไป', back: 'ขากลับ' };
-const SUBS = ['ปกติ', 'แวะพัก', 'รถเสีย', 'เปลี่ยนยาง', 'เดินทางต่อ', 'อื่นๆ'];   // ปกติ = รายงานความคืบหน้า (ไม่บังคับรอบเวลา)
+const SUBS = ['ปกติ', 'แวะพัก', 'พักค้างคืน', 'รถเสีย', 'เปลี่ยนยาง', 'เดินทางต่อ', 'อื่นๆ'];   // ปกติ = รายงานความคืบหน้า (ไม่บังคับรอบเวลา)
 const INCIDENT_RE = /รถเสีย|เปลี่ยนยาง/;
 
 const STATUS = {
@@ -997,6 +997,7 @@ const STATUS = {
   stale:     { th: 'ขาดการติดต่อ',       rank: 1 },
   late:      { th: 'เลยเวลาออกตามแผน',   rank: 1.5 },
   paused:    { th: 'แวะพัก',             rank: 2 },
+  overnight: { th: 'พักค้างคืน',          rank: 2.5 },
   going:     { th: 'ขาไป · กำลังส่ง',    rank: 3 },
   returning: { th: 'ขากลับ',             rank: 4 },
   delivered: { th: 'ส่งครบ รอขากลับ',    rank: 5 },
@@ -1048,6 +1049,7 @@ function deriveStatus(v, allReps, now) {
   }
   if (last.stage === 'ENROUTE' && INCIDENT_RE.test(last.sub)) out.key = 'incident';
   else if (last.stage === 'ENROUTE' && last.sub === 'แวะพัก') out.key = 'paused';
+  else if (last.stage === 'ENROUTE' && last.sub === 'พักค้างคืน') out.key = 'overnight';
   else if (last.leg === 'go') out.key = goDone.size >= n && last.stage === 'ARRIVE' ? 'delivered' : 'going';
   else out.key = home && last.stage === 'ARRIVE' ? 'done' : 'returning';
   // ส่งหลายวัน: กลับถึง TUC แล้วแต่ยังไม่ครบทุกรอบ → รอรอบถัดไป (เลยเวลาออกรอบถัดไป 30 นาที → เลยเวลา)
@@ -1059,6 +1061,13 @@ function deriveStatus(v, allReps, now) {
   const mins = (now - new Date(last.serverTime || last.clientTime)) / 60000;
   out.ageMin = mins;
   out.stale = ['going', 'returning', 'paused', 'incident'].includes(out.key) && mins > CFG.STALE_MIN;
+  // พักค้างคืน: ไม่นับ 8 ชม. · เตือนเมื่อเลยเวลาถึงปลายทางถัดไปตามแผน (ขาไป) หรือพักเกิน 18 ชม. (ไม่มีเวลาแผน)
+  if (out.key === 'overnight') {
+    const nx = last.leg === 'go' ? v.stops.find(s => !goDone.has(s.code)) : null;
+    const due = nx && nx.eta ? new Date(nx.eta).getTime() + (round - 1) * DAY : new Date(last.serverTime || last.clientTime).getTime() + 18 * 3600e3;
+    out.resumeBy = new Date(due);
+    out.stale = now > due;
+  }
   out.progress = out.leg === 'back'
     ? { done: backDone.size, total: n, label: 'ออกจากสนาม' }
     : { done: [...goDone].length, total: n, label: 'ส่งแล้ว' };
@@ -1244,7 +1253,7 @@ function drawMap() {
 
 /* ---------- summary ---------- */
 function drawSummary() {
-  const order = ['incident', 'stale', 'late', 'paused', 'going', 'delivered', 'returning', 'between', 'done', 'idle'];
+  const order = ['incident', 'stale', 'late', 'paused', 'overnight', 'going', 'delivered', 'returning', 'between', 'done', 'idle'];
   const c = {}; order.forEach(k => c[k] = 0);
   state.status.forEach(s => c[effKey(s)]++);
   $('#summary').innerHTML = '<button class="sum" type="button" data-k="" aria-pressed="' + (!state.filter) + '"><b>' + VEH.length + '</b><span>ทั้งหมด</span></button>' +
@@ -1331,7 +1340,7 @@ function renderDrawer() {
     '<li><span class="seq">⌂</span><span>' + esc(HOME.name) + '<br><small style="color:var(--muted)">ปลายทางขากลับ (จุดเดียว)</small></span><span></span>' + (function () { const r = s.cur.find(r => r.leg === 'back' && r.stage === 'ARRIVE'); return '<span class="chk' + (r ? ' y' : '') + '">ถึง ' + (r ? fmtTime(r.serverTime) : '–') + '</span>'; })() + '</li></ol></div>' +
     '<div><h3>ลำดับรายงาน</h3>' + (s.reps.length ? '<ol class="tl">' + s.reps.slice().reverse().map(r => {
       const inc = r.stage === 'ENROUTE' && INCIDENT_RE.test(r.sub);
-      const c = inc ? 'incident' : r.stage === 'ARRIVE' ? 'done' : r.sub === 'แวะพัก' ? 'paused' : r.leg === 'back' ? 'returning' : 'going';
+      const c = inc ? 'incident' : r.stage === 'ARRIVE' ? 'done' : r.sub === 'แวะพัก' ? 'paused' : r.sub === 'พักค้างคืน' ? 'overnight' : r.leg === 'back' ? 'returning' : 'going';
       return '<li style="--c:var(--s-' + c + ')"><div class="t">' + fmtDT(r.serverTime) + ' · ' + LEG_TH[r.leg] + '</div><div class="h">' + STAGE_TH[r.stage] + (r.sub ? ' · ' + esc(r.sub) : '') + '</div>' + (r.destName ? '<div>' + esc(r.destName) + '</div>' : '') +
         (r.note ? '<div class="n">' + esc(r.note) + '</div>' : '') + '<div class="m">' + whoHtml(r) + (r.lat !== '' && r.lat != null ? '<a href="' + mapsUrl(r) + '" target="_blank" rel="noopener">พิกัด ±' + Math.round(r.accuracy || 0) + ' ม.</a>' : '<span>ไม่มีพิกัด</span>') + '</div></li>';
     }).join('') + '</ol>' : '<p class="empty">ยังไม่มีรายงานจากคันนี้</p>') + '</div></div>';

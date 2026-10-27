@@ -49,6 +49,7 @@ legend,.lbl{font-family:var(--f-display);font-weight:600;font-size:.95rem;paddin
 select,textarea{width:100%;border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:12px}
 textarea{min-height:80px;resize:vertical}
 .hint{font-size:.82rem;color:var(--muted);margin:0}
+.round{margin:.5rem 0 0;font-size:.85rem;font-weight:600;color:var(--s-going,#2563c9);background:color-mix(in srgb,currentColor 10%,transparent);border-radius:8px;padding:.35rem .6rem}
 .seg{display:grid;grid-template-columns:1fr 1fr;background:var(--soft);padding:4px;border-radius:12px;gap:4px}
 .seg button{border:0;background:transparent;border-radius:9px;padding:10px;font-weight:600;color:var(--muted);cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--panel);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.1)}
@@ -110,6 +111,7 @@ textarea{min-height:80px;resize:vertical}
     <legend><span class="step">1</span>รถคันที่</legend>
     <select id="veh" aria-label="เลือกคันที่"></select>
     <p class="hint" id="vehInfo"></p>
+    <p class="round" id="roundInfo" hidden></p>
   </fieldset>
 
   <fieldset>
@@ -556,7 +558,16 @@ function doneSet() {
 }
 
 /* ----- render ----- */
+function renderRound() {
+  const v = st.vehicle, el = $('#roundInfo');
+  if (!v || (v.days || 1) < 2) { el.hidden = true; return; }
+  const s = deriveStatus(v, st.reps, new Date());
+  const r = s.home && s.round < s.days ? s.round + 1 : s.round, d = roundDepart(v, r);
+  el.hidden = false;
+  el.textContent = 'ส่ง ' + s.days + ' วัน · ตอนนี้รอบที่ ' + r + '/' + s.days + (d ? ' (' + fmtDate(d) + ')' : '') + (s.home && s.round >= s.days ? ' · จบภารกิจแล้ว' : '');
+}
 function renderAll() {
+  renderRound();
   document.querySelectorAll('#leg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === st.leg));
   document.querySelectorAll('.stage').forEach(b => {
     b.setAttribute('aria-pressed', b.dataset.v === st.stage);

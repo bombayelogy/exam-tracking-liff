@@ -191,7 +191,7 @@ const CFG = Object.assign({
   API_URL: '',          // URL ของ Apps Script Web App (…/exec)
   LIFF_ID: '',          // LIFF ID จาก LINE Developers
   VIEW_KEY: '',         // ถ้าตั้ง VIEW_KEY ไว้ใน Apps Script
-  STALE_MIN: 180,       // ไม่มีรายงานเกินกี่นาทีถือว่า "ขาดการติดต่อ"
+  STALE_MIN: 480,       // ไม่มีรายงานเกินกี่นาทีถือว่า "ขาดการติดต่อ" (8 ชม. · ไม่บังคับรายงานทุก 3 ชม.)
   REFRESH_SEC: 60
 }, window.CONFIG || {});
 const DEMO = !CFG.API_URL;
@@ -244,7 +244,7 @@ const HOME = Object.assign({ code: 'TUC' }, DATA.origins.TUC);
 
 const STAGE_TH = { DEPART: 'ออกเดินทาง', ENROUTE: 'ระหว่างทาง', ARRIVE: 'ถึงจุดหมาย' };
 const LEG_TH = { go: 'ขาไป', back: 'ขากลับ' };
-const SUBS = ['ปกติ', 'แวะพัก', 'รถเสีย', 'เปลี่ยนยาง', 'เดินทางต่อ', 'อื่นๆ'];   // ปกติ = รายงานตามรอบทุก 3 ชม.
+const SUBS = ['ปกติ', 'แวะพัก', 'รถเสีย', 'เปลี่ยนยาง', 'เดินทางต่อ', 'อื่นๆ'];   // ปกติ = รายงานความคืบหน้า (ไม่บังคับรอบเวลา)
 const INCIDENT_RE = /รถเสีย|เปลี่ยนยาง/;
 
 const STATUS = {
@@ -528,8 +528,10 @@ function suggest() {
   st.rec = fresh || s.key === 'idle' || s.key === 'delivered' ? 'DEPART'
     : s.key === 'done' ? null
     : st.leg === 'back' ? (s.backDone.size < st.vehicle.stops.length ? 'DEPART' : 'ARRIVE')
+    : s.last.leg === 'go' && s.last.stage === 'ARRIVE' ? 'ENROUTE'     // ส่งปลายทางที่ 1 แล้ว กำลังไปปลายทางถัดไป
     : 'ARRIVE';
   st.stage = st.rec;
+  if (st.rec === 'ENROUTE') st.sub = 'ปกติ';
 }
 
 /** รายการจุดที่เลือกได้ ตามขาและสถานะ (ดึงจากแผนเส้นทางของคันนั้นอัตโนมัติ)
@@ -562,7 +564,7 @@ function renderAll() {
     if (b.dataset.v === st.rec) b.insertAdjacentHTML('afterbegin', '<span class="rec">แนะนำ</span>');
   });
   $('.stage[data-v="DEPART"] small').textContent = st.leg === 'go' ? 'จาก CSP / TUC' : 'จากสนามสอบ (วนกลับ)';
-  $('.stage[data-v="ARRIVE"] small').textContent = st.leg === 'go' ? 'ปลายทางที่ 1–' + (st.vehicle ? st.vehicle.stops.length : 'n') : 'ถึง TUC';
+  $('.stage[data-v="ARRIVE"] small').textContent = st.leg === 'go' ? (st.vehicle && st.vehicle.stops.length === 1 ? 'ปลายทางที่ 1' : 'ปลายทางที่ 1–' + (st.vehicle ? st.vehicle.stops.length : 'n')) : 'ถึง TUC';
 
   $('#subBox').hidden = st.stage !== 'ENROUTE';
   const subC = { 'ปกติ': 's-done', 'แวะพัก': 's-paused', 'รถเสีย': 's-incident', 'เปลี่ยนยาง': 's-incident', 'เดินทางต่อ': 's-going', 'อื่นๆ': 'muted' };

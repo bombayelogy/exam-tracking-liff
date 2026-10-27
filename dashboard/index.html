@@ -936,7 +936,7 @@ const CFG = Object.assign({
   API_URL: '',          // URL ของ Apps Script Web App (…/exec)
   LIFF_ID: '',          // LIFF ID จาก LINE Developers
   VIEW_KEY: '',         // ถ้าตั้ง VIEW_KEY ไว้ใน Apps Script
-  STALE_MIN: 180,       // ไม่มีรายงานเกินกี่นาทีถือว่า "ขาดการติดต่อ"
+  STALE_MIN: 480,       // ไม่มีรายงานเกินกี่นาทีถือว่า "ขาดการติดต่อ" (8 ชม. · ไม่บังคับรายงานทุก 3 ชม.)
   REFRESH_SEC: 60
 }, window.CONFIG || {});
 const DEMO = !CFG.API_URL;
@@ -989,7 +989,7 @@ const HOME = Object.assign({ code: 'TUC' }, DATA.origins.TUC);
 
 const STAGE_TH = { DEPART: 'ออกเดินทาง', ENROUTE: 'ระหว่างทาง', ARRIVE: 'ถึงจุดหมาย' };
 const LEG_TH = { go: 'ขาไป', back: 'ขากลับ' };
-const SUBS = ['ปกติ', 'แวะพัก', 'รถเสีย', 'เปลี่ยนยาง', 'เดินทางต่อ', 'อื่นๆ'];   // ปกติ = รายงานตามรอบทุก 3 ชม.
+const SUBS = ['ปกติ', 'แวะพัก', 'รถเสีย', 'เปลี่ยนยาง', 'เดินทางต่อ', 'อื่นๆ'];   // ปกติ = รายงานความคืบหน้า (ไม่บังคับรอบเวลา)
 const INCIDENT_RE = /รถเสีย|เปลี่ยนยาง/;
 
 const STATUS = {

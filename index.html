@@ -211,6 +211,27 @@ const VMAP = {};
 function hav(a, b) { const R = 6371, t = Math.PI / 180, dLa = (b.lat - a.lat) * t, dLo = (b.lng - a.lng) * t; const x = Math.sin(dLa / 2) ** 2 + Math.cos(a.lat * t) * Math.cos(b.lat * t) * Math.sin(dLo / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(x)); }
 // ระยะถนนโดยประมาณ ใช้ค่าเดียวกับไฟล์แผน: ตัวคูณ 1.35 (เส้นตรง < 60 กม.) / 1.22, ความเร็ว 70 กม./ชม., เผื่อ 15 นาทีต่อช่วง, ส่งมอบ 30 นาทีต่อจุด
 function roadKm(a, b) { const d = hav(a, b); return d * (d < 60 ? 1.35 : 1.22); }
+/** ย่อชื่อเขตพื้นที่: "สพป. จันทบุรี เขต 2" → "สพป.จันทบุรี2" · "สพม. จันทบุรี ตราด" → "สพม.จันทบุรีฯ" · สศศ. (ภาค…) → "สศศ (อีสาน)" */
+// ชื่อจังหวัดแบบย่อ (ตามที่ผู้ใช้กำหนด)
+const PROV_SHORT = { 'นครศรีธรรมราช': 'นครศรีฯ', 'สุราษฎร์ธานี': 'สุราษฎร์ฯ', 'ประจวบคีรีขันธ์': 'ประจวบฯ', 'พระนครศรีอยุธยา': 'อยุธยา' };
+const provShort = p => PROV_SHORT[p] || p;
+const SSS_REGION = { 'ภาคเหนือ': 'เหนือ', 'ภาคใต้': 'ใต้', 'ภาคตะวันออกเฉียงเหนือ': 'อีสาน', 'ภาคกลางและภาคตะวันออก': 'กลาง-ตะวันออก', 'เขต จชต.': 'จชต.' };
+function zoneShort(name) {
+  const n = String(name || '').replace(/\s+/g, ' ').trim();
+  let m = n.match(/^สศศ\.?\s*\(([^)]+)\)/);
+  if (m) return 'สศศ (' + (SSS_REGION[m[1].trim()] || m[1].trim()) + ')';
+  m = n.match(/^(สพป|สพม)\.?\s*(.+)$/);
+  if (!m) return n;
+  let rest = m[2].replace('กรุงเทพมหานคร', 'กทม.'), no = '';
+  const z = rest.match(/\s*เขต\s*(\d+)$/); if (z) { no = z[1]; rest = rest.slice(0, z.index); }
+  const words = rest.trim().split(' ');
+  const w = provShort(words[0]);
+  return m[1] + '.' + w + (words.length > 1 && !w.endsWith('ฯ') ? 'ฯ' : '') + no;
+}
+/** ชื่อคันแบบเขต: เรียงชื่อย่อของทุกสนามตามลำดับส่ง คั่นด้วย "-" (ไม่ใช้คำว่า "ทุกเขต") */
+function zoneLabels(vehicles) {
+  vehicles.forEach(v => { v.zones = v.stops.map(s => zoneShort(s.name)).join('-'); });
+}
 function applyPlan(plan) {
   if (!plan || !plan.vehicles || !plan.vehicles.length) return false;
   if (plan.origins) DATA.origins = plan.origins;
@@ -226,6 +247,7 @@ function applyPlan(plan) {
     v.approxCount = v.stops.filter(s => s.approx).length;
     VEH.push(v); VMAP[v.id] = v;
   });
+  zoneLabels(VEH);
   DATA.vehicles = VEH;
   return true;
 }
@@ -494,7 +516,7 @@ function pickVehicle() {
   let v = qs.get('v');
   if (!v && qs.get('liff.state')) v = new URLSearchParams(qs.get('liff.state').split('?')[1] || '').get('v');
   if (!v) try { v = localStorage.getItem('et-vehicle'); } catch (e) {}
-  $('#veh').innerHTML = '<option value="">— เลือกคันที่ —</option>' + VEH.map(x => '<option value="' + x.id + '">คันที่ ' + x.id + ' · ' + esc(x.title) + '</option>').join('');
+  $('#veh').innerHTML = '<option value="">— เลือกคันที่ —</option>' + VEH.map(x => '<option value="' + x.id + '">คันที่ ' + x.id + ' ' + esc(x.zones) + '</option>').join('');
   if (v && VMAP[v]) $('#veh').value = v;
   setVehicle($('#veh').value);
 }
@@ -503,7 +525,7 @@ async function setVehicle(id) {
   try { if (id) localStorage.setItem('et-vehicle', id); } catch (e) {}
   if (!st.vehicle) { $('#vehInfo').textContent = 'เลือกคันที่ของคุณ (ลิงก์ประจำคันจะเลือกให้อัตโนมัติ)'; $('#hist').innerHTML = ''; renderAll(); return; }
   const v = st.vehicle;
-  $('#vehInfo').textContent = 'ออกจาก ' + originOf(v).name + (v.depart ? ' · แผนออก ' + fmtDT(v.depart) : '') + ' · ' + v.stops.length + ' สนามสอบ · ~' + v.km + ' กม.' + (v.plate ? ' · ทะเบียน ' + v.plate : '');
+  $('#vehInfo').textContent = v.title + ' · ออกจาก ' + originOf(v).name + (v.depart ? ' · แผนออก ' + fmtDT(v.depart) : '') + ' · ' + v.stops.length + ' สนามสอบ · ~' + v.km + ' กม.' + (v.plate ? ' · ทะเบียน ' + v.plate : '');
   // แสดงฟอร์มทันทีจากประวัติที่จำไว้ในเครื่อง แล้วค่อยอัปเดตจากเซิร์ฟเวอร์ตามหลัง (เน็ตช้าก็กรอกได้เลย)
   st.reps = repsCache(v.id); st.touched = false;
   suggest(); renderAll(); renderHist();

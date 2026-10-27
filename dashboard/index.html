@@ -719,14 +719,25 @@ button,input,select{font:inherit;color:inherit}
 .top .btn{background:transparent;border-color:rgba(255,255,255,.45);color:var(--brand-ink)}
 .top .btn:hover{background:rgba(255,255,255,.12)}
 
-/* summary */
-.summary{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:8px;padding-block:16px 8px}
-.sum{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;cursor:pointer;position:relative;overflow:hidden}
-.sum::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--c,var(--muted))}
-.sum b{font-family:var(--f-mono);font-size:1.6rem;line-height:1.1;font-weight:500}
-.sum span{font-size:.82rem;color:var(--muted)}
-.sum[aria-pressed="true"]{border-color:var(--c,var(--ink));box-shadow:inset 0 0 0 1px var(--c,var(--ink))}
-.sum.zero{opacity:.55}
+/* summary: แถบต้องดูแล + แถบความคืบหน้า + ชิปสถานะ (แสดงเฉพาะที่มีรถ) */
+.summary{display:flex;flex-direction:column;gap:10px;padding-block:14px 6px}
+.alerts{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.alerts .lbl{font-family:var(--f-display);font-weight:600;font-size:.95rem;margin-right:4px}
+.alert{display:inline-flex;align-items:baseline;gap:8px;border:0;border-radius:10px;padding:6px 14px;cursor:pointer;background:var(--c);color:#fff;font-weight:600}
+.alert b{font-family:var(--f-mono);font-size:1.25rem;font-weight:500;line-height:1}
+.alert[aria-pressed="true"]{box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 35%,transparent)}
+.allok{display:inline-flex;align-items:center;gap:8px;color:var(--s-done);font-weight:600;font-size:.92rem}
+.allok::before{content:"✓";display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:color-mix(in srgb,var(--s-done) 15%,transparent)}
+.prog{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.stack{display:flex;height:12px;border-radius:99px;overflow:hidden;background:var(--soft)}
+.stack i{display:block;height:100%;background:var(--c)}
+.stack i+i{box-shadow:inset 1px 0 0 var(--panel)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.sum{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--panel);border-radius:99px;padding:3px 11px 3px 9px;cursor:pointer;font-size:.84rem;color:var(--muted)}
+.sum::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--c,var(--ink))}
+.sum.all::before{display:none}
+.sum b{font-family:var(--f-mono);font-weight:500;color:var(--ink)}
+.sum[aria-pressed="true"]{border-color:var(--c,var(--ink));background:color-mix(in srgb,var(--c,var(--ink)) 10%,var(--panel));color:var(--ink)}
 
 /* tabs + toolbar */
 .bar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;padding-block:8px}
@@ -749,12 +760,17 @@ button,input,select{font:inherit;color:inherit}
 
 /* vehicle rows */
 .list{display:flex;flex-direction:column;gap:6px;min-width:0}
-.vrow{display:grid;grid-template-columns:44px minmax(0,1.3fr) minmax(0,1.2fr) minmax(0,.9fr);gap:12px;align-items:center;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;cursor:pointer;width:100%}
+.vrow{display:grid;grid-template-columns:38px minmax(0,1fr) auto;gap:2px 12px;align-items:center;text-align:left;background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--c);border-radius:var(--r);padding:8px 12px 8px 10px;cursor:pointer;width:100%}
+.vrow .vno{grid-row:1/3}
+.vt{min-width:0;font-family:var(--f-display);font-weight:600;font-size:.98rem;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vd{grid-column:2;min-width:0;font-size:.8rem;color:var(--muted);line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vr{grid-column:3;grid-row:1;justify-self:end}
+.vp{grid-column:3;grid-row:2;justify-self:end}
 .vrow:hover{border-color:var(--muted)}
 .vrow.sel{border-color:var(--s-going);box-shadow:inset 0 0 0 1px var(--s-going)}
-.vrow.alert{background:color-mix(in srgb,var(--s-incident) 7%,var(--panel))}
-@media (max-width:640px){.vrow{grid-template-columns:40px minmax(0,1fr);row-gap:6px}.vrow .vstat,.vrow .vtime{grid-column:2}}
-.vno{width:40px;height:40px;border-radius:8px;display:grid;place-items:center;font-family:var(--f-mono);font-size:1.1rem;background:var(--soft);border:2px solid var(--c,var(--line))}
+.vrow.hot{background:color-mix(in srgb,var(--c) 6%,var(--panel))}
+.vno{width:38px;height:38px;border-radius:8px;display:grid;place-items:center;font-family:var(--f-mono);font-size:1.05rem;background:var(--soft)}
+.dhead .vno{border:2px solid var(--c,var(--line))}
 .vmain{min-width:0;display:flex;flex-direction:column;gap:3px}
 .vmain b{font-family:var(--f-display);font-weight:600;font-size:1rem;line-height:1.25}
 .vmain small,.vstat small,.vtime small{color:var(--muted);font-size:.8rem;line-height:1.35}
@@ -767,12 +783,25 @@ button,input,select{font:inherit;color:inherit}
 @keyframes blink{50%{opacity:.25}}
 @media (prefers-reduced-motion:reduce){.pill::before{animation:none!important}}
 .warn{color:var(--s-stale);font-weight:600}
-.dots{display:flex;gap:3px;align-items:center;font-size:.75rem;color:var(--muted)}
-.dots i{width:14px;height:6px;border-radius:2px;background:var(--line)}
+.dots{display:flex;gap:3px;align-items:center;font-size:.75rem;color:var(--muted);white-space:nowrap}
+.dots i{width:10px;height:6px;border-radius:2px;background:var(--line)}
 .dots i.on{background:var(--c,var(--s-going))}
-.dots em{font-style:normal;margin-left:6px}
+.dots em{font-style:normal;margin-left:4px;font-family:var(--f-mono)}
 
-/* feed table */
+/* feed: รายการ 2 บรรทัด เต็มความกว้าง (ซ่อนแผนที่เมื่ออยู่แท็บนี้) */
+body.tab-f .grid{grid-template-columns:1fr}
+body.tab-f .mapcol{display:none!important}
+.feed{display:flex;flex-direction:column;gap:6px}
+.fday{font-family:var(--f-display);font-weight:600;font-size:.88rem;color:var(--muted);padding:8px 2px 2px}
+.frow{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:2px 12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--c);border-radius:var(--r);padding:8px 12px 8px 10px;cursor:pointer;width:100%;text-align:left}
+.frow:hover{border-color:var(--muted);border-left-color:var(--c)}
+.frow .ft{grid-row:1/3;font-family:var(--f-mono);font-size:1rem;font-weight:500;white-space:nowrap}
+.frow .fv{min-width:0;font-family:var(--f-display);font-weight:600;font-size:.95rem;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.frow .fs{grid-column:3;grid-row:1;justify-self:end}
+.frow .fd{grid-column:2/4;min-width:0;font-size:.8rem;color:var(--muted);line-height:1.4}
+.frow .fd a{white-space:nowrap}
+@media (max-width:640px){.frow{grid-template-columns:44px minmax(0,1fr);padding:8px 10px 8px 8px}.frow .ft{font-size:.9rem}.frow .fv{white-space:normal}.frow .fs{grid-column:2;grid-row:2;justify-self:start}.frow .fd{grid-column:2}}
+/* feed table (เดิม) */
 .feedwrap{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
 table{width:100%;border-collapse:collapse;font-size:.88rem;min-width:720px}
 th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
@@ -844,10 +873,9 @@ h3{font-family:var(--f-display);font-size:.95rem;margin:0 0 8px;font-weight:600}
   .seal{width:34px;height:34px;font-size:11px}
   .topmeta{width:100%;justify-content:space-between}
   .topmeta .btn{padding:4px 12px}
-  .summary{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding-block:10px 4px}
-  .sum{padding:6px 8px 6px 10px}
-  .sum b{font-size:1.2rem}
-  .sum span{font-size:.72rem;line-height:1.25}
+  .summary{padding-block:10px 4px;gap:8px}
+  .prog{padding:10px 12px}
+  .sum{font-size:.8rem;padding:2px 9px 2px 8px}
   .bar{flex-direction:column;align-items:stretch}
   .tabs button{flex:1;padding:7px 6px}
   .tools{display:grid;grid-template-columns:1fr 1fr;gap:6px}
@@ -855,10 +883,10 @@ h3{font-family:var(--f-display);font-size:.95rem;margin:0 0 8px;font-weight:600}
   .tools select{width:100%}
   #toolsF{grid-template-columns:1fr 1fr}
   #toolsF #fVeh{grid-column:1/-1}
-  .vrow{padding:10px;gap:4px 10px}
-  .vrow .vstat{flex-direction:row;flex-wrap:wrap;align-items:center;gap:4px 8px}
-  .vrow .vtime{flex-direction:row;flex-wrap:wrap;gap:0 8px;align-items:baseline}
-  .vrow .vtime small{font-size:.75rem}
+  .vrow{gap:2px 10px;padding:8px 10px 8px 8px}
+  .vt{font-size:.92rem;white-space:normal}
+  .vd{grid-column:2/4;white-space:normal}
+  .vp{display:none}
   .dhead{padding:12px 14px}
   .dbody{padding:14px}
   .facts{grid-template-columns:1fr 1fr}
@@ -915,11 +943,11 @@ h3{font-family:var(--f-display);font-size:.95rem;margin:0 0 8px;font-weight:600}
   <main class="grid">
     <section>
       <div class="list" id="list"></div>
-      <div id="feed" hidden></div>
+      <div id="feed" class="feed" hidden></div>
     </section>
     <aside class="mapcol">
       <div id="map" role="region" aria-label="แผนที่ตำแหน่งรถ"></div>
-      <div class="legend" id="legend"></div>
+      
     </aside>
   </main>
 </div>
@@ -954,6 +982,27 @@ const VMAP = {};
 function hav(a, b) { const R = 6371, t = Math.PI / 180, dLa = (b.lat - a.lat) * t, dLo = (b.lng - a.lng) * t; const x = Math.sin(dLa / 2) ** 2 + Math.cos(a.lat * t) * Math.cos(b.lat * t) * Math.sin(dLo / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(x)); }
 // ระยะถนนโดยประมาณ ใช้ค่าเดียวกับไฟล์แผน: ตัวคูณ 1.35 (เส้นตรง < 60 กม.) / 1.22, ความเร็ว 70 กม./ชม., เผื่อ 15 นาทีต่อช่วง, ส่งมอบ 30 นาทีต่อจุด
 function roadKm(a, b) { const d = hav(a, b); return d * (d < 60 ? 1.35 : 1.22); }
+/** ย่อชื่อเขตพื้นที่: "สพป. จันทบุรี เขต 2" → "สพป.จันทบุรี2" · "สพม. จันทบุรี ตราด" → "สพม.จันทบุรีฯ" · สศศ. (ภาค…) → "สศศ (อีสาน)" */
+// ชื่อจังหวัดแบบย่อ (ตามที่ผู้ใช้กำหนด)
+const PROV_SHORT = { 'นครศรีธรรมราช': 'นครศรีฯ', 'สุราษฎร์ธานี': 'สุราษฎร์ฯ', 'ประจวบคีรีขันธ์': 'ประจวบฯ', 'พระนครศรีอยุธยา': 'อยุธยา' };
+const provShort = p => PROV_SHORT[p] || p;
+const SSS_REGION = { 'ภาคเหนือ': 'เหนือ', 'ภาคใต้': 'ใต้', 'ภาคตะวันออกเฉียงเหนือ': 'อีสาน', 'ภาคกลางและภาคตะวันออก': 'กลาง-ตะวันออก', 'เขต จชต.': 'จชต.' };
+function zoneShort(name) {
+  const n = String(name || '').replace(/\s+/g, ' ').trim();
+  let m = n.match(/^สศศ\.?\s*\(([^)]+)\)/);
+  if (m) return 'สศศ (' + (SSS_REGION[m[1].trim()] || m[1].trim()) + ')';
+  m = n.match(/^(สพป|สพม)\.?\s*(.+)$/);
+  if (!m) return n;
+  let rest = m[2].replace('กรุงเทพมหานคร', 'กทม.'), no = '';
+  const z = rest.match(/\s*เขต\s*(\d+)$/); if (z) { no = z[1]; rest = rest.slice(0, z.index); }
+  const words = rest.trim().split(' ');
+  const w = provShort(words[0]);
+  return m[1] + '.' + w + (words.length > 1 && !w.endsWith('ฯ') ? 'ฯ' : '') + no;
+}
+/** ชื่อคันแบบเขต: เรียงชื่อย่อของทุกสนามตามลำดับส่ง คั่นด้วย "-" (ไม่ใช้คำว่า "ทุกเขต") */
+function zoneLabels(vehicles) {
+  vehicles.forEach(v => { v.zones = v.stops.map(s => zoneShort(s.name)).join('-'); });
+}
 function applyPlan(plan) {
   if (!plan || !plan.vehicles || !plan.vehicles.length) return false;
   if (plan.origins) DATA.origins = plan.origins;
@@ -969,6 +1018,7 @@ function applyPlan(plan) {
     v.approxCount = v.stops.filter(s => s.approx).length;
     VEH.push(v); VMAP[v.id] = v;
   });
+  zoneLabels(VEH);
   DATA.vehicles = VEH;
   return true;
 }
@@ -1252,13 +1302,22 @@ function drawMap() {
 }
 
 /* ---------- summary ---------- */
+const ALERTS = ['incident', 'stale', 'late'];
+// เรียงตามลำดับการเดินทาง (ซ้าย → ขวา) ใช้ทั้งแถบความคืบหน้าและชิปสถานะ
+const FLOW = ['idle', 'going', 'paused', 'overnight', 'delivered', 'returning', 'between', 'done'];
 function drawSummary() {
-  const order = ['incident', 'stale', 'late', 'paused', 'overnight', 'going', 'delivered', 'returning', 'between', 'done', 'idle'];
-  const c = {}; order.forEach(k => c[k] = 0);
+  const c = {}; ALERTS.concat(FLOW).forEach(k => c[k] = 0);
   state.status.forEach(s => c[effKey(s)]++);
-  $('#summary').innerHTML = '<button class="sum" type="button" data-k="" aria-pressed="' + (!state.filter) + '"><b>' + VEH.length + '</b><span>ทั้งหมด</span></button>' +
-    order.map(k => '<button class="sum' + (c[k] ? '' : ' zero') + '" type="button" data-k="' + k + '" style="--c:var(--s-' + k + ')" aria-pressed="' + (state.filter === k) + '"><b>' + c[k] + '</b><span>' + STATUS[k].th + '</span></button>').join('');
-  $('#legend').innerHTML = order.map(k => '<span><i style="--c:var(--s-' + k + ')"></i>' + STATUS[k].th + '</span>').join('');
+  const n = state.status.length || 1, pressed = k => ' aria-pressed="' + (state.filter === k) + '"';
+  const al = ALERTS.filter(k => c[k]);
+  const alertsHtml = '<div class="alerts">' + (al.length
+    ? '<span class="lbl">ต้องดูแลตอนนี้</span>' + al.map(k => '<button class="alert sum-k" type="button" data-k="' + k + '" style="--c:var(--s-' + k + ')"' + pressed(k) + '><b>' + c[k] + '</b>' + STATUS[k].th + '</button>').join('')
+    : '<span class="allok">ไม่มีรถที่ต้องดูแล</span>') + '</div>';
+  const seq = ['late'].concat(FLOW.slice(0, 1), ['incident', 'stale'], FLOW.slice(1));
+  const stack = '<div class="stack" role="img" aria-label="ความคืบหน้ารวม">' + seq.filter(k => c[k]).map(k => '<i style="--c:var(--s-' + k + ');width:' + (c[k] / n * 100) + '%" title="' + STATUS[k].th + ' ' + c[k] + ' คัน"></i>').join('') + '</div>';
+  const chips = '<div class="chips"><button class="sum all sum-k" type="button" data-k=""' + pressed('') + '>ทั้งหมด <b>' + VEH.length + '</b></button>' +
+    FLOW.filter(k => c[k]).map(k => '<button class="sum sum-k" type="button" data-k="' + k + '" style="--c:var(--s-' + k + ')"' + pressed(k) + '>' + STATUS[k].th + ' <b>' + c[k] + '</b></button>').join('') + '</div>';
+  $('#summary').innerHTML = alertsHtml + '<div class="prog">' + stack + chips + '</div>';
 }
 
 /* ---------- vehicle list ---------- */
@@ -1267,13 +1326,13 @@ function dots(s) {
   let h = '';
   for (let i = 0; i < p.total; i++) h += '<i class="' + (i < p.done ? 'on' : '') + '"></i>';
   const rd = s.days > 1 ? ' · รอบ ' + Math.min(s.round, s.days) + '/' + s.days : '';
-  return '<span class="dots" style="--c:var(--s-' + (s.leg === 'back' ? 'returning' : 'going') + ')">' + h + '<em>' + (s.leg === 'back' ? 'ขากลับ ' : 'ขาไป ') + p.label + ' ' + p.done + '/' + p.total + rd + '</em></span>';
+  return '<span class="dots" title="' + (s.leg === 'back' ? 'ขากลับ ' : 'ขาไป ') + p.label + rd + '" style="--c:var(--s-' + (s.leg === 'back' ? 'returning' : 'going') + ')">' + h + '<em>' + p.done + '/' + p.total + '</em></span>';
 }
 function drawList() {
   const q = $('#q').value.trim().toLowerCase();
   let rows = state.status.filter(s => (!state.filter || effKey(s) === state.filter) &&
     (!state.line || s.v.line === state.line) &&
-    (!q || String(s.v.id) === q || (s.v.line + ' ' + (s.v.driver || '') + ' ' + (s.v.plate || '') + ' ' + s.v.stops.map(x => x.name + ' ' + (x.venue || '') + ' ' + (x.amphoe || '')).join(' ')).toLowerCase().includes(q)));
+    (!q || String(s.v.id) === q || (s.v.line + ' ' + s.v.zones + ' ' + (s.v.driver || '') + ' ' + (s.v.plate || '') + ' ' + s.v.stops.map(x => x.name + ' ' + (x.venue || '') + ' ' + (x.amphoe || '')).join(' ')).toLowerCase().includes(q)));
   const sort = $('#sort').value;
   const t = s => s.last ? new Date(s.last.serverTime).getTime() : 0;
   rows.sort({
@@ -1285,11 +1344,16 @@ function drawList() {
   if (!rows.length) { $('#list').innerHTML = '<div class="empty">ไม่พบรถที่ตรงกับตัวกรอง</div>'; return; }
   $('#list').innerHTML = rows.map(s => {
     const k = effKey(s), l = s.last;
-    return '<button type="button" class="vrow' + (state.sel === s.v.id ? ' sel' : '') + (k === 'incident' ? ' alert' : '') + '" data-id="' + s.v.id + '" style="--c:var(--s-' + k + ')">' +
+    // บรรทัด 2: รายงานล่าสุด · เมื่อไร · ใคร (ยังไม่มีรายงาน → แผนออก)
+    const detail = s.nextDepart && (k === 'between' || k === 'late') ? 'รอบ 2 แผนออก ' + fmtDT(s.nextDepart)
+      : l ? esc(describe(l)) + ' · <span class="num">' + fmtTime(l.serverTime) + '</span>' + (s.stale ? ' <span class="warn">(' + ago(s.ageMin) + ')</span>' : ' · ' + ago(s.ageMin)) + ' · ' + esc(l.lineName || '')
+      : 'แผนออก ' + (s.v.depart ? fmtDT(s.v.depart) : '–') + ' จาก ' + s.v.origin;
+    return '<button type="button" class="vrow' + (state.sel === s.v.id ? ' sel' : '') + (ALERTS.includes(k) ? ' hot' : '') + '" data-id="' + s.v.id + '" style="--c:var(--s-' + k + ')">' +
       '<span class="vno">' + s.v.id + '</span>' +
-      '<span class="vmain"><b>' + esc(s.v.title) + '</b><small>ออกจาก ' + s.v.origin + (s.v.depart ? ' ' + fmtDT(s.v.depart).replace(' น.', '') : '') + ' · ' + s.v.stops.length + ' สนาม · ~' + s.v.km + ' กม.' + (s.v.plate ? ' · ' + esc(s.v.plate) : '') + (s.v.approxCount ? ' · <span class="apx">พิกัดประมาณ ' + s.v.approxCount + '</span>' : '') + '</small>' + dots(s) + '</span>' +
-      '<span class="vstat"><span class="pill ' + k + '" style="--c:var(--s-' + k + ')">' + STATUS[k].th + '</span><small>' + (s.nextDepart && (k === 'between' || k === 'late') ? 'รอบ 2 แผนออก ' + fmtDT(s.nextDepart) : l ? esc(describe(l)) : (s.v.depart ? 'แผนออก ' + fmtDT(s.v.depart) : 'ยังไม่มีรายงาน')) + '</small></span>' +
-      '<span class="vtime">' + (l ? '<span class="num">' + fmtTime(l.serverTime) + ' น.</span><small' + (s.stale ? ' class="warn"' : '') + '>' + ago(s.ageMin) + '</small><small>' + esc(l.lineName) + '</small>' : '<small>—</small>') + '</span>' +
+      '<span class="vt">คันที่ ' + s.v.id + ' ' + esc(s.v.zones) + '</span>' +
+      '<span class="vr"><span class="pill ' + k + '" style="--c:var(--s-' + k + ')">' + STATUS[k].th + '</span></span>' +
+      '<span class="vd">' + detail + '</span>' +
+      '<span class="vp">' + dots(s) + '</span>' +
       '</button>';
   }).join('');
 }
@@ -1297,21 +1361,25 @@ function drawList() {
 /* ---------- feed ---------- */
 function drawFeed() {
   const fv = $('#fVeh').value, fs = $('#fStage').value, fl = $('#fLeg').value;
-  let rows = state.reports.filter(r => (!fv || String(r.vehicle) === fv) && (!fl || r.leg === fl) &&
-    (!fs || (fs === 'INC' ? (r.stage === 'ENROUTE' && INCIDENT_RE.test(r.sub)) : r.stage === fs)));
-  const { k, d } = state.feedSort;
-  const key = { time: r => r.serverTime, veh: r => r.vehicle, who: r => r.lineName || '' }[k];
-  rows = rows.slice().sort((a, b) => (key(a) < key(b) ? -1 : key(a) > key(b) ? 1 : 0) * d);
-  const th = (id, label) => '<th data-sort="' + id + '" class="' + (k === id ? (d > 0 ? 'asc' : 'desc') : '') + '">' + label + '</th>';
-  $('#feed').innerHTML = '<div class="feedwrap"><table><thead><tr>' + th('time', 'เวลา') + th('veh', 'คัน') + '<th>ขา</th><th>สถานะ</th><th>รายละเอียด</th>' + th('who', 'ผู้รายงาน (LINE)') + '<th>พิกัด</th></tr></thead><tbody>' +
-    (rows.length ? rows.slice(0, 400).map(r => {
-      const inc = r.stage === 'ENROUTE' && INCIDENT_RE.test(r.sub);
-      const c = inc ? 'incident' : r.stage === 'ARRIVE' ? 'done' : r.leg === 'back' ? 'returning' : 'going';
-      return '<tr data-id="' + r.vehicle + '"><td class="num">' + fmtDT(r.serverTime) + '</td><td class="num">' + r.vehicle + '</td><td>' + LEG_TH[r.leg] + '</td>' +
-        '<td><span class="pill" style="--c:var(--s-' + c + ')">' + STAGE_TH[r.stage] + (r.sub ? ' · ' + esc(r.sub) : '') + '</span></td>' +
-        '<td>' + esc(r.destName || '') + (r.note ? '<div style="color:var(--muted)">' + esc(r.note) + '</div>' : '') + '</td>' +
-        '<td>' + whoHtml(r) + '</td><td>' + (r.lat !== '' && r.lat != null ? '<a href="' + mapsUrl(r) + '" target="_blank" rel="noopener">เปิดแผนที่</a>' : '–') + '</td></tr>';
-    }).join('') : '<tr><td colspan="7" class="empty">ยังไม่มีรายงานตามตัวกรองนี้</td></tr>') + '</tbody></table></div>';
+  const rows = state.reports.filter(r => (!fv || String(r.vehicle) === fv) && (!fl || r.leg === fl) &&
+    (!fs || (fs === 'INC' ? (r.stage === 'ENROUTE' && INCIDENT_RE.test(r.sub)) : r.stage === fs)))
+    .slice().sort((a, b) => a.serverTime < b.serverTime ? 1 : -1).slice(0, 400);
+  if (!rows.length) { $('#feed').innerHTML = '<div class="empty">ยังไม่มีรายงานตามตัวกรองนี้</div>'; return; }
+  let day = '';
+  $('#feed').innerHTML = rows.map(r => {
+    const inc = r.stage === 'ENROUTE' && INCIDENT_RE.test(r.sub);
+    const c = inc ? 'incident' : r.stage === 'ARRIVE' ? 'done' : r.sub === 'แวะพัก' ? 'paused' : r.sub === 'พักค้างคืน' ? 'overnight' : r.leg === 'back' ? 'returning' : 'going';
+    const d = fmtDate(r.serverTime), head = d !== day ? '<div class="fday">' + d + '</div>' : ''; day = d;
+    const v = VMAP[r.vehicle];
+    const detail = [LEG_TH[r.leg] + (r.destName ? ' · ' + esc(r.destName) : ''), r.note ? '“' + esc(r.note) + '”' : '',
+      esc(r.lineName || '-') + (r.verified ? ' <span class="ok" title="ยืนยันตัวตนผ่าน LINE">✓</span>' : ''),
+      r.lat !== '' && r.lat != null ? '<a href="' + mapsUrl(r) + '" target="_blank" rel="noopener">แผนที่</a>' : ''].filter(Boolean).join(' · ');
+    return head + '<div class="frow" role="button" tabindex="0" data-id="' + r.vehicle + '" style="--c:var(--s-' + c + ')">' +
+      '<span class="ft">' + fmtTime(r.serverTime) + '</span>' +
+      '<span class="fv">คันที่ ' + r.vehicle + (v ? ' ' + esc(v.zones) : '') + '</span>' +
+      '<span class="fs"><span class="pill" style="--c:var(--s-' + c + ')">' + STAGE_TH[r.stage] + (r.sub ? ' · ' + esc(r.sub) : '') + '</span></span>' +
+      '<span class="fd">' + detail + '</span></div>';
+  }).join('');
 }
 function whoHtml(r) {
   const ini = esc((r.lineName || '?').replace(/^(ครู|อ\.|นาย|นาง|นางสาว)/, '').trim().slice(0, 1));
@@ -1331,7 +1399,7 @@ function renderDrawer() {
   const arrT = (leg, code) => { const r = s.cur.find(r => r.leg === leg && (r.stage === 'ARRIVE' || (leg === 'back' && r.stage === 'DEPART')) && r.destCode === code); return r ? fmtTime(r.serverTime) : ''; };
   const chk = (leg, code) => { const t = arrT(leg, code); return '<span class="chk' + (t ? ' y' : '') + '">' + (leg === 'go' ? 'ถึง ' : 'ออก ') + (t || '–') + '</span>'; };
   $('#drawer').innerHTML =
-    '<div class="dhead"><span class="vno" style="--c:var(--s-' + k + ')">' + v.id + '</span><div><h2>คันที่ ' + v.id + ' · ' + esc(v.title) + '</h2><p><span class="pill" style="--c:var(--s-' + k + ')">' + STATUS[k].th + '</span> ' + (s.last ? 'ล่าสุด ' + ago(s.ageMin) : '') + '</p></div><button class="close" type="button" aria-label="ปิด">✕</button></div>' +
+    '<div class="dhead"><span class="vno" style="--c:var(--s-' + k + ')">' + v.id + '</span><div><h2>คันที่ ' + v.id + ' ' + esc(v.zones) + '<br><small style="font-size:.8rem;color:var(--muted);font-weight:500">' + esc(v.title) + '</small>' + '</h2><p><span class="pill" style="--c:var(--s-' + k + ')">' + STATUS[k].th + '</span> ' + (s.last ? 'ล่าสุด ' + ago(s.ageMin) : '') + '</p></div><button class="close" type="button" aria-label="ปิด">✕</button></div>' +
     '<div class="dbody">' +
     '<div class="facts"><div><span>ออกเดินทางขาไป</span><b style="font-family:var(--f-body);font-size:.85rem">' + esc(o.name) + (v.depart ? '<br>แผน ' + fmtDT(v.depart) : '') + '</b></div><div><span>ระยะทาง (ขาไป)</span><b>~' + v.km + ' กม.</b></div><div><span>เวลาโดยประมาณ</span><b>' + v.hours + ' ชม.</b></div></div>' +
     (v.mode ? '<p style="margin:0;font-size:.85rem;color:var(--muted)">' + esc(v.mode) + (v.reachArea ? ' · ถึงพื้นที่ ' + fmtDT(v.reachArea) : '') + '</p>' : '') +
@@ -1399,16 +1467,16 @@ async function load() {
 $('#demoBadge').hidden = !DEMO;
 function fillPlanUi() {
   $('#hdrCount').textContent = VEH.length + ' คัน · ' + VEH.reduce((a, v) => a + v.stops.length, 0) + ' สนามสอบ';
-  $('#fVeh').innerHTML = '<option value="">ทุกคัน</option>' + VEH.map(v => '<option value="' + v.id + '">คันที่ ' + v.id + ' · ' + esc(v.title) + '</option>').join('');
+  $('#fVeh').innerHTML = '<option value="">ทุกคัน</option>' + VEH.map(v => '<option value="' + v.id + '">คันที่ ' + v.id + ' ' + esc(v.zones) + '</option>').join('');
   const lines = [...new Set(VEH.map(v => v.line))];
   $('#line').innerHTML = '<option value="">ทุกสายรถ</option>' + lines.map(l => '<option>' + esc(l) + '</option>').join('');
 }
-$('#summary').addEventListener('click', e => { const b = e.target.closest('.sum'); if (!b) return; state.filter = state.filter === b.dataset.k ? '' : b.dataset.k; if (state.tab !== 'v') setTab('v'); drawSummary(); drawList(); });
+$('#summary').addEventListener('click', e => { const b = e.target.closest('.sum-k'); if (!b) return; state.filter = state.filter === b.dataset.k ? '' : b.dataset.k; if (state.tab !== 'v') setTab('v'); drawSummary(); drawList(); });
 $('#list').addEventListener('click', e => { const b = e.target.closest('.vrow'); if (b) openDrawer(+b.dataset.id); });
 $('#feed').addEventListener('click', e => {
   const h = e.target.closest('th[data-sort]');
   if (h) { const k = h.dataset.sort; state.feedSort = { k, d: state.feedSort.k === k ? -state.feedSort.d : (k === 'time' ? -1 : 1) }; drawFeed(); return; }
-  const tr = e.target.closest('tr[data-id]'); if (tr && !e.target.closest('a')) openDrawer(+tr.dataset.id);
+  const tr = e.target.closest('[data-id]'); if (tr && !e.target.closest('a')) openDrawer(+tr.dataset.id);
 });
 ['#q', '#sort'].forEach(s => $(s).addEventListener('input', drawList));
 $('#line').addEventListener('input', e => { state.line = e.target.value; drawList(); });
@@ -1420,7 +1488,7 @@ function setTab(t) {
   state.tab = t;
   $('#tabV').setAttribute('aria-selected', t === 'v'); $('#tabF').setAttribute('aria-selected', t === 'f'); $('#tabM').setAttribute('aria-selected', t === 'm');
   $('#list').hidden = t !== 'v'; $('#feed').hidden = t !== 'f'; $('#toolsV').hidden = t !== 'v'; $('#toolsF').hidden = t !== 'f';
-  document.body.classList.toggle('tab-m', t === 'm');
+  document.body.classList.toggle('tab-m', t === 'm'); document.body.classList.toggle('tab-f', t === 'f');
   if (t === 'm' && map) setTimeout(() => map.invalidateSize(), 50);
   try { localStorage.setItem('et-tab', t); } catch (e) {}
 }

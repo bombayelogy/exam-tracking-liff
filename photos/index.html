@@ -55,6 +55,10 @@ input[readonly]{background:#f6f7f9;color:var(--muted)}
 @keyframes r{to{transform:rotate(360deg)}}
 .add{aspect-ratio:1;border-radius:10px;border:2px dashed #b8c4d4;background:#f8fafc;color:var(--brand);display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:600;font-size:13px;cursor:pointer;text-align:center}
 .add span{font-size:26px;line-height:1}
+.add.sample{position:relative;padding:0;overflow:hidden;border:2px solid #b8c4d4;background:#e9edf2}
+.add.sample img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.add.sample .ov{position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;background:rgba(15,40,70,.85);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;line-height:1}
+.add.sample .lbl{position:absolute;left:0;right:0;bottom:0;background:rgba(15,40,70,.78);color:#fff;font-size:12px;font-weight:600;padding:5px 6px;line-height:1.3}
 .note{font-size:13px;color:var(--muted);margin-top:8px}
 .msg{border-radius:10px;padding:10px 12px;font-size:14px;margin-bottom:12px}
 .msg.err{background:var(--err-bg);color:var(--err)}
@@ -265,7 +269,9 @@ function stepCard(s) {
   tiles += pend.map(p => `<div class="tile ${p.failed ? 'fail' : 'up'}"><img src="${p.thumb}" alt="">
       ${p.failed ? `<button class="x" aria-label="ยกเลิก" onclick="dropPending('${p.key}')">✕</button><div class="st" onclick="retry('${p.key}')">ส่งไม่สำเร็จ · แตะเพื่อส่งใหม่</div>` : '<div class="spin"></div>'}</div>`).join('');
   const left = S.max - list.length - pend.length;
-  if (left > 0) tiles += `<div class="add" role="button" tabindex="0" onclick="pick(${s.n})"><span>＋</span>${list.length ? 'เพิ่มรูป' : 'ถ่าย / เลือกรูป'}</div>`;
+  // ขั้นที่ยังไม่มีรูป: แสดงรูปตัวอย่าง (samples/stepN.jpg) ในช่องเลย · พอมีรูปแรกหรือกำลังส่ง รูปตัวอย่างจะหายไปเอง
+  if (left > 0 && !done && !pend.length) tiles += `<div class="add sample" role="button" tabindex="0" onclick="pick(${s.n})"><img src="samples/step${s.n}.jpg" alt="ตัวอย่าง" onerror="this.remove()"><span class="ov">＋</span><b class="lbl">ตัวอย่าง · แตะเพื่อถ่าย / เลือกรูป</b></div>`;
+  else if (left > 0) tiles += `<div class="add" role="button" tabindex="0" onclick="pick(${s.n})"><span>＋</span>${list.length ? 'เพิ่มรูป' : 'ถ่าย / เลือกรูป'}</div>`;
   return `<section class="card ${done ? 'done' : ''}" id="c${s.n}">
     <div class="head"><div class="num">${s.n}</div><div class="ttl">${esc(s.title)}</div>
     <span class="badge">${done ? list.length + ' รูป' : 'ยังไม่ส่ง'}</span></div>

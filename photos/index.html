@@ -37,6 +37,7 @@ main{max-width:640px;margin:0 auto;padding:12px 12px 120px}
 label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
 input{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
 input[readonly]{background:#f6f7f9;color:var(--muted)}
+select{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font:inherit;font-weight:600;border:0;border-radius:10px;padding:11px 14px;cursor:pointer;background:var(--brand);color:#fff}
 .btn.ghost{background:var(--brand-2);color:var(--brand)}
@@ -44,6 +45,19 @@ input[readonly]{background:#f6f7f9;color:var(--muted)}
 .btn:disabled{opacity:.45;cursor:default}
 .btn.block{width:100%;margin-top:12px}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.hero{position:relative;margin-top:12px;width:100%;aspect-ratio:4/3;border-radius:12px;overflow:hidden;border:2px solid #b8c4d4;background:#e9edf2;cursor:pointer}
+.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.hero .tag{position:absolute;top:10px;left:10px;background:rgba(15,40,70,.85);color:#fff;font-size:12px;font-weight:600;padding:3px 9px;border-radius:12px}
+.hero .cta{position:absolute;left:0;right:0;bottom:0;background:var(--brand);color:#fff;font-weight:700;font-size:17px;padding:13px;text-align:center}
+.track{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:12px -14px 0;padding:0 14px 4px;overscroll-behavior-x:contain}
+.track::-webkit-scrollbar{display:none}
+.track>.tile,.track>.add{flex:0 0 84%;aspect-ratio:4/3;scroll-snap-align:start;border-radius:12px}
+.track>.tile{border:2px solid #b8c4d4}
+.track>.tile .st{font-size:12px;padding:5px 8px}
+.track>.tile .x{width:34px;height:34px;font-size:18px;top:8px;right:8px}
+.track>.add{font-size:15px}
+.track>.add span{font-size:34px}
+.hint{font-size:12px;color:var(--muted);text-align:center;margin-top:6px}
 .tile{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:#e9edf2;border:1px solid var(--line)}
 .tile img{width:100%;height:100%;object-fit:cover;display:block}
 .tile .x{position:absolute;top:4px;right:4px;width:28px;height:28px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#fff;font-size:16px;line-height:1;cursor:pointer}
@@ -149,6 +163,7 @@ async function loadDistrict() {
   try {
     const j = await api('district');
     S.district = j.district; S.photos = j.photos; S.steps = j.steps; S.max = j.maxPerStep; S.canPdf = j.canPdf;
+    S.venues = j.venues || [];
     S.pending = [];
     render();
   } catch (e) {
@@ -239,20 +254,24 @@ function render() {
   document.getElementById('hName').textContent = d.code + ' ' + d.name;
   document.getElementById('hSub').textContent = [d.venue || 'ยังไม่กรอกสนามสอบ', d.vehicle ? 'คันที่ ' + d.vehicle : ''].filter(Boolean).join(' · ');
   const main = document.getElementById('main');
-  const infoDone = !!(d.venue && d.coordinator);
+  const infoDone = !!d.venue;
+  const venues = S.venues || [];
+  // สนามสอบเลือกจากรายชื่อที่แอดมินนำเข้า (ไม่ให้พิมพ์เอง กันพิมพ์ผิด) · มีสนามเดียวให้เลือกให้อัตโนมัติ
+  const cur = venues.includes(d.venue) ? d.venue : (venues.length === 1 ? venues[0] : '');
+  const venueField = venues.length
+    ? `<label for="fVenue">สนามสอบ</label><select id="fVenue"><option value="">— เลือกสนามสอบ —</option>${venues.map(v => `<option value="${esc(v)}" ${v === cur ? 'selected' : ''}>${esc(v)}</option>`).join('')}</select>`
+    : `<label>สนามสอบ</label><input value="" readonly placeholder="ยังไม่มีรายชื่อสนามสอบของเขตนี้ ติดต่อแอดมิน">`;
   let h = '';
   if (d.submittedAt) h += '<div class="msg ok">ยืนยันส่งครบแล้วเมื่อ ' + esc(th(d.submittedAt)) + ' · ยังเพิ่ม/เปลี่ยนรูปได้</div>';
   h += `<section class="card ${infoDone ? 'done' : ''}" id="c1">
-    <div class="head"><div class="num">1</div><div class="ttl">ข้อมูลเขตและสนามสอบ<small>กรอกครั้งเดียว ไม่ต้องอัปโหลดรูป</small></div>
+    <div class="head"><div class="num">1</div><div class="ttl">ข้อมูลเขตและสนามสอบ<small>เลือกสนามสอบ ครั้งเดียว ไม่ต้องอัปโหลดรูป</small></div>
     <span class="badge">${infoDone ? 'บันทึกแล้ว' : 'ยังไม่กรอก'}</span></div>
     <div class="row2"><div><label>รหัสเขต</label><input value="${esc(d.code)}" readonly></div>
     <div><label>คันที่</label><input value="${esc(d.vehicle || '-')}" readonly></div></div>
     <label>ชื่อเขต</label><input value="${esc(d.name)}" readonly>
-    <label for="fVenue">สนามสอบ</label><input id="fVenue" value="${esc(d.venue)}" placeholder="เช่น โรงเรียนอนุบาลกระบี่">
-    <div class="row2"><div><label for="fCoord">ชื่อผู้ประสานงาน</label><input id="fCoord" value="${esc(d.coordinator)}" autocomplete="name"></div>
-    <div><label for="fPhone">เบอร์โทร</label><input id="fPhone" type="tel" value="${esc(d.phone)}" autocomplete="tel"></div></div>
+    ${venueField}
     <div class="note" id="whoLine">${S.lineName ? 'ส่งในนาม: ' + esc(S.lineName) + ' (ไลน์)' : ''}${d.owners && d.owners.length ? ' · ผู้ดูแลเขต: ' + esc(d.owners.join(', ')) : ''}</div>
-    <button class="btn block" onclick="saveInfo(this)">บันทึกข้อมูล</button></section>`;
+    <button class="btn block" onclick="saveInfo(this)" ${venues.length ? '' : 'disabled'}>บันทึกข้อมูล</button></section>`;
   for (const s of S.steps) h += stepCard(s);
   main.innerHTML = h;
   updateProgress();
@@ -264,18 +283,27 @@ function stepCard(s) {
   const list = stepPhotos(s.n);
   const pend = S.pending.filter(p => p.step === s.n);
   const done = list.length > 0;
-  let tiles = list.map(p => `<div class="tile"><img src="${esc(p.thumb || '')}" alt="" onclick="viewPhoto('${p.id}')">
+  const count = list.length + pend.length;
+  const left = S.max - count;
+  let body = '';
+  if (!count) {
+    // ยังไม่มีรูป: รูปตัวอย่างเต็มความกว้างการ์ด แตะเพื่อถ่าย / เลือกรูป
+    if (left > 0) body = `<div class="hero" role="button" tabindex="0" onclick="pick(${s.n})">
+      <img src="samples/step${s.n}.jpg" alt="รูปตัวอย่างขั้นที่ ${s.n}" onerror="this.remove()">
+      <span class="tag">รูปตัวอย่าง</span><div class="cta">＋ ถ่าย / เลือกรูป</div></div>`;
+  } else {
+    // มีรูปแล้ว: แถวเลื่อนซ้ายขวาทีละรูป ปุ่มเพิ่มรูปอยู่ท้ายแถว
+    let slides = list.map(p => `<div class="tile"><img src="${esc(p.thumb || '')}" alt="" onclick="viewPhoto('${p.id}')">
       <button class="x" aria-label="ลบรูป" onclick="delPhoto('${p.id}')">✕</button><div class="st">${esc(th(p.time))}</div></div>`).join('');
-  tiles += pend.map(p => `<div class="tile ${p.failed ? 'fail' : 'up'}"><img src="${p.thumb}" alt="">
+    slides += pend.map(p => `<div class="tile ${p.failed ? 'fail' : 'up'}"><img src="${p.thumb}" alt="">
       ${p.failed ? `<button class="x" aria-label="ยกเลิก" onclick="dropPending('${p.key}')">✕</button><div class="st" onclick="retry('${p.key}')">ส่งไม่สำเร็จ · แตะเพื่อส่งใหม่</div>` : '<div class="spin"></div>'}</div>`).join('');
-  const left = S.max - list.length - pend.length;
-  // ขั้นที่ยังไม่มีรูป: แสดงรูปตัวอย่าง (samples/stepN.jpg) ในช่องเลย · พอมีรูปแรกหรือกำลังส่ง รูปตัวอย่างจะหายไปเอง
-  if (left > 0 && !done && !pend.length) tiles += `<div class="add sample" role="button" tabindex="0" onclick="pick(${s.n})"><img src="samples/step${s.n}.jpg" alt="ตัวอย่าง" onerror="this.remove()"><span class="ov">＋</span><b class="lbl">ตัวอย่าง · แตะเพื่อถ่าย / เลือกรูป</b></div>`;
-  else if (left > 0) tiles += `<div class="add" role="button" tabindex="0" onclick="pick(${s.n})"><span>＋</span>${list.length ? 'เพิ่มรูป' : 'ถ่าย / เลือกรูป'}</div>`;
+    if (left > 0) slides += `<div class="add" role="button" tabindex="0" onclick="pick(${s.n})"><span>＋</span>${list.length ? 'เพิ่มรูป' : 'ถ่าย / เลือกรูป'}</div>`;
+    body = `<div class="track">${slides}</div>` + (count > 1 ? '<div class="hint">← เลื่อนซ้าย-ขวาเพื่อดูรูป →</div>' : '');
+  }
   return `<section class="card ${done ? 'done' : ''}" id="c${s.n}">
     <div class="head"><div class="num">${s.n}</div><div class="ttl">${esc(s.title)}</div>
     <span class="badge">${done ? list.length + ' รูป' : 'ยังไม่ส่ง'}</span></div>
-    <div class="grid">${tiles}</div></section>`;
+    ${body}</section>`;
 }
 
 function rerenderStep(n) {
@@ -301,14 +329,12 @@ function toast(m, ms) {
 
 /* ---------- ขั้นที่ 1 ---------- */
 async function saveInfo(btn) {
-  const venue = document.getElementById('fVenue').value.trim();
-  const coordinator = document.getElementById('fCoord').value.trim();
-  const phone = document.getElementById('fPhone').value.trim();
-  if (!venue || !coordinator) return toast('กรุณากรอกสนามสอบและชื่อผู้ประสานงาน');
+  const venue = document.getElementById('fVenue').value;
+  if (!venue) return toast('กรุณาเลือกสนามสอบ');
   if (!tokenFresh()) return;
   btn.disabled = true; btn.textContent = 'กำลังบันทึก…';
   try {
-    const j = await api('info', { venue, coordinator, phone, name: S.lineName || coordinator, idToken: S.idToken }, true);
+    const j = await api('info', { venue, name: S.lineName || '', idToken: S.idToken }, true);
     S.district = j.district; render(); toast('บันทึกข้อมูลแล้ว');
   } catch (e) { toast(e.message, 4000); btn.disabled = false; btn.textContent = 'บันทึกข้อมูล'; }
 }
@@ -380,7 +406,7 @@ async function pump() {
       try {
         const j = await api('upload', {
           step: p.step, image: p.image, thumb: p.thumb, clientTime: p.clientTime,
-          name: S.lineName || (S.district.coordinator || ''), idToken: S.idToken
+          name: S.lineName || '', idToken: S.idToken
         }, true);
         S.pending = S.pending.filter(x => x !== p);
         S.photos.push(Object.assign(j.photo, { thumb: p.thumb }));
@@ -454,13 +480,13 @@ function demoApi(action, p) {
     { n: 2, title: 'การรับแบบทดสอบและกล่องกระดาษคำตอบ' }, { n: 3, title: 'ดำเนินการส่งแบบทดสอบฯ วันที่ 14 พ.ย.' },
     { n: 4, title: 'รับมอบกล่องกระดาษคำตอบ วันที่ 14 พ.ย.' }, { n: 5, title: 'รับมอบกล่องแบบทดสอบ วันที่ 14–15 พ.ย.' },
     { n: 6, title: 'ห้องมั่นคง' }, { n: 7, title: 'ส่งมอบศูนย์สอบธรรมศาสตร์' }];
-  S._demo = S._demo || { district: { code: S.d, name: 'สพป. กระบี่', venue: '', vehicle: 10, region: 'ใต้', coordinator: '', phone: '' } };
+  S._demo = S._demo || { district: { code: S.d, name: 'สพป. กระบี่', venue: '', vehicle: 10, region: 'ใต้' }, venues: ['โรงเรียนอนุบาลกระบี่', 'โรงเรียนกระบี่พิทยาคม'] };
   const wait = ms => new Promise(r => setTimeout(r, ms));
   return wait(action === 'upload' ? 700 : 250).then(() => {
     switch (action) {
       case 'list': return { me: '', districts: [['001','สพป. กระบี่','ใต้'],['004','สพป. กาญจนบุรี เขต 2','ตะวันตก'],['005','สพป. กาญจนบุรี เขต 3','ตะวันตก'],['066','สพป. นราธิวาส เขต 1','ใต้ (ไกลมาก)'],['246-2','สศศ. (ภาคเหนือ)','เหนือตอนบน']].map((x, i) => ({ code: x[0], name: x[1], region: x[2], venue: '', taken: i === 3 ? 1 : 0, mine: false })) };
-      case 'district': S._demo.district.code = S.d; S._demo.district.name = (S.list || []).concat([{ code: S.d, name: 'สพป. กระบี่' }]).find(x => x.code === S.d).name; return { district: S._demo.district, photos: [], steps, maxPerStep: 3, canPdf: true };
-      case 'info': Object.assign(S._demo.district, { venue: p.venue, coordinator: p.coordinator, phone: p.phone }); return { district: S._demo.district };
+      case 'district': S._demo.district.code = S.d; S._demo.district.name = (S.list || []).concat([{ code: S.d, name: 'สพป. กระบี่' }]).find(x => x.code === S.d).name; return { district: S._demo.district, venues: S._demo.venues, photos: [], steps, maxPerStep: 3, canPdf: true };
+      case 'info': if (!S._demo.venues.includes(p.venue)) throw new Error('กรุณาเลือกสนามสอบจากรายการที่กำหนด'); Object.assign(S._demo.district, { venue: p.venue }); return { district: S._demo.district };
       case 'upload': return { photo: { id: Math.random().toString(36).slice(2, 10), step: p.step, time: new Date().toISOString(), by: p.name } };
       case 'image': return { image: (S.photos.find(x => x.id === p.id) || {}).thumb };
       case 'pdf': throw new Error('โหมดตัวอย่างสร้าง PDF ไม่ได้ ต้องเชื่อม Apps Script ก่อน');

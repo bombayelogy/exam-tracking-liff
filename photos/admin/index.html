@@ -208,6 +208,7 @@ function shell() {
       <button class="btn ghost" onclick="load()">รีเฟรช</button>
       <button class="btn ghost" onclick="editSteps()">แก้ข้อความหัวข้อ / PDF</button>
       <button class="btn ghost" style="color:var(--err)" onclick="resetAll()">ล้างข้อมูลทั้งหมด</button>
+      <button class="btn ghost" onclick="importVenues()">นำเข้ารายชื่อสนามสอบ (CSV)</button>
       <button class="btn ghost" onclick="exportLinks()">ลิงก์ประจำเขต (CSV)</button>
     </div>
     <div class="bulk"><span class="n" id="selN"></span>
@@ -227,7 +228,7 @@ function filtered() {
     if (S.region && d.region !== S.region) return false;
     if (S.status === 'sub') { if (!d.submittedAt) return false; }
     else if (S.status && statusOf(d) !== S.status) return false;
-    if (q && ![d.code, d.name, d.venue, d.coordinator, d.place].join(' ').toLowerCase().includes(q)) return false;
+    if (q && ![d.code, d.name, d.venue, d.place].join(' ').toLowerCase().includes(q)) return false;
     return true;
   });
   const by = { code: (a, b) => a.code.localeCompare(b.code), status: (a, b) => nDone(a) - nDone(b) || a.code.localeCompare(b.code),
@@ -249,7 +250,7 @@ function renderList() {
     const st = statusOf(d), n = nDone(d);
     return `<tr class="r" onclick="openDistrict('${esc(d.code)}')">
       <td class="c-chk" onclick="event.stopPropagation()"><input type="checkbox" class="chk" ${S.sel.has(d.code) ? 'checked' : ''} onchange="toggleSel('${esc(d.code)}',this.checked)" aria-label="เลือก ${esc(d.code)}"></td>
-      <td class="c-name"><span class="code">${esc(d.code)}</span> ${esc(d.name)}<div class="sub">${esc(d.venue || 'ยังไม่กรอกสนามสอบ')}${d.coordinator ? ' · ' + esc(d.coordinator) : (d.owners && d.owners.length ? ' · ' + esc(d.owners.join(', ')) : '')}${d.vehicle ? ' · คัน ' + esc(d.vehicle) : ''}</div></td>
+      <td class="c-name"><span class="code">${esc(d.code)}</span> ${esc(d.name)}<div class="sub">${esc(d.venue || 'ยังไม่เลือกสนามสอบ')}${d.owners && d.owners.length ? ' · ' + esc(d.owners.join(', ')) : ''}${d.vehicle ? ' · คัน ' + esc(d.vehicle) : ''}</div></td>
       <td class="c-dots"><div class="dots">${S.steps.map(s => `<span class="dot ${(d.counts[s.n] || 0) ? 'y' : ''}" title="ขั้น ${s.n}: ${esc(s.title)} (${d.counts[s.n] || 0} รูป)">${s.n}</span>`).join('')}</div></td>
       <td class="c-st"><span class="pill ${st}">${st === 'ok' ? 'ครบ' : n + '/' + S.steps.length}</span>${d.submittedAt ? ' <span class="pill ok" title="ผู้ประสานงานยืนยันส่งครบ">ยืนยัน</span>' : ''}</td>
       <td class="c-last"><span class="sub">${esc(th(d.lastPhoto)) || '-'}</span></td>
@@ -289,7 +290,7 @@ function drawerHtml(d, photos) {
     <button class="x" onclick="closeDrawer()" aria-label="ปิด">✕</button></div>
     <div class="sec"><h3>1. ข้อมูลเขต</h3><div class="kv">
       <span>สนามสอบ</span><div>${esc(d.venue || '-')}</div>
-      <span>ผู้ประสานงาน</span><div>${esc(d.coordinator || '-')} ${d.phone ? `· <a href="tel:${esc(d.phone)}">${esc(d.phone)}</a>` : ''}</div>
+      <span>รายชื่อให้เลือก</span><div>${d.venues && d.venues.length ? esc(d.venues.join(' · ')) : '<span style="color:var(--err)">ยังไม่มี · นำเข้า CSV ก่อน</span>'}</div>
       <span>กรอกโดย</span><div>${esc(d.infoBy || '-')} ${d.infoTime ? '· ' + esc(th(d.infoTime)) : ''}</div>
       <span>ยืนยันส่งครบ</span><div>${d.submittedAt ? esc(th(d.submittedAt)) : '-'}</div>
       <span>ผู้ดูแล (ไลน์)</span><div>${d.owners && d.owners.length ? esc(d.owners.join(', ')) + ` <button class="btn ghost sm" onclick="resetOwners('${esc(d.code)}')">ล้าง</button>` : '-'}</div></div>
@@ -389,7 +390,9 @@ async function exportPdf(mode, one) {
 function formBox(title, note, fields, onSave, saveLabel) {
   const el = document.createElement('div'); el.className = 'form';
   el.innerHTML = `<div class="box"><h3>${esc(title)}</h3><div class="empty">${note}</div>
-    ${fields.map((f, i) => `${f.group ? `<div class="grp">${esc(f.group)}</div>` : ''}<label for="ff${i}">${esc(f.label)}</label>${f.type === 'textarea' ? `<textarea id="ff${i}" rows="${f.rows || 3}">${esc(f.value)}</textarea>` : `<input id="ff${i}" type="${f.type || 'text'}" value="${esc(f.value)}">`}`).join('')}
+    ${fields.map((f, i) => `${f.group ? `<div class="grp">${esc(f.group)}</div>` : ''}<label for="ff${i}">${esc(f.label)}</label>${
+      f.options ? `<select id="ff${i}">${f.options.map(o => `<option value="${esc(o)}" ${o === f.value ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`
+      : f.type === 'textarea' ? `<textarea id="ff${i}" rows="${f.rows || 3}">${esc(f.value)}</textarea>` : `<input id="ff${i}" type="${f.type || 'text'}" value="${esc(f.value)}">`}`).join('')}
     <div class="msg err" id="ffErr" hidden></div>
     <div class="row"><button class="btn ghost" id="ffCancel">ยกเลิก</button><button class="btn" id="ffSave">${esc(saveLabel || 'บันทึก')}</button></div></div>`;
   document.body.appendChild(el);
@@ -417,9 +420,54 @@ function editSteps() {
 }
 function editInfo(code) {
   const d = S.districts.find(x => x.code === code);
-  formBox('แก้ข้อมูลขั้นที่ 1 · ' + code, 'สนามสอบแสดงใน PDF · ผู้ประสานงานและเบอร์โทรเก็บไว้ในระบบ ไม่แสดงใน PDF',
-    [{ label: 'สนามสอบ', value: d.venue || '' }, { label: 'ชื่อผู้ประสานงาน', value: d.coordinator || '' }, { label: 'เบอร์โทร', value: d.phone || '', type: 'tel' }],
-    async vals => { await api('info', { d: code, venue: vals[0], coordinator: vals[1], phone: vals[2] }, true); await load(true); openDistrict(code); });
+  const opts = d.venues || [];
+  formBox('เลือกสนามสอบ · ' + code, opts.length ? 'เลือกจากรายชื่อที่นำเข้า (ตรงกับหน้าส่งรูปของเขต) · สนามสอบแสดงใน PDF'
+    : 'เขตนี้ยังไม่มีรายชื่อสนามสอบ ให้นำเข้า CSV ก่อน',
+    [{ label: 'สนามสอบ', options: opts, value: d.venue || '' }],
+    async vals => { await api('info', { d: code, venue: vals[0] }, true); await load(true); openDistrict(code); });
+}
+
+/* ---------- นำเข้ารายชื่อสนามสอบ (CSV: รหัสเขต,สนามสอบ) ---------- */
+async function readCsvText(f) {
+  const buf = await f.arrayBuffer();
+  let txt;
+  try { txt = new TextDecoder('utf-8', { fatal: true }).decode(buf); }   // UTF-8 (แนะนำ)
+  catch (e) { txt = new TextDecoder('windows-874').decode(buf); }         // Excel ภาษาไทยแบบเก่า (TIS-620/874)
+  return txt.replace(/^﻿/, '');
+}
+function parseVenueCsv(text) {
+  const out = [];
+  text.split(/\r?\n/).forEach(line => {
+    if (!line.trim()) return;
+    const cells = []; let cur = '', q = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (q) { if (ch === '"' && line[i + 1] === '"') { cur += '"'; i++; } else if (ch === '"') q = false; else cur += ch; }
+      else if (ch === '"') q = true;
+      else if (ch === ',') { cells.push(cur); cur = ''; }
+      else cur += ch;
+    }
+    cells.push(cur);
+    const code = cells[0].trim(), venue = (cells[1] || '').trim();
+    if (/^รหัส/.test(code)) return; // บรรทัดหัวตาราง
+    out.push([code, venue]);
+  });
+  return out;
+}
+function importVenues() {
+  const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.csv,text/csv';
+  inp.onchange = async () => {
+    const f = inp.files[0]; if (!f) return;
+    try {
+      const rows = parseVenueCsv(await readCsvText(f)).filter(r => r[0] || r[1]);
+      if (!rows.length) throw new Error('ไม่พบข้อมูลในไฟล์');
+      if (!confirm('นำเข้า ' + rows.length + ' รายการสนามสอบจากไฟล์ ' + f.name + '\n\nรายการเดิมทั้งหมดจะถูกแทนที่ · เขตที่ไม่อยู่ในรายชื่อเขตจะทำให้นำเข้าไม่สำเร็จ\n\nดำเนินการต่อหรือไม่?')) return;
+      const j = await api('admin_venues', { rows }, true);
+      alert('นำเข้าแล้ว ' + j.count + ' สนาม ใน ' + j.districts + ' เขต');
+      await load(true);
+    } catch (e) { alert(e.message); }
+  };
+  inp.click();
 }
 
 /* ---------- แอดมินเพิ่มรูป (ย่อในเครื่องเหมือนหน้าส่งรูป) ---------- */
@@ -523,7 +571,7 @@ function demoApi(action, p) {
     S._demo = names.map((n, i) => {
       const counts = {}; const k = [6, 3, 0, 6, 1, 0, 4, 2][i]; for (let s = 2; s < 2 + k; s++) counts[s] = 1 + (s % 3 === 0 ? 1 : 0);
       return { code: String(i + 1).padStart(3, '0'), name: n, region: regions[i], vehicle: 10 + i, venue: k ? 'โรงเรียนตัวอย่าง ' + (i + 1) : '',
-        coordinator: k ? 'ผู้ประสานงาน ' + (i + 1) : '', phone: '', counts, pdfAllowed: i === 0, submittedAt: k === 6 && i === 0 ? new Date().toISOString() : '',
+        venues: ['โรงเรียนตัวอย่าง ' + (i + 1), 'โรงเรียนตัวอย่างสำรอง'], counts, pdfAllowed: i === 0, submittedAt: k === 6 && i === 0 ? new Date().toISOString() : '',
         lastPhoto: k ? new Date(Date.now() - i * 3.6e6).toISOString() : '' };
     });
   }
@@ -532,10 +580,11 @@ function demoApi(action, p) {
       case 'admin_summary': return { districts: S._demo, steps, exportOpen: false };
       case 'admin_photos': {
         const d = S._demo.find(x => x.code === p.d); const photos = [];
-        Object.entries(d.counts).forEach(([s, n]) => { for (let i = 0; i < n; i++) photos.push({ id: s + '-' + i, step: +s, time: d.lastPhoto, by: d.coordinator, thumb: demoThumb(s) }); });
+        Object.entries(d.counts).forEach(([s, n]) => { for (let i = 0; i < n; i++) photos.push({ id: s + '-' + i, step: +s, time: d.lastPhoto, by: '', thumb: demoThumb(s) }); });
         return { district: d, photos };
       }
       case 'admin_set': return { exportOpen: p.exportOpen === '1' };
+      case 'info': { const d = S._demo.find(x => x.code === p.d); if (!d.venues.includes(p.venue)) throw new Error('กรุณาเลือกสนามสอบจากรายการที่กำหนด'); d.venue = p.venue; return { district: d }; }
       case 'image': return { image: demoThumb(String(p.id).split('-')[0]) };
       default: throw new Error('โหมดตัวอย่างทำรายการนี้ไม่ได้ ต้องเชื่อม Apps Script ก่อน');
     }

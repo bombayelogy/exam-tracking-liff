@@ -895,6 +895,8 @@ h3{font-family:var(--f-display);font-size:.95rem;margin:0 0 8px;font-weight:600}
   .stops li .chk:last-child{grid-column:3}
   .stops li .chk:nth-last-child(2){grid-row:1;grid-column:3}
 }
+.outlist{color:var(--s-stale);font-weight:600;white-space:nowrap}
+.crew .tel{font-family:var(--f-mono);font-weight:500}
 .err{background:color-mix(in srgb,var(--s-incident) 12%,var(--panel));border:1px solid var(--s-incident);border-radius:8px;padding:10px 12px;margin-top:12px}
 </style>
 
@@ -1297,7 +1299,13 @@ function demoReports(now) {
 const OUTLINE = {"type":"FeatureCollection","features":[{"type":"Feature","id":"THA","properties":{"name":"Thailand"},"geometry":{"type":"Polygon","coordinates":[[[102.584932,12.186595],[101.687158,12.64574],[100.83181,12.627085],[100.978467,13.412722],[100.097797,13.406856],[100.018733,12.307001],[99.478921,10.846367],[99.153772,9.963061],[99.222399,9.239255],[99.873832,9.207862],[100.279647,8.295153],[100.459274,7.429573],[101.017328,6.856869],[101.623079,6.740622],[102.141187,6.221636],[101.814282,5.810808],[101.154219,5.691384],[101.075516,6.204867],[100.259596,6.642825],[100.085757,6.464489],[99.690691,6.848213],[99.519642,7.343454],[98.988253,7.907993],[98.503786,8.382305],[98.339662,7.794512],[98.150009,8.350007],[98.25915,8.973923],[98.553551,9.93296],[99.038121,10.960546],[99.587286,11.892763],[99.196354,12.804748],[99.212012,13.269294],[99.097755,13.827503],[98.430819,14.622028],[98.192074,15.123703],[98.537376,15.308497],[98.903348,16.177824],[98.493761,16.837836],[97.859123,17.567946],[97.375896,18.445438],[97.797783,18.62708],[98.253724,19.708203],[98.959676,19.752981],[99.543309,20.186598],[100.115988,20.41785],[100.548881,20.109238],[100.606294,19.508344],[101.282015,19.462585],[101.035931,18.408928],[101.059548,17.512497],[102.113592,18.109102],[102.413005,17.932782],[102.998706,17.961695],[103.200192,18.309632],[103.956477,18.240954],[104.716947,17.428859],[104.779321,16.441865],[105.589039,15.570316],[105.544338,14.723934],[105.218777,14.273212],[104.281418,14.416743],[102.988422,14.225721],[102.348099,13.394247],[102.584932,12.186595]]]}}]};
 
 const $ = s => document.querySelector(s);
-const state = { reports: [], status: [], filter: '', tab: 'v', sel: null, feedSort: { k: 'time', d: -1 } };
+const state = { reports: [], status: [], staff: [], filter: '', tab: 'v', sel: null, feedSort: { k: 'time', d: -1 } };
+/* ผู้รายงาน: ชื่อกรรมการที่เลือก (ถ้ามี) แทนชื่อไลน์ · เตือนเมื่อไม่อยู่ในรายชื่อของคัน */
+const reporter = r => esc(r.staffName || r.lineName || '-') + (r.staffOk === false || r.staffOk === 'FALSE' ? ' <span class="outlist" title="ไม่อยู่ในรายชื่อกรรมการของคันนี้ · ชื่อไลน์: ' + esc(r.lineName || '-') + '">⚠ นอกรายชื่อ</span>' : '');
+async function loadStaff() {
+  if (DEMO || state.needKey) return;
+  try { const j = await getJson(CFG.API_URL + '?action=staff&key=' + encodeURIComponent(CFG.VIEW_KEY || ''), 30000); if (j.ok) { state.staff = j.staff || []; if (state.sel && !$('#drawer').hidden) renderDrawer(); } } catch (e) {}
+}
 const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const effKey = s => s.stale ? 'stale' : s.key;
 
@@ -1379,7 +1387,7 @@ function drawList() {
     const k = effKey(s), l = s.last;
     // บรรทัด 2: รายงานล่าสุด · เมื่อไร · ใคร (ยังไม่มีรายงาน → แผนออก)
     const detail = s.nextDepart && (k === 'between' || k === 'late') ? 'รอบ 2 แผนออก ' + fmtDT(s.nextDepart)
-      : l ? esc(describe(l)) + ' · <span class="num">' + fmtTime(l.serverTime) + '</span>' + (s.stale ? ' <span class="warn">(' + ago(s.ageMin) + ')</span>' : ' · ' + ago(s.ageMin)) + ' · ' + esc(l.lineName || '')
+      : l ? esc(describe(l)) + ' · <span class="num">' + fmtTime(l.serverTime) + '</span>' + (s.stale ? ' <span class="warn">(' + ago(s.ageMin) + ')</span>' : ' · ' + ago(s.ageMin)) + ' · ' + reporter(l)
       : 'แผนออก ' + (s.v.depart ? fmtDT(s.v.depart) : '–') + ' จาก ' + s.v.origin;
     return '<button type="button" class="vrow' + (state.sel === s.v.id ? ' sel' : '') + (ALERTS.includes(k) ? ' hot' : '') + '" data-id="' + s.v.id + '" style="--c:var(--s-' + k + ')">' +
       '<span class="vno">' + s.v.id + '</span>' +
@@ -1405,7 +1413,7 @@ function drawFeed() {
     const d = fmtDate(r.serverTime), head = d !== day ? '<div class="fday">' + d + '</div>' : ''; day = d;
     const v = VMAP[r.vehicle];
     const detail = [LEG_TH[r.leg] + (r.destName ? ' · ' + esc(r.destName) : ''), r.note ? '“' + esc(r.note) + '”' : '',
-      esc(r.lineName || '-') + (r.verified ? ' <span class="ok" title="ยืนยันตัวตนผ่าน LINE">✓</span>' : ''),
+      reporter(r) + (r.verified ? ' <span class="ok" title="ยืนยันตัวตนผ่าน LINE">✓</span>' : ''),
       r.lat !== '' && r.lat != null ? '<a href="' + mapsUrl(r) + '" target="_blank" rel="noopener">แผนที่</a>' : ''].filter(Boolean).join(' · ');
     return head + '<div class="frow" role="button" tabindex="0" data-id="' + r.vehicle + '" style="--c:var(--s-' + c + ')">' +
       '<span class="ft">' + fmtTime(r.serverTime) + '</span>' +
@@ -1416,13 +1424,20 @@ function drawFeed() {
 }
 function whoHtml(r) {
   const ini = esc((r.lineName || '?').replace(/^(ครู|อ\.|นาย|นาง|นางสาว)/, '').trim().slice(0, 1));
-  return '<span class="who"><span class="ava">' + ini + '</span><span>' + esc(r.lineName || '-') + (r.verified ? ' <span class="ok" title="ยืนยันตัวตนผ่าน LINE">✓</span>' : '') + '</span></span>';
+  return '<span class="who"><span class="ava">' + ini + '</span><span>' + reporter(r) + (r.staffName && r.lineName ? ' <small style="color:var(--muted)">(' + esc(r.lineName) + ')</small>' : '') + (r.verified ? ' <span class="ok" title="ยืนยันตัวตนผ่าน LINE">✓</span>' : '') + '</span></span>';
 }
 
 /* ---------- drawer ---------- */
 function openDrawer(id) { state.sel = id; renderDrawer(); $('#drawer').hidden = false; $('#scrim').hidden = false; drawList(); drawMap(); $('#drawer .close').focus(); }
 function closeDrawer() { state.sel = null; $('#drawer').hidden = true; $('#scrim').hidden = true; drawList(); drawMap(); map && map.setView([13.4, 100.9], 5.5); }
 function crew(v) {
+  const s = state.staff.filter(x => x.cars.indexOf(v.id) >= 0);
+  if (s.length) return '<div><h3>กรรมการประจำคัน</h3><div class="crew">' + s.map(x => '<div><span>' + esc(x.venue || '') + (x.venueNo ? ' · สนาม ' + esc(x.venueNo) : '') + '</span><b>' + esc(x.name) + '</b>' +
+    (x.unit ? '<br><small style="color:var(--muted)">' + esc(x.unit) + '</small>' : '') + '<br>' +
+    (x.phone ? '<a class="tel" href="tel:' + esc(x.phone.replace(/[^0-9+]/g, '')) + '">📞 ' + esc(x.phone) + '</a>' : '<small style="color:var(--muted)">ไม่มีเบอร์โทร</small>') + '</div>').join('') + '</div></div>';
+  return crewOld(v);
+}
+function crewOld(v) {
   const it = [['ทะเบียนรถ', v.plate], ['ผู้ควบคุมรถ', v.driver, v.phone], ['พนักงานขับรถ', v.chauffeur, v.chauffeurPhone]].filter(x => x[1]);
   return it.length ? '<div class="crew">' + it.map(x => '<div><span>' + x[0] + '</span>' + esc(x[1]) + (x[2] ? '<br><a href="tel:' + esc(x[2].replace(/[^0-9+]/g, '')) + '" class="num">' + esc(x[2]) + '</a>' : '') + '</div>').join('') + '</div>' : '';
 }
@@ -1460,7 +1475,7 @@ function askKey(wrong) {
     e.preventDefault();
     const k = $('#keyIn').value.trim(); if (!k) return;
     CFG.VIEW_KEY = k; try { localStorage.setItem('et-key', k); } catch (er) {}
-    state.needKey = false; $('#errBox').hidden = true; state.lastFull = 0; load(); loadPlan().then(x => { if (x === 'sheet') fillPlanUi(); });
+    state.needKey = false; $('#errBox').hidden = true; state.lastFull = 0; load(); loadStaff(); loadPlan().then(x => { if (x === 'sheet') fillPlanUi(); });
   };
   $('#keyIn').focus();
 }
@@ -1532,7 +1547,8 @@ try { const s = localStorage.getItem('et-sort'); if (s) $('#sort').value = s; } 
 $('#sort').addEventListener('change', () => { try { localStorage.setItem('et-sort', $('#sort').value); } catch (e) {} });
 
 // แสดงผลทันทีด้วยแผนที่ฝังมา แล้วค่อยอัปเดตแผนจาก Google Sheet ตามหลัง
-fillPlanUi(); initMap(); load();
+fillPlanUi(); initMap(); load(); loadStaff();
+setInterval(loadStaff, 10 * 60 * 1000);
 loadPlan().then(s => { if (s === 'sheet') { fillPlanUi(); load(); } });
 setInterval(async () => { if (await loadPlan() === 'sheet') { fillPlanUi(); load(); } }, 10 * 60 * 1000);
 setInterval(load, CFG.REFRESH_SEC * 1000);

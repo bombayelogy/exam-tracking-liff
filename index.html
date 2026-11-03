@@ -9,954 +9,183 @@
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
-<title>ติดตามรถข้อสอบ ว.14</title>
+<title>รายงานรถข้อสอบ ว.14</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anuphan:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
-<style>/* required styles */
-
-.leaflet-pane,
-.leaflet-tile,
-.leaflet-marker-icon,
-.leaflet-marker-shadow,
-.leaflet-tile-container,
-.leaflet-pane > svg,
-.leaflet-pane > canvas,
-.leaflet-zoom-box,
-.leaflet-image-layer,
-.leaflet-layer {
-	position: absolute;
-	left: 0;
-	top: 0;
-	}
-.leaflet-container {
-	overflow: hidden;
-	}
-.leaflet-tile,
-.leaflet-marker-icon,
-.leaflet-marker-shadow {
-	-webkit-user-select: none;
-	   -moz-user-select: none;
-	        user-select: none;
-	  -webkit-user-drag: none;
-	}
-/* Prevents IE11 from highlighting tiles in blue */
-.leaflet-tile::selection {
-	background: transparent;
-}
-/* Safari renders non-retina tile on retina better with this, but Chrome is worse */
-.leaflet-safari .leaflet-tile {
-	image-rendering: -webkit-optimize-contrast;
-	}
-/* hack that prevents hw layers "stretching" when loading new tiles */
-.leaflet-safari .leaflet-tile-container {
-	width: 1600px;
-	height: 1600px;
-	-webkit-transform-origin: 0 0;
-	}
-.leaflet-marker-icon,
-.leaflet-marker-shadow {
-	display: block;
-	}
-/* .leaflet-container svg: reset svg max-width decleration shipped in Joomla! (joomla.org) 3.x */
-/* .leaflet-container img: map is broken in FF if you have max-width: 100% on tiles */
-.leaflet-container .leaflet-overlay-pane svg {
-	max-width: none !important;
-	max-height: none !important;
-	}
-.leaflet-container .leaflet-marker-pane img,
-.leaflet-container .leaflet-shadow-pane img,
-.leaflet-container .leaflet-tile-pane img,
-.leaflet-container img.leaflet-image-layer,
-.leaflet-container .leaflet-tile {
-	max-width: none !important;
-	max-height: none !important;
-	width: auto;
-	padding: 0;
-	}
-
-.leaflet-container img.leaflet-tile {
-	/* See: https://bugs.chromium.org/p/chromium/issues/detail?id=600120 */
-	mix-blend-mode: plus-lighter;
-}
-
-.leaflet-container.leaflet-touch-zoom {
-	-ms-touch-action: pan-x pan-y;
-	touch-action: pan-x pan-y;
-	}
-.leaflet-container.leaflet-touch-drag {
-	-ms-touch-action: pinch-zoom;
-	/* Fallback for FF which doesn't support pinch-zoom */
-	touch-action: none;
-	touch-action: pinch-zoom;
-}
-.leaflet-container.leaflet-touch-drag.leaflet-touch-zoom {
-	-ms-touch-action: none;
-	touch-action: none;
-}
-.leaflet-container {
-	-webkit-tap-highlight-color: transparent;
-}
-.leaflet-container a {
-	-webkit-tap-highlight-color: rgba(51, 181, 229, 0.4);
-}
-.leaflet-tile {
-	filter: inherit;
-	visibility: hidden;
-	}
-.leaflet-tile-loaded {
-	visibility: inherit;
-	}
-.leaflet-zoom-box {
-	width: 0;
-	height: 0;
-	-moz-box-sizing: border-box;
-	     box-sizing: border-box;
-	z-index: 800;
-	}
-/* workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=888319 */
-.leaflet-overlay-pane svg {
-	-moz-user-select: none;
-	}
-
-.leaflet-pane         { z-index: 400; }
-
-.leaflet-tile-pane    { z-index: 200; }
-.leaflet-overlay-pane { z-index: 400; }
-.leaflet-shadow-pane  { z-index: 500; }
-.leaflet-marker-pane  { z-index: 600; }
-.leaflet-tooltip-pane   { z-index: 650; }
-.leaflet-popup-pane   { z-index: 700; }
-
-.leaflet-map-pane canvas { z-index: 100; }
-.leaflet-map-pane svg    { z-index: 200; }
-
-.leaflet-vml-shape {
-	width: 1px;
-	height: 1px;
-	}
-.lvml {
-	behavior: url(#default#VML);
-	display: inline-block;
-	position: absolute;
-	}
-
-
-/* control positioning */
-
-.leaflet-control {
-	position: relative;
-	z-index: 800;
-	pointer-events: visiblePainted; /* IE 9-10 doesn't have auto */
-	pointer-events: auto;
-	}
-.leaflet-top,
-.leaflet-bottom {
-	position: absolute;
-	z-index: 1000;
-	pointer-events: none;
-	}
-.leaflet-top {
-	top: 0;
-	}
-.leaflet-right {
-	right: 0;
-	}
-.leaflet-bottom {
-	bottom: 0;
-	}
-.leaflet-left {
-	left: 0;
-	}
-.leaflet-control {
-	float: left;
-	clear: both;
-	}
-.leaflet-right .leaflet-control {
-	float: right;
-	}
-.leaflet-top .leaflet-control {
-	margin-top: 10px;
-	}
-.leaflet-bottom .leaflet-control {
-	margin-bottom: 10px;
-	}
-.leaflet-left .leaflet-control {
-	margin-left: 10px;
-	}
-.leaflet-right .leaflet-control {
-	margin-right: 10px;
-	}
-
-
-/* zoom and fade animations */
-
-.leaflet-fade-anim .leaflet-popup {
-	opacity: 0;
-	-webkit-transition: opacity 0.2s linear;
-	   -moz-transition: opacity 0.2s linear;
-	        transition: opacity 0.2s linear;
-	}
-.leaflet-fade-anim .leaflet-map-pane .leaflet-popup {
-	opacity: 1;
-	}
-.leaflet-zoom-animated {
-	-webkit-transform-origin: 0 0;
-	    -ms-transform-origin: 0 0;
-	        transform-origin: 0 0;
-	}
-svg.leaflet-zoom-animated {
-	will-change: transform;
-}
-
-.leaflet-zoom-anim .leaflet-zoom-animated {
-	-webkit-transition: -webkit-transform 0.25s cubic-bezier(0,0,0.25,1);
-	   -moz-transition:    -moz-transform 0.25s cubic-bezier(0,0,0.25,1);
-	        transition:         transform 0.25s cubic-bezier(0,0,0.25,1);
-	}
-.leaflet-zoom-anim .leaflet-tile,
-.leaflet-pan-anim .leaflet-tile {
-	-webkit-transition: none;
-	   -moz-transition: none;
-	        transition: none;
-	}
-
-.leaflet-zoom-anim .leaflet-zoom-hide {
-	visibility: hidden;
-	}
-
-
-/* cursors */
-
-.leaflet-interactive {
-	cursor: pointer;
-	}
-.leaflet-grab {
-	cursor: -webkit-grab;
-	cursor:    -moz-grab;
-	cursor:         grab;
-	}
-.leaflet-crosshair,
-.leaflet-crosshair .leaflet-interactive {
-	cursor: crosshair;
-	}
-.leaflet-popup-pane,
-.leaflet-control {
-	cursor: auto;
-	}
-.leaflet-dragging .leaflet-grab,
-.leaflet-dragging .leaflet-grab .leaflet-interactive,
-.leaflet-dragging .leaflet-marker-draggable {
-	cursor: move;
-	cursor: -webkit-grabbing;
-	cursor:    -moz-grabbing;
-	cursor:         grabbing;
-	}
-
-/* marker & overlays interactivity */
-.leaflet-marker-icon,
-.leaflet-marker-shadow,
-.leaflet-image-layer,
-.leaflet-pane > svg path,
-.leaflet-tile-container {
-	pointer-events: none;
-	}
-
-.leaflet-marker-icon.leaflet-interactive,
-.leaflet-image-layer.leaflet-interactive,
-.leaflet-pane > svg path.leaflet-interactive,
-svg.leaflet-image-layer.leaflet-interactive path {
-	pointer-events: visiblePainted; /* IE 9-10 doesn't have auto */
-	pointer-events: auto;
-	}
-
-/* visual tweaks */
-
-.leaflet-container {
-	background: #ddd;
-	outline-offset: 1px;
-	}
-.leaflet-container a {
-	color: #0078A8;
-	}
-.leaflet-zoom-box {
-	border: 2px dotted #38f;
-	background: rgba(255,255,255,0.5);
-	}
-
-
-/* general typography */
-.leaflet-container {
-	font-family: "Helvetica Neue", Arial, Helvetica, sans-serif;
-	font-size: 12px;
-	font-size: 0.75rem;
-	line-height: 1.5;
-	}
-
-
-/* general toolbar styles */
-
-.leaflet-bar {
-	box-shadow: 0 1px 5px rgba(0,0,0,0.65);
-	border-radius: 4px;
-	}
-.leaflet-bar a {
-	background-color: #fff;
-	border-bottom: 1px solid #ccc;
-	width: 26px;
-	height: 26px;
-	line-height: 26px;
-	display: block;
-	text-align: center;
-	text-decoration: none;
-	color: black;
-	}
-.leaflet-bar a,
-.leaflet-control-layers-toggle {
-	background-position: 50% 50%;
-	background-repeat: no-repeat;
-	display: block;
-	}
-.leaflet-bar a:hover,
-.leaflet-bar a:focus {
-	background-color: #f4f4f4;
-	}
-.leaflet-bar a:first-child {
-	border-top-left-radius: 4px;
-	border-top-right-radius: 4px;
-	}
-.leaflet-bar a:last-child {
-	border-bottom-left-radius: 4px;
-	border-bottom-right-radius: 4px;
-	border-bottom: none;
-	}
-.leaflet-bar a.leaflet-disabled {
-	cursor: default;
-	background-color: #f4f4f4;
-	color: #bbb;
-	}
-
-.leaflet-touch .leaflet-bar a {
-	width: 30px;
-	height: 30px;
-	line-height: 30px;
-	}
-.leaflet-touch .leaflet-bar a:first-child {
-	border-top-left-radius: 2px;
-	border-top-right-radius: 2px;
-	}
-.leaflet-touch .leaflet-bar a:last-child {
-	border-bottom-left-radius: 2px;
-	border-bottom-right-radius: 2px;
-	}
-
-/* zoom control */
-
-.leaflet-control-zoom-in,
-.leaflet-control-zoom-out {
-	font: bold 18px 'Lucida Console', Monaco, monospace;
-	text-indent: 1px;
-	}
-
-.leaflet-touch .leaflet-control-zoom-in, .leaflet-touch .leaflet-control-zoom-out  {
-	font-size: 22px;
-	}
-
-
-/* layers control */
-
-.leaflet-control-layers {
-	box-shadow: 0 1px 5px rgba(0,0,0,0.4);
-	background: #fff;
-	border-radius: 5px;
-	}
-.leaflet-control-layers-toggle {
-	background-image: url(images/layers.png);
-	width: 36px;
-	height: 36px;
-	}
-.leaflet-retina .leaflet-control-layers-toggle {
-	background-image: url(images/layers-2x.png);
-	background-size: 26px 26px;
-	}
-.leaflet-touch .leaflet-control-layers-toggle {
-	width: 44px;
-	height: 44px;
-	}
-.leaflet-control-layers .leaflet-control-layers-list,
-.leaflet-control-layers-expanded .leaflet-control-layers-toggle {
-	display: none;
-	}
-.leaflet-control-layers-expanded .leaflet-control-layers-list {
-	display: block;
-	position: relative;
-	}
-.leaflet-control-layers-expanded {
-	padding: 6px 10px 6px 6px;
-	color: #333;
-	background: #fff;
-	}
-.leaflet-control-layers-scrollbar {
-	overflow-y: scroll;
-	overflow-x: hidden;
-	padding-right: 5px;
-	}
-.leaflet-control-layers-selector {
-	margin-top: 2px;
-	position: relative;
-	top: 1px;
-	}
-.leaflet-control-layers label {
-	display: block;
-	font-size: 13px;
-	font-size: 1.08333em;
-	}
-.leaflet-control-layers-separator {
-	height: 0;
-	border-top: 1px solid #ddd;
-	margin: 5px -10px 5px -6px;
-	}
-
-/* Default icon URLs */
-.leaflet-default-icon-path { /* used only in path-guessing heuristic, see L.Icon.Default */
-	background-image: url(images/marker-icon.png);
-	}
-
-
-/* attribution and scale controls */
-
-.leaflet-container .leaflet-control-attribution {
-	background: #fff;
-	background: rgba(255, 255, 255, 0.8);
-	margin: 0;
-	}
-.leaflet-control-attribution,
-.leaflet-control-scale-line {
-	padding: 0 5px;
-	color: #333;
-	line-height: 1.4;
-	}
-.leaflet-control-attribution a {
-	text-decoration: none;
-	}
-.leaflet-control-attribution a:hover,
-.leaflet-control-attribution a:focus {
-	text-decoration: underline;
-	}
-.leaflet-attribution-flag {
-	display: inline !important;
-	vertical-align: baseline !important;
-	width: 1em;
-	height: 0.6669em;
-	}
-.leaflet-left .leaflet-control-scale {
-	margin-left: 5px;
-	}
-.leaflet-bottom .leaflet-control-scale {
-	margin-bottom: 5px;
-	}
-.leaflet-control-scale-line {
-	border: 2px solid #777;
-	border-top: none;
-	line-height: 1.1;
-	padding: 2px 5px 1px;
-	white-space: nowrap;
-	-moz-box-sizing: border-box;
-	     box-sizing: border-box;
-	background: rgba(255, 255, 255, 0.8);
-	text-shadow: 1px 1px #fff;
-	}
-.leaflet-control-scale-line:not(:first-child) {
-	border-top: 2px solid #777;
-	border-bottom: none;
-	margin-top: -2px;
-	}
-.leaflet-control-scale-line:not(:first-child):not(:last-child) {
-	border-bottom: 2px solid #777;
-	}
-
-.leaflet-touch .leaflet-control-attribution,
-.leaflet-touch .leaflet-control-layers,
-.leaflet-touch .leaflet-bar {
-	box-shadow: none;
-	}
-.leaflet-touch .leaflet-control-layers,
-.leaflet-touch .leaflet-bar {
-	border: 2px solid rgba(0,0,0,0.2);
-	background-clip: padding-box;
-	}
-
-
-/* popup */
-
-.leaflet-popup {
-	position: absolute;
-	text-align: center;
-	margin-bottom: 20px;
-	}
-.leaflet-popup-content-wrapper {
-	padding: 1px;
-	text-align: left;
-	border-radius: 12px;
-	}
-.leaflet-popup-content {
-	margin: 13px 24px 13px 20px;
-	line-height: 1.3;
-	font-size: 13px;
-	font-size: 1.08333em;
-	min-height: 1px;
-	}
-.leaflet-popup-content p {
-	margin: 17px 0;
-	margin: 1.3em 0;
-	}
-.leaflet-popup-tip-container {
-	width: 40px;
-	height: 20px;
-	position: absolute;
-	left: 50%;
-	margin-top: -1px;
-	margin-left: -20px;
-	overflow: hidden;
-	pointer-events: none;
-	}
-.leaflet-popup-tip {
-	width: 17px;
-	height: 17px;
-	padding: 1px;
-
-	margin: -10px auto 0;
-	pointer-events: auto;
-
-	-webkit-transform: rotate(45deg);
-	   -moz-transform: rotate(45deg);
-	    -ms-transform: rotate(45deg);
-	        transform: rotate(45deg);
-	}
-.leaflet-popup-content-wrapper,
-.leaflet-popup-tip {
-	background: white;
-	color: #333;
-	box-shadow: 0 3px 14px rgba(0,0,0,0.4);
-	}
-.leaflet-container a.leaflet-popup-close-button {
-	position: absolute;
-	top: 0;
-	right: 0;
-	border: none;
-	text-align: center;
-	width: 24px;
-	height: 24px;
-	font: 16px/24px Tahoma, Verdana, sans-serif;
-	color: #757575;
-	text-decoration: none;
-	background: transparent;
-	}
-.leaflet-container a.leaflet-popup-close-button:hover,
-.leaflet-container a.leaflet-popup-close-button:focus {
-	color: #585858;
-	}
-.leaflet-popup-scrolled {
-	overflow: auto;
-	}
-
-.leaflet-oldie .leaflet-popup-content-wrapper {
-	-ms-zoom: 1;
-	}
-.leaflet-oldie .leaflet-popup-tip {
-	width: 24px;
-	margin: 0 auto;
-
-	-ms-filter: "progid:DXImageTransform.Microsoft.Matrix(M11=0.70710678, M12=0.70710678, M21=-0.70710678, M22=0.70710678)";
-	filter: progid:DXImageTransform.Microsoft.Matrix(M11=0.70710678, M12=0.70710678, M21=-0.70710678, M22=0.70710678);
-	}
-
-.leaflet-oldie .leaflet-control-zoom,
-.leaflet-oldie .leaflet-control-layers,
-.leaflet-oldie .leaflet-popup-content-wrapper,
-.leaflet-oldie .leaflet-popup-tip {
-	border: 1px solid #999;
-	}
-
-
-/* div icon */
-
-.leaflet-div-icon {
-	background: #fff;
-	border: 1px solid #666;
-	}
-
-
-/* Tooltip */
-/* Base styles for the element that has a tooltip */
-.leaflet-tooltip {
-	position: absolute;
-	padding: 6px;
-	background-color: #fff;
-	border: 1px solid #fff;
-	border-radius: 3px;
-	color: #222;
-	white-space: nowrap;
-	-webkit-user-select: none;
-	-moz-user-select: none;
-	-ms-user-select: none;
-	user-select: none;
-	pointer-events: none;
-	box-shadow: 0 1px 3px rgba(0,0,0,0.4);
-	}
-.leaflet-tooltip.leaflet-interactive {
-	cursor: pointer;
-	pointer-events: auto;
-	}
-.leaflet-tooltip-top:before,
-.leaflet-tooltip-bottom:before,
-.leaflet-tooltip-left:before,
-.leaflet-tooltip-right:before {
-	position: absolute;
-	pointer-events: none;
-	border: 6px solid transparent;
-	background: transparent;
-	content: "";
-	}
-
-/* Directions */
-
-.leaflet-tooltip-bottom {
-	margin-top: 6px;
-}
-.leaflet-tooltip-top {
-	margin-top: -6px;
-}
-.leaflet-tooltip-bottom:before,
-.leaflet-tooltip-top:before {
-	left: 50%;
-	margin-left: -6px;
-	}
-.leaflet-tooltip-top:before {
-	bottom: 0;
-	margin-bottom: -12px;
-	border-top-color: #fff;
-	}
-.leaflet-tooltip-bottom:before {
-	top: 0;
-	margin-top: -12px;
-	margin-left: -6px;
-	border-bottom-color: #fff;
-	}
-.leaflet-tooltip-left {
-	margin-left: -6px;
-}
-.leaflet-tooltip-right {
-	margin-left: 6px;
-}
-.leaflet-tooltip-left:before,
-.leaflet-tooltip-right:before {
-	top: 50%;
-	margin-top: -6px;
-	}
-.leaflet-tooltip-left:before {
-	right: 0;
-	margin-right: -12px;
-	border-left-color: #fff;
-	}
-.leaflet-tooltip-right:before {
-	left: 0;
-	margin-left: -12px;
-	border-right-color: #fff;
-	}
-
-/* Printing */
-
-@media print {
-	/* Prevent printers from removing background-images of controls. */
-	.leaflet-control {
-		-webkit-print-color-adjust: exact;
-		print-color-adjust: exact;
-		}
-	}
-</style>
 <style>
-/* Layout: แถบสรุปสถานะด้านบน → รายการรถ (ซ้าย) + แผนที่ (ขวา, ติดหน้าจอ) → แผงรายละเอียดเลื่อนเข้าจากขวา */
+/* Layout: แบบฟอร์มแนวตั้งคอลัมน์เดียวสำหรับมือถือ ปุ่มใหญ่กดง่ายขณะอยู่ข้างรถ ปุ่มส่งติดขอบล่าง */
 :root{
   --bg:#f3f4f7; --panel:#ffffff; --ink:#1b2130; --muted:#5d6577; --line:#dfe2ea; --soft:#eceef4;
-  --brand:#8c1d2c; --brand-ink:#ffffff; --gold:#d9a521;
-  --s-incident:#d0312d; --s-stale:#c46a12; --s-late:#b5487a; --s-paused:#b08800; --s-overnight:#5b5fc7; --s-going:#2563c9; --s-returning:#7a45c2;
-  --s-delivered:#0f8a83; --s-between:#4e7d96; --s-idle:#8a90a0; --s-done:#2b8a3e;
-  --land:#e4e7ee; --sea:#f7f8fb;
+  --brand:#8c1d2c; --brand-ink:#ffffff; --gold:#d9a521; --line-green:#06c755;
+  --s-incident:#d0312d; --s-paused:#b08800; --s-overnight:#5b5fc7; --s-going:#2563c9; --s-returning:#7a45c2; --s-done:#2b8a3e;
   --f-display:'Anuphan','IBM Plex Sans Thai',system-ui,sans-serif;
   --f-body:'IBM Plex Sans Thai','Noto Sans Thai',system-ui,sans-serif;
   --f-mono:'IBM Plex Mono',ui-monospace,monospace;
-  --r:10px;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#12151d; --panel:#1a1e29; --ink:#e7e9ef; --muted:#9aa2b4; --line:#2c3242; --soft:#232837;
-  --brand:#b8384a; --brand-ink:#ffffff; --gold:#e6b93c;
-  --s-incident:#f0605a; --s-stale:#e58a3a; --s-late:#e07aa6; --s-paused:#d8b23a; --s-overnight:#8e92ec; --s-going:#5b93ec; --s-returning:#a57ce4;
-  --s-delivered:#2fb5ac; --s-between:#7fb0c9; --s-idle:#7d8496; --s-done:#4cb563; --land:#252b3a; --sea:#171b25; color-scheme:dark}}
+  --brand:#b8384a; --gold:#e6b93c; --s-incident:#f0605a; --s-paused:#d8b23a; --s-overnight:#8e92ec; --s-going:#5b93ec; --s-returning:#a57ce4; --s-done:#4cb563; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#12151d; --panel:#1a1e29; --ink:#e7e9ef; --muted:#9aa2b4; --line:#2c3242; --soft:#232837;
-  --brand:#b8384a; --brand-ink:#ffffff; --gold:#e6b93c;
-  --s-incident:#f0605a; --s-stale:#e58a3a; --s-late:#e07aa6; --s-paused:#d8b23a; --s-overnight:#8e92ec; --s-going:#5b93ec; --s-returning:#a57ce4;
-  --s-delivered:#2fb5ac; --s-between:#7fb0c9; --s-idle:#7d8496; --s-done:#4cb563; --land:#252b3a; --sea:#171b25; color-scheme:dark}
+  --brand:#b8384a; --gold:#e6b93c; --s-incident:#f0605a; --s-paused:#d8b23a; --s-overnight:#8e92ec; --s-going:#5b93ec; --s-returning:#a57ce4; --s-done:#4cb563; color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
-button,input,select{font:inherit;color:inherit}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5}
+button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--s-going);outline-offset:2px}
-.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:1500px;margin:0 auto}
-.num,.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
-
-/* header */
+.wrap{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .top{background:var(--brand);color:var(--brand-ink)}
-.top .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px;padding-block:14px}
-.brand{display:flex;align-items:center;gap:12px;min-width:0;flex:1}
-.seal{width:40px;height:40px;border-radius:50%;border:2px solid var(--gold);display:grid;place-items:center;font-family:var(--f-display);font-weight:700;font-size:13px;flex:none;letter-spacing:.02em}
-.brand h1{font-family:var(--f-display);font-size:1.3rem;margin:0;line-height:1.2;text-wrap:balance}
-.brand p{margin:0;font-size:.85rem;opacity:.85}
-.topmeta{display:flex;align-items:center;gap:10px;font-size:.85rem;flex-wrap:wrap}
-.demo{background:var(--gold);color:#2a1e00;border-radius:4px;padding:2px 8px;font-weight:600;font-size:.78rem}
-.btn{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:6px 12px;cursor:pointer}
-.top .btn{background:transparent;border-color:rgba(255,255,255,.45);color:var(--brand-ink)}
-.top .btn:hover{background:rgba(255,255,255,.12)}
-
-/* summary: แถบต้องดูแล + แถบความคืบหน้า + ชิปสถานะ (แสดงเฉพาะที่มีรถ) */
-.summary{display:flex;flex-direction:column;gap:10px;padding-block:14px 6px}
-.alerts{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.alerts .lbl{font-family:var(--f-display);font-weight:600;font-size:.95rem;margin-right:4px}
-.alert{display:inline-flex;align-items:baseline;gap:8px;border:0;border-radius:10px;padding:6px 14px;cursor:pointer;background:var(--c);color:#fff;font-weight:600}
-.alert b{font-family:var(--f-mono);font-size:1.25rem;font-weight:500;line-height:1}
-.alert[aria-pressed="true"]{box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 35%,transparent)}
-.allok{display:inline-flex;align-items:center;gap:8px;color:var(--s-done);font-weight:600;font-size:.92rem}
-.allok::before{content:"✓";display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:color-mix(in srgb,var(--s-done) 15%,transparent)}
-.prog{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:10px}
-.stack{display:flex;height:12px;border-radius:99px;overflow:hidden;background:var(--soft)}
-.stack i{display:block;height:100%;background:var(--c)}
-.stack i+i{box-shadow:inset 1px 0 0 var(--panel)}
-.chips{display:flex;flex-wrap:wrap;gap:6px}
-.sum{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--panel);border-radius:99px;padding:3px 11px 3px 9px;cursor:pointer;font-size:.84rem;color:var(--muted)}
-.sum::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--c,var(--ink))}
-.sum.all::before{display:none}
-.sum b{font-family:var(--f-mono);font-weight:500;color:var(--ink)}
-.sum[aria-pressed="true"]{border-color:var(--c,var(--ink));background:color-mix(in srgb,var(--c,var(--ink)) 10%,var(--panel));color:var(--ink)}
-
-/* tabs + toolbar */
-.bar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;padding-block:8px}
-.tabs{display:flex;gap:4px;background:var(--soft);padding:3px;border-radius:9px}
-.tabs button{border:0;background:transparent;padding:6px 14px;border-radius:7px;cursor:pointer;color:var(--muted);font-weight:500}
-.tabs button[aria-selected="true"]{background:var(--panel);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
-.tools{display:flex;flex-wrap:wrap;gap:8px}
-.tools input,.tools select{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:6px 10px;min-width:0}
-.tools input{width:200px;max-width:100%}
-
-/* main grid */
-.grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;padding-bottom:32px;align-items:start}
-@media (max-width:960px){.grid{grid-template-columns:1fr}.mapcol{order:-1}}
-.mapcol{position:sticky;top:12px}
-@media (max-width:960px){.mapcol{position:static}}
-#map{height:calc(100vh - 230px);min-height:340px;border-radius:var(--r);border:1px solid var(--line);background:var(--sea)}
-@media (max-width:960px){#map{height:320px}}
-.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.78rem;color:var(--muted);padding-top:8px}
-.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--c);margin-right:5px;vertical-align:-1px}
-
-/* vehicle rows */
-.list{display:flex;flex-direction:column;gap:6px;min-width:0}
-.vrow{display:grid;grid-template-columns:38px minmax(0,1fr) auto;gap:2px 12px;align-items:center;text-align:left;background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--c);border-radius:var(--r);padding:8px 12px 8px 10px;cursor:pointer;width:100%}
-.vrow .vno{grid-row:1/3}
-.vt{min-width:0;font-family:var(--f-display);font-weight:600;font-size:.98rem;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.vd{grid-column:2;min-width:0;font-size:.8rem;color:var(--muted);line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.vr{grid-column:3;grid-row:1;justify-self:end}
-.vp{grid-column:3;grid-row:2;justify-self:end}
-.vrow:hover{border-color:var(--muted)}
-.vrow.sel{border-color:var(--s-going);box-shadow:inset 0 0 0 1px var(--s-going)}
-.vrow.hot{background:color-mix(in srgb,var(--c) 6%,var(--panel))}
-.vno{width:38px;height:38px;border-radius:8px;display:grid;place-items:center;font-family:var(--f-mono);font-size:1.05rem;background:var(--soft)}
-.dhead .vno{border:2px solid var(--c,var(--line))}
-.vmain{min-width:0;display:flex;flex-direction:column;gap:3px}
-.vmain b{font-family:var(--f-display);font-weight:600;font-size:1rem;line-height:1.25}
-.vmain small,.vstat small,.vtime small{color:var(--muted);font-size:.8rem;line-height:1.35}
-.vstat,.vtime{min-width:0;display:flex;flex-direction:column;gap:3px}
-.vtime{align-items:flex-end;text-align:right}
-@media (max-width:640px){.vtime{align-items:flex-start;text-align:left}}
-.pill{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;border-radius:999px;padding:1px 10px 1px 8px;font-size:.8rem;font-weight:600;color:var(--c);background:color-mix(in srgb,var(--c) 13%,transparent);white-space:nowrap}
-.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--c)}
-.pill.incident::before,.pill.stale::before{animation:blink 1.2s infinite}
-@keyframes blink{50%{opacity:.25}}
-@media (prefers-reduced-motion:reduce){.pill::before{animation:none!important}}
-.warn{color:var(--s-stale);font-weight:600}
-.dots{display:flex;gap:3px;align-items:center;font-size:.75rem;color:var(--muted);white-space:nowrap}
-.dots i{width:10px;height:6px;border-radius:2px;background:var(--line)}
-.dots i.on{background:var(--c,var(--s-going))}
-.dots em{font-style:normal;margin-left:4px;font-family:var(--f-mono)}
-
-/* feed: รายการ 2 บรรทัด เต็มความกว้าง (ซ่อนแผนที่เมื่ออยู่แท็บนี้) */
-body.tab-f .grid{grid-template-columns:1fr}
-body.tab-f .mapcol{display:none!important}
-.feed{display:flex;flex-direction:column;gap:6px}
-.fday{font-family:var(--f-display);font-weight:600;font-size:.88rem;color:var(--muted);padding:8px 2px 2px}
-.frow{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:2px 12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--c);border-radius:var(--r);padding:8px 12px 8px 10px;cursor:pointer;width:100%;text-align:left}
-.frow:hover{border-color:var(--muted);border-left-color:var(--c)}
-.frow .ft{grid-row:1/3;font-family:var(--f-mono);font-size:1rem;font-weight:500;white-space:nowrap}
-.frow .fv{min-width:0;font-family:var(--f-display);font-weight:600;font-size:.95rem;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.frow .fs{grid-column:3;grid-row:1;justify-self:end}
-.frow .fd{grid-column:2/4;min-width:0;font-size:.8rem;color:var(--muted);line-height:1.4}
-.frow .fd a{white-space:nowrap}
-@media (max-width:640px){.frow{grid-template-columns:44px minmax(0,1fr);padding:8px 10px 8px 8px}.frow .ft{font-size:.9rem}.frow .fv{white-space:normal}.frow .fs{grid-column:2;grid-row:2;justify-self:start}.frow .fd{grid-column:2}}
-/* feed table (เดิม) */
-.feedwrap{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
-table{width:100%;border-collapse:collapse;font-size:.88rem;min-width:720px}
-th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
-th{font-size:.78rem;letter-spacing:.02em;color:var(--muted);font-weight:600;position:sticky;top:0;background:var(--panel)}
-th[data-sort]{cursor:pointer;user-select:none}
-th[data-sort]::after{content:" ↕";opacity:.4}
-th.asc::after{content:" ↑";opacity:1}th.desc::after{content:" ↓";opacity:1}
-tbody tr{cursor:pointer}
-tbody tr:hover{background:var(--soft)}
-.who{display:flex;align-items:center;gap:8px;min-width:0}
-.ava{width:24px;height:24px;border-radius:50%;background:var(--soft);display:grid;place-items:center;font-size:.72rem;font-weight:600;flex:none;overflow:hidden;color:var(--muted)}
+.top .wrap{display:flex;align-items:center;gap:12px;padding-block:14px}
+.ava{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.2);overflow:hidden;flex:none;display:grid;place-items:center;font-weight:600;border:2px solid var(--gold)}
 .ava img{width:100%;height:100%;object-fit:cover}
-.ok{color:var(--s-done);font-size:.75rem}
-a{color:var(--s-going)}
-
-/* drawer */
-.scrim{position:fixed;inset:0;background:rgba(10,12,18,.35);z-index:1000}
-.drawer{position:fixed;top:0;right:0;bottom:0;width:min(460px,100%);background:var(--panel);z-index:1001;display:flex;flex-direction:column;border-left:1px solid var(--line);box-shadow:-8px 0 24px rgba(0,0,0,.15);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-right:env(safe-area-inset-right,0px)}
-.dhead{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:flex-start}
-.dhead h2{font-family:var(--f-display);margin:0;font-size:1.2rem;line-height:1.3;text-wrap:balance}
-.dhead p{margin:4px 0 0;color:var(--muted);font-size:.85rem}
-.dbody{overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:20px}
-.close{margin-left:auto;border:0;background:var(--soft);width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:1.1rem;flex:none}
-.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.facts div{background:var(--soft);border-radius:8px;padding:8px 10px}
-.facts span{display:block;font-size:.75rem;color:var(--muted)}
-.facts b{font-family:var(--f-mono);font-weight:500}
-h3{font-family:var(--f-display);font-size:.95rem;margin:0 0 8px;font-weight:600}
-.stops{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
-.stops li{display:grid;grid-template-columns:22px minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:7px 0;border-bottom:1px dashed var(--line);font-size:.88rem}
-.stops .seq{font-family:var(--f-mono);color:var(--muted);font-size:.8rem}
-.chk{font-family:var(--f-mono);font-size:.75rem;padding:1px 6px;border-radius:4px;background:var(--soft);color:var(--muted);white-space:nowrap}
-.chk.y{background:color-mix(in srgb,var(--s-done) 16%,transparent);color:var(--s-done)}
-.tl{list-style:none;margin:0;padding:0;position:relative}
-.tl li{position:relative;padding:0 0 16px 22px}
-.tl li::before{content:"";position:absolute;left:5px;top:6px;bottom:-6px;width:2px;background:var(--line)}
-.tl li:last-child::before{display:none}
-.tl li::after{content:"";position:absolute;left:0;top:4px;width:12px;height:12px;border-radius:50%;background:var(--panel);border:3px solid var(--c)}
-.tl .t{font-family:var(--f-mono);font-size:.8rem;color:var(--muted)}
-.tl .h{font-weight:600}
-.tl .n{background:var(--soft);border-radius:6px;padding:6px 8px;font-size:.85rem;margin-top:4px}
-.tl .m{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.8rem;color:var(--muted);margin-top:4px;align-items:center}
-.empty{color:var(--muted);text-align:center;padding:32px 16px;background:var(--panel);border:1px dashed var(--line);border-radius:var(--r)}
-
-/* map markers */
-.vm{width:28px;height:28px;border-radius:50%;background:var(--c);color:#fff;display:grid;place-items:center;font-family:var(--f-mono);font-size:12px;border:2px solid var(--panel);box-shadow:0 1px 4px rgba(0,0,0,.35)}
-.vm.big{transform:scale(1.25)}
-.leaflet-container{font-family:var(--f-body);background:var(--sea)}
-.leaflet-popup-content{margin:10px 12px;font-size:.85rem}
-.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--panel);color:var(--ink)}
-.apx{font-size:.72rem;color:var(--s-stale);border:1px dashed var(--s-stale);border-radius:4px;padding:0 4px;white-space:nowrap}
-.crew{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;font-size:.85rem}
-.crew div{border:1px solid var(--line);border-radius:8px;padding:8px 10px}
-.crew span{display:block;font-size:.75rem;color:var(--muted)}
-/* ---------- มือถือ ---------- */
-.m-only{display:none}
-@media (max-width:960px){
-  .m-only{display:inline-block}
-  .mapcol{display:none}
-  body.tab-m .mapcol{display:block}
-  body.tab-m #map{height:calc(100vh - 300px);min-height:360px}
-  .bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:500;background:var(--bg);padding-block:8px}
-}
-@media (max-width:640px){
-  body{font-size:14px}
-  .top .wrap{padding-block:10px;gap:6px 12px}
-  .brand{flex-basis:100%}
-  .brand h1{font-size:1.08rem}
-  .seal{width:34px;height:34px;font-size:11px}
-  .topmeta{width:100%;justify-content:space-between}
-  .topmeta .btn{padding:4px 12px}
-  .summary{padding-block:10px 4px;gap:8px}
-  .prog{padding:10px 12px}
-  .sum{font-size:.8rem;padding:2px 9px 2px 8px}
-  .bar{flex-direction:column;align-items:stretch}
-  .tabs button{flex:1;padding:7px 6px}
-  .tools{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-  .tools input{grid-column:1/-1;width:100%}
-  .tools select{width:100%}
-  #toolsF{grid-template-columns:1fr 1fr}
-  #toolsF #fVeh{grid-column:1/-1}
-  .vrow{gap:2px 10px;padding:8px 10px 8px 8px}
-  .vt{font-size:.92rem;white-space:normal}
-  .vd{grid-column:2/4;white-space:normal}
-  .vp{display:none}
-  .dhead{padding:12px 14px}
-  .dbody{padding:14px}
-  .facts{grid-template-columns:1fr 1fr}
-  .facts div:first-child{grid-column:1/-1}
-  .stops li{grid-template-columns:20px minmax(0,1fr) auto;row-gap:2px}
-  .stops li .chk:last-child{grid-column:3}
-  .stops li .chk:nth-last-child(2){grid-row:1;grid-column:3}
-}
-.err{background:color-mix(in srgb,var(--s-incident) 12%,var(--panel));border:1px solid var(--s-incident);border-radius:8px;padding:10px 12px;margin-top:12px}
+.top h1{font-family:var(--f-display);font-size:1.15rem;margin:0;line-height:1.25}
+.top p{margin:0;font-size:.82rem;opacity:.85}
+.demo{margin-left:auto;background:var(--gold);color:#2a1e00;border-radius:4px;padding:2px 8px;font-weight:600;font-size:.75rem;white-space:nowrap}
+form{display:flex;flex-direction:column;gap:18px;padding-block:18px 120px}
+fieldset{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;min-width:0}
+legend,.lbl{font-family:var(--f-display);font-weight:600;font-size:.95rem;padding:0;margin-bottom:8px}
+.step{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--ink);color:var(--bg);font-family:var(--f-mono);font-size:.75rem;margin-right:8px;vertical-align:1px}
+select,textarea{width:100%;border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:12px}
+textarea{min-height:80px;resize:vertical}
+.hint{font-size:.82rem;color:var(--muted);margin:0}
+.round{margin:.5rem 0 0;font-size:.85rem;font-weight:600;color:var(--s-going,#2563c9);background:color-mix(in srgb,currentColor 10%,transparent);border-radius:8px;padding:.35rem .6rem}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--soft);padding:4px;border-radius:12px;gap:4px}
+.seg button{border:0;background:transparent;border-radius:9px;padding:10px;font-weight:600;color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--panel);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.stages{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stage{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 6px;border:1.5px solid var(--line);border-radius:12px;background:var(--panel);cursor:pointer;text-align:center;position:relative}
+.stage svg{width:30px;height:30px;stroke:var(--c);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.stage b{font-size:.95rem;line-height:1.2}
+.stage small{font-size:.72rem;color:var(--muted);line-height:1.25}
+.stage[aria-pressed="true"]{border-color:var(--c);background:color-mix(in srgb,var(--c) 10%,var(--panel));box-shadow:inset 0 0 0 1px var(--c)}
+.rec{position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);font-size:.66rem;border-radius:999px;padding:0 8px;white-space:nowrap}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1.5px solid var(--line);background:var(--panel);border-radius:999px;padding:8px 16px;cursor:pointer;font-weight:500}
+.chip[aria-pressed="true"]{border-color:var(--c,var(--ink));background:color-mix(in srgb,var(--c,var(--ink)) 12%,var(--panel))}
+.dests{display:flex;flex-direction:column;gap:6px}
+.dest{display:grid;grid-template-columns:36px minmax(0,1fr) auto;gap:10px;align-items:center;border:1.5px solid var(--line);background:var(--panel);border-radius:10px;padding:10px 12px;cursor:pointer;text-align:left}
+.dest .n{font-family:var(--f-mono);color:var(--muted);font-size:.85rem}
+.dest small{display:block;color:var(--muted);font-size:.78rem}
+.dest .tick{font-size:.75rem;color:var(--s-done);white-space:nowrap}
+.dest[aria-pressed="true"]{border-color:var(--s-done);box-shadow:inset 0 0 0 1px var(--s-done)}
+.gps{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.gps .st{font-weight:600}
+.gps .co{font-family:var(--f-mono);font-size:.82rem;color:var(--muted);grid-column:1}
+.gps .st.ok{color:var(--s-done)} .gps .st.bad{color:var(--s-incident)}
+.gps button{grid-row:1/3;grid-column:2;border:1px solid var(--line);background:var(--soft);border-radius:8px;padding:8px 12px;cursor:pointer}
+.gps a{color:var(--s-going);font-size:.82rem}
+.submitbar{position:fixed;left:0;right:0;bottom:0;background:var(--panel);border-top:1px solid var(--line);padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));padding-top:12px}
+.submitbar .wrap{display:flex;flex-direction:column;gap:6px}
+.send{width:100%;border:0;border-radius:12px;padding:15px;background:var(--line-green);color:#fff;font-weight:700;font-size:1.05rem;cursor:pointer}
+.send:disabled{opacity:.5;cursor:not-allowed}
+.sum{font-size:.82rem;color:var(--muted);text-align:center;min-height:1.2em}
+.err{color:var(--s-incident);font-weight:600}
+.hist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.hist li{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:.85rem;display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 10px}
+.hist .t{font-family:var(--f-mono);color:var(--muted);grid-row:1/3}
+.hist small{color:var(--muted)}
+.done{position:fixed;inset:0;background:var(--bg);z-index:10;display:flex;align-items:center;justify-content:center;padding:24px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px))}
+.done .box{max-width:420px;width:100%;text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
+.done .ring{width:72px;height:72px;border-radius:50%;background:color-mix(in srgb,var(--s-done) 15%,var(--panel));display:grid;place-items:center}
+.done .ring svg{width:38px;height:38px;stroke:var(--s-done);stroke-width:3;fill:none}
+.sendst{margin:0;font-weight:600;font-size:.92rem}
+.sendst.ok{color:var(--s-done)}.sendst.wait{color:var(--s-paused)}
+.hist .pend{color:var(--s-paused);font-weight:600}
+.done h2{font-family:var(--f-display);margin:0}
+.done .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;text-align:left;width:100%;font-size:.9rem}
+.done .btns{display:flex;gap:8px;width:100%}
+.done .btns button{flex:1;border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:12px;cursor:pointer;font-weight:600}
+.done .btns .primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 </style>
 
 <header class="top"><div class="wrap">
-  <div class="brand">
-    <div class="seal">ว.14</div>
-    <div><h1>ศูนย์ติดตามรถขนส่งข้อสอบ</h1><p>การสอบแข่งขันครูผู้ช่วย · <span id="hdrCount"></span></p></div>
-  </div>
-  <div class="topmeta">
-    <span id="demoBadge" class="demo" hidden>ข้อมูลตัวอย่าง</span>
-    <span>อัปเดต <b id="upd" class="num">–</b></span>
-    <button class="btn" id="refresh" type="button">รีเฟรช</button>
-  </div>
+  <div class="ava" id="ava">?</div>
+  <div style="min-width:0"><h1 id="hello">กำลังเชื่อมต่อ LINE…</h1><p>รายงานสถานะรถขนส่งข้อสอบ ว.14</p></div>
+  <span class="demo" id="demoBadge" hidden>โหมดทดลอง</span>
 </div></header>
 
 <div class="wrap">
-  <div id="errBox" class="err" hidden></div>
-  <section class="summary" id="summary" aria-label="สรุปสถานะ"></section>
+<form id="f" novalidate>
+  <fieldset>
+    <legend><span class="step">1</span>รถคันที่</legend>
+    <select id="veh" aria-label="เลือกคันที่"></select>
+    <p class="hint" id="vehInfo"></p>
+    <p class="round" id="roundInfo" hidden></p>
+  </fieldset>
 
-  <div class="bar">
-    <div class="tabs" role="tablist">
-      <button role="tab" id="tabV" aria-selected="true" type="button">รายคัน</button>
-      <button role="tab" id="tabM" aria-selected="false" type="button" class="m-only">แผนที่</button>
-      <button role="tab" id="tabF" aria-selected="false" type="button">ฟีดรายงาน</button>
+  <fieldset>
+    <legend><span class="step">2</span>เที่ยว</legend>
+    <div class="seg" id="leg">
+      <button type="button" data-v="go" aria-pressed="true">ขาไป · ส่งข้อสอบ</button>
+      <button type="button" data-v="back" aria-pressed="false">ขากลับ · รับคืน</button>
     </div>
-    <div class="tools" id="toolsV">
-      <input id="q" type="search" placeholder="ค้นหาคันที่ / จังหวัด / สพป. สพม." aria-label="ค้นหา">
-      <select id="line" aria-label="สายรถ"></select>
-      <select id="sort" aria-label="เรียงตาม">
-        <option value="status">เรียง: ต้องดูแลก่อน</option>
-        <option value="id">เรียง: คันที่</option>
-        <option value="recent">เรียง: อัปเดตล่าสุด</option>
-        <option value="progress">เรียง: ความคืบหน้า</option>
-      </select>
-    </div>
-    <div class="tools" id="toolsF" hidden>
-      <select id="fVeh" aria-label="เลือกคัน"><option value="">ทุกคัน</option></select>
-      <select id="fStage" aria-label="ประเภทรายงาน">
-        <option value="">ทุกประเภท</option><option value="DEPART">ออกเดินทาง</option><option value="ENROUTE">ระหว่างทาง</option>
-        <option value="ARRIVE">ถึงจุดหมาย</option><option value="INC">เฉพาะเหตุขัดข้อง</option>
-      </select>
-      <select id="fLeg" aria-label="ขา"><option value="">ไป-กลับ</option><option value="go">ขาไป</option><option value="back">ขากลับ</option></select>
-    </div>
-  </div>
+  </fieldset>
 
-  <main class="grid">
-    <section>
-      <div class="list" id="list"></div>
-      <div id="feed" class="feed" hidden></div>
-    </section>
-    <aside class="mapcol">
-      <div id="map" role="region" aria-label="แผนที่ตำแหน่งรถ"></div>
-      
-    </aside>
-  </main>
+  <fieldset>
+    <legend><span class="step">3</span>สถานะ</legend>
+    <div class="stages" id="stages">
+      <button type="button" class="stage" data-v="DEPART" style="--c:var(--s-going)" aria-pressed="false">
+        <svg viewBox="0 0 24 24"><path d="M3 17h2m14 0h2M5 17a2 2 0 1 0 4 0 2 2 0 0 0-4 0Zm10 0a2 2 0 1 0 4 0 2 2 0 0 0-4 0ZM9 17h6M3 17V8h11v9m0-6h4l3 3v3"/></svg>
+        <b>ออกเดินทาง</b><small>ออกจากจุดขึ้นรถ</small></button>
+      <button type="button" class="stage" data-v="ENROUTE" style="--c:var(--s-paused)" aria-pressed="false">
+        <svg viewBox="0 0 24 24"><path d="M12 9v4m0 4h.01M10.3 3.9 2.4 17.5A2 2 0 0 0 4.1 20.5h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+        <b>ระหว่างทาง</b><small>ปกติ · แวะพัก · ปัญหา</small></button>
+      <button type="button" class="stage" data-v="ARRIVE" style="--c:var(--s-done)" aria-pressed="false">
+        <svg viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z"/><path d="m9 10 2 2 4-4"/></svg>
+        <b>ถึงจุดหมาย</b><small>ส่งมอบ / รับคืน</small></button>
+    </div>
+  </fieldset>
+
+  <fieldset id="subBox" hidden>
+    <legend>เหตุการณ์ระหว่างทาง</legend>
+    <div class="chips" id="subs"></div>
+  </fieldset>
+
+  <fieldset id="destBox" hidden>
+    <legend id="destLegend">ถึงจุดหมายใด</legend>
+    <div class="dests" id="dests"></div>
+  </fieldset>
+
+  <fieldset>
+    <legend><span class="step">4</span>พิกัดปัจจุบัน</legend>
+    <div class="gps" aria-live="polite">
+      <span class="st" id="gpsSt">กำลังหาพิกัด…</span>
+      <span class="co" id="gpsCo">กรุณากด "อนุญาต" เมื่อ LINE ขอสิทธิ์ตำแหน่ง</span>
+      <button type="button" id="gpsBtn">อ่านพิกัดใหม่</button>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend><span class="step">5</span>หมายเหตุ <span style="font-weight:400;color:var(--muted)">(ถ้ามี)</span></legend>
+    <textarea id="note" placeholder="เช่น ส่งมอบให้ ผอ.กลุ่มฯ แล้ว 12 กล่อง / ยางรั่ว คาดว่าล่าช้า 30 นาที"></textarea>
+  </fieldset>
+
+  <fieldset>
+    <legend>รายงานล่าสุดของคันนี้</legend>
+    <ul class="hist" id="hist"><li><small>กำลังโหลด…</small></li></ul>
+  </fieldset>
+</form>
 </div>
 
-<div class="scrim" id="scrim" hidden></div>
-<aside class="drawer" id="drawer" hidden aria-label="รายละเอียดรถ"></aside>
+<div class="submitbar"><div class="wrap">
+  <div class="sum" id="sum"></div>
+  <button class="send" id="send" type="submit" form="f">ส่งรายงาน</button>
+</div></div>
 
-<script src="../config.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<div class="done" id="done" hidden>
+  <div class="box">
+    <div class="ring"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg></div>
+    <h2>รับรายงานแล้ว</h2>
+    <div class="card" id="doneCard"></div>
+    <p class="sendst" id="sendSt" aria-live="polite"></p>
+    <p class="hint">ผู้บริหารเห็นสถานะนี้บนแดชบอร์ดเมื่อส่งเข้าระบบเสร็จ ไม่ต้องพิมพ์ซ้ำในกลุ่มไลน์</p>
+    <div class="btns"><button type="button" id="again">รายงานต่อ</button><button type="button" class="primary" id="closeBtn">ปิดหน้านี้</button></div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script>
 /* ===== ข้อมูลร่วม: เส้นทาง สถานะ การเรียก API และข้อมูลตัวอย่าง ===== */
 const DATA = {"origins":{"TUC":{"name":"TUC · ศูนย์สอบธรรมศาสตร์ (รังสิต)","lat":14.068528,"lng":100.615383},"CSP":{"name":"CSP · โรงพิมพ์จันวาณิชย์ (สมุทรปราการ)","lat":13.603036,"lng":100.557178}},"vehicles":[{"id":1,"line":"สายใต้ (ไกลมาก)","route":"นราธิวาส","group":"สนามไกลมาก","origin":"TUC","depart":"2026-11-12T20:50:00+07:00","mode":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว · ใต้สุด ออกก่อน 1 วัน ถึง 13/11","remark":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว · ใต้สุด ออกก่อน 1 วัน ถึง 13/11","km":1172,"hours":18.0,"vtype":"ตู้ทึบ","days":1,"staff":1,"stops":[{"code":"068/1","zone":"068","name":"สพป. นราธิวาส เขต 3","venue":"โรงเรียนนราธิวาส","amphoe":"อ.เมืองนราธิวาส","lat":6.449123,"lng":101.810557,"eta":"2026-11-14T06:00:00+07:00","remark":"","approx":false}]},{"id":2,"line":"สายใต้ (ไกลมาก)","route":"นราธิวาส","group":"สนามไกลมาก","origin":"TUC","depart":"2026-11-12T20:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว · ใต้สุด ออกก่อน 1 วัน ถึง 13/11 · ไม่มีกรรมการประจำสนาม ใช้กรรมการร่วมของเขต","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว · ใต้สุด ออกก่อน 1 วัน ถึง 13/11 · ไม่มีกรรมการประจำสนาม ใช้กรรมการร่วมของเขต","km":1180,"hours":18.2,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"066/2","zone":"066","name":"สพป. นราธิวาส เขต 1","venue":"โรงเรียนอนุบาลนราธิวาส","amphoe":"อ.เมืองนราธิวาส","lat":6.425443,"lng":101.821014,"eta":"2026-11-14T06:00:00+07:00","remark":"","approx":false},{"code":"066/1","zone":"066","name":"สพป. นราธิวาส เขต 1","venue":"โรงเรียนเมืองนราธิวาส","amphoe":"อ.เมืองนราธิวาส","lat":6.42915,"lng":101.818974,"eta":"2026-11-14T06:20:00+07:00","remark":"ห้องมั่นคง: โรงเรียนอนุบาลนราธิวาส","approx":false}]},{"id":3,"line":"สายใต้ (ไกลมาก)","route":"ปัตตานี","group":"สนามไกลมาก","origin":"TUC","depart":"2026-11-12T20:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว · ใต้สุด ออกก่อน 1 วัน ถึง 13/11","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว · ใต้สุด ออกก่อน 1 วัน ถึง 13/11","km":1086,"hours":16.7,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"084/1","zone":"084","name":"สพป. ปัตตานี เขต 3","venue":"มหาวิทยาลัยสงขลานครินทร์ วิทยาเขตปัตตานี","amphoe":"อ.เมืองปัตตานี","lat":6.87752,"lng":101.236786,"eta":"2026-11-14T06:00:00+07:00","remark":"","approx":false}]},{"id":4,"line":"สายใต้ (ไกลมาก)","route":"ปัตตานี","group":"สนามไกลมาก","origin":"TUC","depart":"2026-11-12T20:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว · ใต้สุด ออกก่อน 1 วัน ถึง 13/11","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว · ใต้สุด ออกก่อน 1 วัน ถึง 13/11","km":1086,"hours":16.7,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"083/1","zone":"083","name":"สพป. ปัตตานี เขต 2","venue":"มหาวิทยาลัยสงขลานครินทร์ วิทยาเขตปัตตานี","amphoe":"อ.เมืองปัตตานี","lat":6.87752,"lng":101.236786,"eta":"2026-11-14T06:00:00+07:00","remark":"","approx":false}]},{"id":5,"line":"สายใต้ (ไกลมาก)","route":"ปัตตานี","group":"สนามไกลมาก","origin":"TUC","depart":"2026-11-12T20:50:00+07:00","mode":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว · ใต้สุด ออกก่อน 1 วัน ถึง 13/11 · กรรมการนั่งคันนี้: เบญจมราชูทิศ จังหวัดปัตตานี · ข้อสอบ 082 ทั้งหมดขึ้นตู้ทึบ / กรรมการนั่งรถตู้สาย 6 (ให้กรรมการ 1 คนนั่งตู้ทึบไปกับข้อสอบ)","remark":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว · ใต้สุด ออกก่อน 1 วัน ถึง 13/11 · กรรมการนั่งคันนี้: เบญจมราชูทิศ จังหวัดปัตตานี · ข้อสอบ 082 ทั้งหมดขึ้นตู้ทึบ / กรรมการนั่งรถตู้สาย 6 (ให้กรรมการ 1 คนนั่งตู้ทึบไปกับข้อสอบ)","km":1087,"hours":16.7,"vtype":"ตู้ทึบ","days":1,"staff":1,"stops":[{"code":"082/3","zone":"082","name":"สพป. ปัตตานี เขต 1","venue":"โรงเรียนอนุบาลปัตตานี","amphoe":"อ.เมืองปัตตานี","lat":6.861472,"lng":101.24108,"eta":"2026-11-14T06:00:00+07:00","remark":"ห้องมั่นคง: โรงเรียนเบญจมราชูทิศ จังหวัดปัตตานี","approx":false},{"code":"082/1","zone":"082","name":"สพป. ปัตตานี เขต 1","venue":"โรงเรียนเบญจมราชูทิศ จังหวัดปัตตานี","amphoe":"อ.เมืองปัตตานี","lat":6.869133,"lng":101.25168,"eta":"2026-11-14T06:20:00+07:00","remark":"","approx":false},{"code":"082/2","zone":"082","name":"สพป. ปัตตานี เขต 1","venue":"โรงเรียนเมืองปัตตานี","amphoe":"อ.เมืองปัตตานี","lat":6.875779,"lng":101.260454,"eta":"2026-11-14T06:40:00+07:00","remark":"ห้องมั่นคง: โรงเรียนเบญจมราชูทิศ จังหวัดปัตตานี","approx":false}]},{"id":6,"line":"สายใต้ (ไกลมาก)","route":"ปัตตานี","group":"สนามไกลมาก","origin":"TUC","depart":"2026-11-12T20:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว · ใต้สุด ออกก่อน 1 วัน ถึง 13/11 · กรรมการนั่งคันนี้: เดชะปัตตนยานุกูล, อนุบาลปัตตานี, เมืองปัตตานี · รถตู้รับกรรมการ 082 และ 211 ส่งลงตามสนาม · วิ่งขบวนเดียวกับตู้ทึบสาย 5","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว · ใต้สุด ออกก่อน 1 วัน ถึง 13/11 · กรรมการนั่งคันนี้: เดชะปัตตนยานุกูล, อนุบาลปัตตานี, เมืองปัตตานี · รถตู้รับกรรมการ 082 และ 211 ส่งลงตามสนาม · วิ่งขบวนเดียวกับตู้ทึบสาย 5","km":1085,"hours":16.7,"vtype":"รถตู้","days":1,"staff":3,"stops":[{"code":"211/1","zone":"211","name":"สพม. ปัตตานี","venue":"โรงเรียนเดชะปัตตนยานุกูล","amphoe":"อ.เมืองปัตตานี","lat":6.867617,"lng":101.245296,"eta":"2026-11-14T06:00:00+07:00","remark":"","approx":false}]},{"id":7,"line":"สายใต้ (ไกลมาก)","route":"ยะลา","group":"สนามไกลมาก","origin":"TUC","depart":"2026-11-12T20:50:00+07:00","mode":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว · ใต้สุด ออกก่อน 1 วัน ถึง 13/11 · ไม่มีกรรมการประจำสนาม ใช้กรรมการร่วมของเขต","remark":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว · ใต้สุด ออกก่อน 1 วัน ถึง 13/11 · ไม่มีกรรมการประจำสนาม ใช้กรรมการร่วมของเขต","km":1114,"hours":17.1,"vtype":"ตู้ทึบ","days":1,"staff":1,"stops":[{"code":"113/2","zone":"113","name":"สพป. ยะลา เขต 1","venue":"โรงเรียนอนุบาลยะลา","amphoe":"อ.เมืองยะลา","lat":6.551925,"lng":101.290551,"eta":"2026-11-14T06:00:00+07:00","remark":"ห้องมั่นคง: โรงเรียนนิบงชนูปถัมภ์","approx":false},{"code":"113/1","zone":"113","name":"สพป. ยะลา เขต 1","venue":"โรงเรียนนิบงชนูปถัมภ์","amphoe":"อ.เมืองยะลา","lat":6.548809,"lng":101.28248,"eta":"2026-11-14T06:20:00+07:00","remark":"","approx":false}]},{"id":8,"line":"สายเหนือตอนบน","route":"แม่ฮ่องสอน","group":"สนามไกล","origin":"TUC","depart":"2026-11-13T15:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":842,"hours":13.0,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"223/1","zone":"223","name":"สพม. แม่ฮ่องสอน","venue":"สพม.แม่ฮ่องสอน","amphoe":"อ.เมืองแม่ฮ่องสอน","lat":19.311423,"lng":97.964569,"eta":"2026-11-14T04:17:14.299478+07:00","remark":"","approx":false}]},{"id":9,"line":"สายใต้","route":"สตูล","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T14:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":968,"hours":14.9,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"144/1","zone":"144","name":"สพป. สตูล","venue":"โรงเรียนบ้านคลองขุด","amphoe":"อ.เมืองสตูล","lat":6.643903,"lng":100.074236,"eta":"2026-11-14T06:20:44.749151+07:00","remark":"","approx":false}]},{"id":10,"line":"สายใต้","route":"สงขลา","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T15:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":935,"hours":14.4,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"142/1","zone":"142","name":"สพป. สงขลา เขต 2","venue":"โรงเรียนหาดใหญ่รัฐประชาสรรค์","amphoe":"อ.หาดใหญ่","lat":6.956544,"lng":100.423272,"eta":"2026-11-14T06:07:02.487167+07:00","remark":"","approx":false}]},{"id":11,"line":"สายเหนือตอนบน","route":"เชียงใหม่","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T14:50:00+07:00","mode":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":849,"hours":13.1,"vtype":"ตู้ทึบ","days":1,"staff":1,"stops":[{"code":"036/1","zone":"036","name":"สพป. เชียงใหม่ เขต 3","venue":"โรงเรียนรังษีวิทยา","amphoe":"อ.ฝาง","lat":19.911337,"lng":99.20294,"eta":"2026-11-14T05:09:19.114507+07:00","remark":"","approx":false}]},{"id":12,"line":"สายเหนือตอนบน","route":"เชียงใหม่","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T14:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":851,"hours":13.1,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"036/2","zone":"036","name":"สพป. เชียงใหม่ เขต 3","venue":"โรงเรียนบ้านเวียงฝาง","amphoe":"อ.ฝาง","lat":19.917764,"lng":99.214595,"eta":"2026-11-14T05:09:51.604717+07:00","remark":"ห้องมั่นคง: โรงเรียนรังษีวิทยา","approx":false}]},{"id":13,"line":"สายใต้","route":"พัทลุง","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T15:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":886,"hours":13.6,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"091/1","zone":"091","name":"สพป. พัทลุง เขต 2","venue":"โรงเรียนอนุบาลป่าบอน","amphoe":"อ.ป่าบอน","lat":7.284005,"lng":100.165549,"eta":"2026-11-14T05:54:44.157057+07:00","remark":"","approx":false}]},{"id":14,"line":"สายเหนือตอนบน","route":"เชียงราย","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T16:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":836,"hours":12.9,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"032/1","zone":"032","name":"สพป. เชียงราย เขต 3","venue":"โรงเรียนบ้านแม่จัน(เชียงแสนประชานุสาสน์)","amphoe":"อ.แม่จัน","lat":20.146522,"lng":99.854987,"eta":"2026-11-14T06:57:42.492959+07:00","remark":"","approx":false}]},{"id":15,"line":"สายใต้","route":"ภูเก็ต","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T16:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":837,"hours":12.9,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"104/1","zone":"104","name":"สพป. ภูเก็ต","venue":"โรงเรียนอนุบาลภูเก็ต","amphoe":"อ.เมืองภูเก็ต","lat":7.888705,"lng":98.395832,"eta":"2026-11-14T05:53:22.960362+07:00","remark":"","approx":false}]},{"id":16,"line":"สายเหนือตอนบน","route":"เชียงราย","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T16:20:00+07:00","mode":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":817,"hours":12.6,"vtype":"ตู้ทึบ","days":1,"staff":1,"stops":[{"code":"031/1","zone":"031","name":"สพป. เชียงราย เขต 2","venue":"มหาวิทยาลัยราชภัฏเชียงราย","amphoe":"อ.เมืองเชียงราย","lat":19.980319,"lng":99.850266,"eta":"2026-11-14T06:35:43.065665+07:00","remark":"","approx":false}]},{"id":17,"line":"สายใต้","route":"ตรัง","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T16:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":840,"hours":12.9,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"196/1","zone":"196","name":"สพม. ตรัง กระบี่","venue":"โรงเรียนวิเชียรมาตุ","amphoe":"อ.เมืองตรัง","lat":7.502724,"lng":99.630154,"eta":"2026-11-14T06:03:00.744704+07:00","remark":"","approx":false}]},{"id":18,"line":"สายเหนือตอนบน","route":"แม่ฮ่องสอน","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T15:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":736,"hours":11.3,"vtype":"รถตู้","days":1,"staff":2,"stops":[{"code":"110/2","zone":"110","name":"สพป. แม่ฮ่องสอน เขต 2","venue":"โรงเรียนบ้านจอมแจ้งมิตรภาพที่ 193","amphoe":"อ.แม่สะเรียง","lat":18.161586,"lng":97.940608,"eta":"2026-11-14T03:24:45.112406+07:00","remark":"ห้องมั่นคง: โรงเรียนทองสวัสดิ์วิทยาคาร","approx":false},{"code":"110/1","zone":"110","name":"สพป. แม่ฮ่องสอน เขต 2","venue":"โรงเรียนทองสวัสดิ์วิทยาคาร","amphoe":"อ.แม่สะเรียง","lat":18.158158,"lng":97.931742,"eta":"2026-11-14T03:40:57.928391+07:00","remark":"","approx":false}]},{"id":19,"line":"สายเหนือตอนบน","route":"เชียงราย","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T15:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":804,"hours":12.4,"vtype":"รถตู้","days":1,"staff":2,"stops":[{"code":"030/1","zone":"030","name":"สพป. เชียงราย เขต 1","venue":"โรงเรียนบ้านสันโค้ง (เชียงรายจรูญราษฎร์)","amphoe":"อ.เมืองเชียงราย","lat":19.90071,"lng":99.82797,"eta":"2026-11-14T05:55:27.971035+07:00","remark":"","approx":false},{"code":"194/1","zone":"194","name":"สพม. เชียงราย","venue":"โรงเรียนสามัคคีวิทยาคม","amphoe":"อ.เมืองเชียงราย","lat":19.906719,"lng":99.826864,"eta":"2026-11-14T06:11:16.794421+07:00","remark":"","approx":false}]},{"id":20,"line":"สายใต้","route":"นครศรีธรรมราช","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T17:50:00+07:00","mode":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":774,"hours":11.9,"vtype":"ตู้ทึบ","days":1,"staff":1,"stops":[{"code":"201/1","zone":"201","name":"สพม. นครศรีธรรมราช","venue":"โรงเรียนเบญจมราชูทิศ","amphoe":"อ.เมืองนครศรีธรรมราช","lat":8.438174,"lng":99.923324,"eta":"2026-11-14T05:24:08.771820+07:00","remark":"","approx":false}]},{"id":21,"line":"สายใต้","route":"นครศรีธรรมราช","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T16:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":798,"hours":12.3,"vtype":"รถตู้","days":1,"staff":2,"stops":[{"code":"059/1","zone":"059","name":"สพป. นครศรีธรรมราช เขต 3","venue":"โรงเรียนบ้านห้วยหาร","amphoe":"อ.ร่อนพิบูลย์","lat":8.247138,"lng":99.886497,"eta":"2026-11-14T04:50:02.144816+07:00","remark":"","approx":false},{"code":"059/2","zone":"059","name":"สพป. นครศรีธรรมราช เขต 3","venue":"โรงเรียนวัดพิศาลนฤมิต","amphoe":"อ.ร่อนพิบูลย์","lat":8.183779,"lng":99.857877,"eta":"2026-11-14T05:14:17.785641+07:00","remark":"ห้องมั่นคง: โรงเรียนบ้านห้วยหาร","approx":false}]},{"id":22,"line":"สายใต้","route":"กระบี่","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T16:50:00+07:00","mode":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":775,"hours":11.9,"vtype":"ตู้ทึบ","days":1,"staff":1,"stops":[{"code":"001/2","zone":"001","name":"สพป. กระบี่","venue":"โรงเรียนเมืองกระบี่","amphoe":"อ.เมืองกระบี่","lat":8.107217,"lng":98.914082,"eta":"2026-11-14T05:34:15.653465+07:00","remark":"ห้องมั่นคง: โรงเรียนอนุบาลกระบี่","approx":false}]},{"id":23,"line":"สายใต้","route":"กระบี่","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T16:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":779,"hours":12.0,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"001/1","zone":"001","name":"สพป. กระบี่","venue":"โรงเรียนอนุบาลกระบี่","amphoe":"อ.เมืองกระบี่","lat":8.050567,"lng":98.908363,"eta":"2026-11-14T05:41:43.886562+07:00","remark":"","approx":false}]},{"id":24,"line":"สายอีสานตอนบน","route":"บึงกาฬ","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T17:50:00+07:00","mode":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":775,"hours":11.9,"vtype":"ตู้ทึบ","days":1,"staff":1,"stops":[{"code":"071/1","zone":"071","name":"สพป. บึงกาฬ","venue":"โรงเรียนบึงกาฬ","amphoe":"อ.เมืองบึงกาฬ","lat":18.3635,"lng":103.649708,"eta":"2026-11-14T06:18:49.567075+07:00","remark":"","approx":false}]},{"id":25,"line":"สายเหนือตอนบน","route":"น่าน","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T17:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":744,"hours":11.4,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"070/1","zone":"070","name":"สพป. น่าน เขต 2","venue":"สพป.น่าน เขต 2","amphoe":"อ.ปัว","lat":19.179961,"lng":100.907725,"eta":"2026-11-14T06:15:30.080057+07:00","remark":"","approx":false}]},{"id":26,"line":"สายอีสานตอนบน","route":"นครพนม","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T17:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":759,"hours":11.7,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"199/1","zone":"199","name":"สพม. นครพนม","venue":"โรงเรียนนครพนมวิทยาคม","amphoe":"อ.เมืองนครพนม","lat":17.408263,"lng":104.774293,"eta":"2026-11-14T06:12:44.806496+07:00","remark":"","approx":false}]},{"id":27,"line":"สายอีสานตอนบน","route":"นครพนม","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T17:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":759,"hours":11.7,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"048/1","zone":"048","name":"สพป. นครพนม เขต 1","venue":"ร.ร.อนุบาลนครพนม","amphoe":"อ.เมืองนครพนม","lat":17.404634,"lng":104.782073,"eta":"2026-11-14T06:13:09.001905+07:00","remark":"","approx":false}]},{"id":28,"line":"สายใต้","route":"พังงา","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T17:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว · อาจจะเยอะหน่อย","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว · อาจจะเยอะหน่อย","km":757,"hours":11.6,"vtype":"รถตู้","days":1,"staff":2,"stops":[{"code":"089/1","zone":"089","name":"สพป. พังงา","venue":"โรงเรียนอนุบาลพังงา","amphoe":"อ.เมืองพังงา","lat":8.439802,"lng":98.531623,"eta":"2026-11-14T05:38:13.643326+07:00","remark":"","approx":false},{"code":"214/1","zone":"214","name":"สพม. พังงา ภูเก็ต ระนอง","venue":"โรงเรียนสตรีพังงา","amphoe":"อ.เมืองพังงา","lat":8.4596,"lng":98.530841,"eta":"2026-11-14T05:55:52.267731+07:00","remark":"","approx":false}]},{"id":29,"line":"สายอีสานตอนบน","route":"นครพนม","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T18:20:00+07:00","mode":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":728,"hours":11.2,"vtype":"ตู้ทึบ","days":1,"staff":1,"stops":[{"code":"049/1","zone":"049","name":"สพป. นครพนม เขต 2","venue":"โรงเรียนสหราษฎร์รังสฤษดิ์","amphoe":"อ.ศรีสงคราม","lat":17.625362,"lng":104.255946,"eta":"2026-11-14T06:16:51.193337+07:00","remark":"","approx":false}]},{"id":30,"line":"สายเหนือตอนบน","route":"เชียงใหม่","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T17:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว · กรรมการนั่งคันนี้: บ้านเจดีย์แม่ครัว, วิทยาลัยเทคโนพายัพและบริหารธุรกิจ","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว · กรรมการนั่งคันนี้: บ้านเจดีย์แม่ครัว, วิทยาลัยเทคโนพายัพและบริหารธุรกิจ","km":720,"hours":11.1,"vtype":"รถตู้","days":1,"staff":2,"stops":[{"code":"035/3","zone":"035","name":"สพป. เชียงใหม่ เขต 2","venue":"โรงเรียนบ้านเจดีย์แม่ครัว","amphoe":"อ.สันทราย","lat":18.974545,"lng":98.981918,"eta":"2026-11-14T05:44:34.266529+07:00","remark":"ห้องมั่นคง: วิทยาลัยเทคโนพายัพและบริหารธุรกิจ","approx":false}]},{"id":31,"line":"สายเหนือตอนบน","route":"เชียงใหม่","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T17:20:00+07:00","mode":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว · กรรมการนั่งคันนี้: วิทยาลัยเทคโนโลยีโปลิเทคนิคล้านนา เชียงใหม่","remark":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว · กรรมการนั่งคันนี้: วิทยาลัยเทคโนโลยีโปลิเทคนิคล้านนา เชียงใหม่","km":711,"hours":10.9,"vtype":"ตู้ทึบ","days":1,"staff":1,"stops":[{"code":"035/1","zone":"035","name":"สพป. เชียงใหม่ เขต 2","venue":"วิทยาลัยเทคโนโลยีโปลิเทคนิคล้านนา เชียงใหม่","amphoe":"อ.เมืองเชียงใหม่","lat":18.813458,"lng":98.99216,"eta":"2026-11-14T05:23:33.814918+07:00","remark":"ห้องมั่นคง: วิทยาลัยเทคโนพายัพและบริหารธุรกิจ","approx":false},{"code":"035/2","zone":"035","name":"สพป. เชียงใหม่ เขต 2","venue":"วิทยาลัยเทคโนพายัพและบริหารธุรกิจ","amphoe":"อ.สันทราย","lat":18.85215,"lng":99.009979,"eta":"2026-11-14T05:44:11.732264+07:00","remark":"","approx":false}]},{"id":32,"line":"สายเหนือตอนบน","route":"เชียงใหม่","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T18:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":674,"hours":10.4,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"038/1","zone":"038","name":"สพป. เชียงใหม่ เขต 5","venue":"โรงเรียนฮอดพิทยาคม","amphoe":"อ.ฮอด","lat":18.174171,"lng":98.605617,"eta":"2026-11-14T05:49:19.912545+07:00","remark":"","approx":false}]},{"id":33,"line":"สายอีสานตอนบน","route":"หนองคาย","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T19:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":687,"hours":10.6,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"166/1","zone":"166","name":"สพป. หนองคาย เขต 2","venue":"โรงเรียนชุมพลโพนพิสัย","amphoe":"อ.โพนพิสัย","lat":18.037688,"lng":103.085431,"eta":"2026-11-14T06:34:51.376498+07:00","remark":"","approx":false}]},{"id":34,"line":"สายใต้","route":"สุราษฎร์ธานี","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T18:50:00+07:00","mode":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว · กรรมการนั่งคันนี้: สุราษฎร์พิทยา","remark":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว · กรรมการนั่งคันนี้: สุราษฎร์พิทยา","km":640,"hours":9.8,"vtype":"ตู้ทึบ","days":1,"staff":1,"stops":[{"code":"240/2","zone":"240","name":"สพม. สุราษฎร์ธานี ชุมพร","venue":"โรงเรียนเมืองสุราษฎร์ธานี","amphoe":"อ.เมืองสุราษฎร์ธานี","lat":9.136506,"lng":99.341212,"eta":"2026-11-14T05:06:50.220157+07:00","remark":"ห้องมั่นคง: โรงเรียนสุราษฎร์พิทยา","approx":false},{"code":"240/1","zone":"240","name":"สพม. สุราษฎร์ธานี ชุมพร","venue":"โรงเรียนสุราษฎร์พิทยา","amphoe":"อ.เมืองสุราษฎร์ธานี","lat":9.141851,"lng":99.326106,"eta":"2026-11-14T05:23:57.060474+07:00","remark":"","approx":false}]},{"id":35,"line":"สายใต้","route":"สุราษฎร์ธานี","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T19:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว · กรรมการนั่งคันนี้: อนุบาลสุราษฎร์ธานี, เมืองสุราษฎร์ธานี","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว · กรรมการนั่งคันนี้: อนุบาลสุราษฎร์ธานี, เมืองสุราษฎร์ธานี","km":639,"hours":9.8,"vtype":"รถตู้","days":1,"staff":2,"stops":[{"code":"159/1","zone":"159","name":"สพป. สุราษฎร์ธานี เขต 1","venue":"โรงเรียนอนุบาลสุราษฎร์ธานี","amphoe":"อ.เมืองสุราษฎร์ธานี","lat":9.145233,"lng":99.345071,"eta":"2026-11-14T06:05:34.873742+07:00","remark":"","approx":false}]},{"id":36,"line":"สายใต้","route":"สุราษฎร์ธานี","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T19:20:00+07:00","mode":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":633,"hours":9.7,"vtype":"ตู้ทึบ","days":1,"staff":1,"stops":[{"code":"160/1","zone":"160","name":"สพป. สุราษฎร์ธานี เขต 2","venue":"โรงเรียนพุนพินพิทยาคม","amphoe":"อ.พุนพิน","lat":9.112244,"lng":99.237354,"eta":"2026-11-14T05:43:35.368538+07:00","remark":"","approx":false}]},{"id":37,"line":"สายใต้","route":"สุราษฎร์ธานี","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T19:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":632,"hours":9.7,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"160/2","zone":"160","name":"สพป. สุราษฎร์ธานี เขต 2","venue":"โรงเรียนวัดตรณาราม","amphoe":"อ.พุนพิน","lat":9.110934,"lng":99.230518,"eta":"2026-11-14T05:44:00.332622+07:00","remark":"ห้องมั่นคง: โรงเรียนพุนพินพิทยาคม","approx":false}]},{"id":38,"line":"สายอีสานตอนบน","route":"มุกดาหาร","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T19:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว · ฝาก ภาค ข. วิชาที่ 6 (6 กล่อง) ไปกับสาย 39 → เข้าห้องมั่นคงมุกดาวิทยานุกูล","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว · ฝาก ภาค ข. วิชาที่ 6 (6 กล่อง) ไปกับสาย 39 → เข้าห้องมั่นคงมุกดาวิทยานุกูล","km":677,"hours":10.4,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"108/2","zone":"108","name":"สพป. มุกดาหาร","venue":"โรงเรียนมุกดาหาร","amphoe":"อ.เมืองมุกดาหาร","lat":16.538234,"lng":104.716075,"eta":"2026-11-14T06:23:39.631649+07:00","remark":"ห้องมั่นคง: โรงเรียนมุกดาวิทยานุกูล","approx":false}]},{"id":39,"line":"สายอีสานตอนบน","route":"มุกดาหาร","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T19:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":679,"hours":10.4,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"108/1","zone":"108","name":"สพป. มุกดาหาร","venue":"โรงเรียนมุกดาวิทยานุกูล","amphoe":"อ.เมืองมุกดาหาร","lat":16.60478,"lng":104.72093,"eta":"2026-11-14T06:29:22.209615+07:00","remark":"","approx":false},{"code":"108/2","zone":"108","name":"สพป. มุกดาหาร","venue":"โรงเรียนมุกดาหาร","amphoe":"อ.เมืองมุกดาหาร","lat":16.538234,"lng":104.716075,"eta":"2026-11-14T06:53:16.280168+07:00","remark":"ฝากส่ง · ห้องมั่นคง: โรงเรียนมุกดาวิทยานุกูล","approx":false}]},{"id":40,"line":"สายอีสานตอนล่าง","route":"อุบลราชธานี","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T19:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":654,"hours":10.1,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"245/1","zone":"245","name":"สพม. อุบลราชธานี อำนาจเจริญ","venue":"เบ็ญจะมะมหาราช","amphoe":"อ.เมืองอุบลราชธานี","lat":15.239168,"lng":104.83914,"eta":"2026-11-14T05:14:50.219343+07:00","remark":"","approx":false}]},{"id":41,"line":"สายอีสานตอนล่าง","route":"อุบลราชธานี","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T19:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":650,"hours":10.0,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"245/2","zone":"245","name":"สพม. อุบลราชธานี อำนาจเจริญ","venue":"เตรียมอุดมศึกษาพัฒนาการ อุบลราชธานี","amphoe":"อ.เมืองอุบลราชธานี","lat":15.275315,"lng":104.825007,"eta":"2026-11-14T05:14:53.297778+07:00","remark":"ห้องมั่นคง: เบ็ญจะมะมหาราช","approx":false}]},{"id":42,"line":"สายอีสานตอนล่าง","route":"อุบลราชธานี","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T19:50:00+07:00","mode":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":615,"hours":9.5,"vtype":"ตู้ทึบ","days":1,"staff":1,"stops":[{"code":"183/4","zone":"183","name":"สพป. อุบลราชธานี เขต 5","venue":"โรงเรียนเดชอุดม","amphoe":"อ.เดชอุดม","lat":14.918506,"lng":105.065529,"eta":"2026-11-14T05:58:51.328395+07:00","remark":"","approx":false}]},{"id":43,"line":"สายอีสานตอนล่าง","route":"อุบลราชธานี","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T19:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":619,"hours":9.5,"vtype":"รถตู้","days":1,"staff":2,"stops":[{"code":"183/3","zone":"183","name":"สพป. อุบลราชธานี เขต 5","venue":"โรงเรียนดำรงสินอุทิศ","amphoe":"อ.เดชอุดม","lat":14.921636,"lng":105.062267,"eta":"2026-11-14T05:58:34.094930+07:00","remark":"ห้องมั่นคง: โรงเรียนเดชอุดม","approx":false},{"code":"183/2","zone":"183","name":"สพป. อุบลราชธานี เขต 5","venue":"โรงเรียนอนุบาลนาคสมุทรเดชอุดม","amphoe":"อ.เดชอุดม","lat":14.906976,"lng":105.069333,"eta":"2026-11-14T06:15:43.569278+07:00","remark":"ห้องมั่นคง: โรงเรียนเดชอุดม","approx":false}]},{"id":44,"line":"สายอีสานตอนล่าง","route":"อุบลราชธานี","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T19:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":617,"hours":9.5,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"183/1","zone":"183","name":"สพป. อุบลราชธานี เขต 5","venue":"โรงเรียนบ้านหนองแสง","amphoe":"อ.เดชอุดม","lat":14.902764,"lng":105.077221,"eta":"2026-11-14T05:59:43.348505+07:00","remark":"ห้องมั่นคง: โรงเรียนเดชอุดม","approx":false}]},{"id":45,"line":"สายอีสานตอนบน","route":"อุดรธานี","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T20:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":603,"hours":9.3,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"174/1","zone":"174","name":"สพป. อุดรธานี เขต 4","venue":"โรงเรียนบริบาลภูมิเขตต์","amphoe":"อ.บ้านผือ","lat":17.69568,"lng":102.463116,"eta":"2026-11-14T06:18:27.951175+07:00","remark":"","approx":false}]},{"id":46,"line":"สายเหนือตอนบน","route":"ลำปาง","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T20:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":618,"hours":9.5,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"228/1","zone":"228","name":"สพม. ลำปาง ลำพูน","venue":"โรงเรียนบุญวาทย์วิทยาลัย","amphoe":"อ.เมืองลำปาง","lat":18.286531,"lng":99.502541,"eta":"2026-11-14T07:29:24.473680+07:00","remark":"","approx":false}]},{"id":47,"line":"สายอีสานตอนบน","route":"สกลนคร","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T19:50:00+07:00","mode":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":633,"hours":9.7,"vtype":"ตู้ทึบ","days":1,"staff":1,"stops":[{"code":"139/1","zone":"139","name":"สพป. สกลนคร เขต 2","venue":"โรงเรียนสว่างแดนดิน","amphoe":"อ.สว่างแดนดิน","lat":17.473135,"lng":103.469373,"eta":"2026-11-14T06:27:46.966882+07:00","remark":"","approx":false}]},{"id":48,"line":"สายอีสานตอนบน","route":"สกลนคร","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T19:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":631,"hours":9.7,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"139/2","zone":"139","name":"สพป. สกลนคร เขต 2","venue":"โรงเรียนอนุบาลสว่างแดนดิน","amphoe":"อ.สว่างแดนดิน","lat":17.475995,"lng":103.456257,"eta":"2026-11-14T06:27:06.172267+07:00","remark":"ห้องมั่นคง: โรงเรียนสว่างแดนดิน","approx":false}]},{"id":49,"line":"สายอีสานตอนบน","route":"อุดรธานี","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T20:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว · ฝาก ภาค ข. วิชาที่ 6 (4 กล่อง) ไปกับสาย 50 → เข้าห้องมั่นคงหนองหานวิทยา","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว · ฝาก ภาค ข. วิชาที่ 6 (4 กล่อง) ไปกับสาย 50 → เข้าห้องมั่นคงหนองหานวิทยา","km":593,"hours":9.1,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"173/1","zone":"173","name":"สพป. อุดรธานี เขต 3","venue":"โรงเรียนหนองหานวิทยา","amphoe":"อ.หนองหาน","lat":17.358925,"lng":103.106681,"eta":"2026-11-14T06:18:49.924183+07:00","remark":"","approx":false}]},{"id":50,"line":"สายอีสานตอนบน","route":"อุดรธานี","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T20:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":594,"hours":9.1,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"173/2","zone":"173","name":"สพป. อุดรธานี เขต 3","venue":"โรงเรียนอนุบาลหนองหานวิทยายน","amphoe":"อ.หนองหาน","lat":17.362223,"lng":103.108393,"eta":"2026-11-14T06:19:19.159967+07:00","remark":"ห้องมั่นคง: โรงเรียนหนองหานวิทยา","approx":false},{"code":"173/1","zone":"173","name":"สพป. อุดรธานี เขต 3","venue":"โรงเรียนหนองหานวิทยา","amphoe":"อ.หนองหาน","lat":17.358925,"lng":103.106681,"eta":"2026-11-14T06:34:48.626957+07:00","remark":"ฝากส่ง","approx":false}]},{"id":51,"line":"สายอีสานตอนบน","route":"เลย","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T20:20:00+07:00","mode":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว · กรรมการนั่งคันนี้: เมืองเลย","remark":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว · กรรมการนั่งคันนี้: เมืองเลย","km":582,"hours":9.0,"vtype":"ตู้ทึบ","days":1,"staff":1,"stops":[{"code":"131/1","zone":"131","name":"สพป. เลย เขต 1","venue":"โรงเรียนเมืองเลย","amphoe":"อ.เมืองเลย","lat":17.489565,"lng":101.720368,"eta":"2026-11-14T05:19:42.734116+07:00","remark":"","approx":false},{"code":"131/2","zone":"131","name":"สพป. เลย เขต 1","venue":"โรงเรียนเลยอนุกูลวิทยา","amphoe":"อ.เมืองเลย","lat":17.456779,"lng":101.713731,"eta":"2026-11-14T05:39:10.068578+07:00","remark":"ห้องมั่นคง: โรงเรียนเมืองเลย","approx":false}]},{"id":52,"line":"สายอีสานตอนบน","route":"เลย","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T21:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว · กรรมการนั่งคันนี้: เลยพิทยาคม, เลยอนุกูลวิทยา","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว · กรรมการนั่งคันนี้: เลยพิทยาคม, เลยอนุกูลวิทยา","km":577,"hours":8.9,"vtype":"รถตู้","days":1,"staff":2,"stops":[{"code":"229/1","zone":"229","name":"สพม. เลย หนองบัวลำภู","venue":"โรงเรียนเลยพิทยาคม","amphoe":"อ.เมืองเลย","lat":17.490676,"lng":101.716028,"eta":"2026-11-14T06:19:42.022293+07:00","remark":"","approx":false}]},{"id":53,"line":"สายอีสานตอนล่าง","route":"อำนาจเจริญ","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T20:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว · ฝาก ภาค ข. วิชาที่ 6 (4 กล่อง) ไปกับสาย 54 → เข้าห้องมั่นคงอนุบาลอำนาจเจริญ","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว · ฝาก ภาค ข. วิชาที่ 6 (4 กล่อง) ไปกับสาย 54 → เข้าห้องมั่นคงอนุบาลอำนาจเจริญ","km":607,"hours":9.3,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"170/1","zone":"170","name":"สพป. อำนาจเจริญ","venue":"โรงเรียนอนุบาลอำนาจเจริญ","amphoe":"อ.เมืองอำนาจเจริญ","lat":15.856348,"lng":104.628793,"eta":"2026-11-14T06:55:20.314360+07:00","remark":"","approx":false}]},{"id":54,"line":"สายอีสานตอนล่าง","route":"อำนาจเจริญ","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T20:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":607,"hours":9.3,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"170/2","zone":"170","name":"สพป. อำนาจเจริญ","venue":"โรงเรียนอำนาจเจริญ","amphoe":"อ.เมืองอำนาจเจริญ","lat":15.872841,"lng":104.622959,"eta":"2026-11-14T06:55:45.892658+07:00","remark":"ห้องมั่นคง: โรงเรียนอนุบาลอำนาจเจริญ","approx":false},{"code":"170/1","zone":"170","name":"สพป. อำนาจเจริญ","venue":"โรงเรียนอนุบาลอำนาจเจริญ","amphoe":"อ.เมืองอำนาจเจริญ","lat":15.856348,"lng":104.628793,"eta":"2026-11-14T07:13:05.370371+07:00","remark":"ฝากส่ง","approx":false}]},{"id":55,"line":"สายอีสานตอนบน","route":"กาฬสินธุ์","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T22:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":579,"hours":8.9,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"009/1","zone":"009","name":"สพป. กาฬสินธุ์ เขต 3","venue":"รร.บ้านสี่แยกสมเด็จ","amphoe":"อ.สมเด็จ","lat":16.707941,"lng":103.749797,"eta":"2026-11-14T08:03:39.939409+07:00","remark":"","approx":false}]},{"id":56,"line":"สายอีสานตอนบน","route":"หนองบัวลำภู","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T22:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":541,"hours":8.3,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"167/1","zone":"167","name":"สพป. หนองบัวลำภู เขต 1","venue":"โรงเรียนหนองบัววิทยายน","amphoe":"อ.เมืองหนองบัวลำภู","lat":17.203325,"lng":102.443568,"eta":"2026-11-14T07:18:11.372470+07:00","remark":"","approx":false}]},{"id":57,"line":"สายอีสานตอนล่าง","route":"ศรีสะเกษ","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T22:20:00+07:00","mode":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":553,"hours":8.5,"vtype":"ตู้ทึบ","days":1,"staff":1,"stops":[{"code":"135/1","zone":"135","name":"สพป. ศรีสะเกษ เขต 2","venue":"วิทยาลัยอาชีวศึกษาจุลมณีอุทุมพรพิสัย","amphoe":"อ.อุทุมพรพิสัย","lat":15.113711,"lng":104.147265,"eta":"2026-11-14T06:45:56.664741+07:00","remark":"","approx":false}]},{"id":58,"line":"สายอีสานตอนล่าง","route":"ศรีสะเกษ","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T22:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":573,"hours":8.8,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"230/1","zone":"230","name":"สพม. ศรีสะเกษ ยโสธร","venue":"โรงเรียนสตรีสิริเกศ","amphoe":"อ.เมืองศรีสะเกษ","lat":15.115086,"lng":104.325415,"eta":"2026-11-14T07:07:12.822064+07:00","remark":"","approx":false}]},{"id":59,"line":"สายใต้","route":"ชุมพร","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T22:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":527,"hours":8.1,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"029/1","zone":"029","name":"สพป. ชุมพร เขต 2","venue":"โรงเรียนสวนศรีวิทยา","amphoe":"อ.หลังสวน","lat":9.948642,"lng":99.08472,"eta":"2026-11-14T07:04:10.191199+07:00","remark":"","approx":false}]},{"id":60,"line":"สายอีสานตอนบน","route":"กาฬสินธุ์","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T22:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":525,"hours":8.1,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"008/1","zone":"008","name":"สพป. กาฬสินธุ์ เขต 2","venue":"โรงเรียนห้วยเม็กราษฎร์นุกูล","amphoe":"อ.ห้วยเม็ก","lat":16.597769,"lng":103.226852,"eta":"2026-11-14T07:37:11.404102+07:00","remark":"","approx":false}]},{"id":61,"line":"สายใต้","route":"ชุมพร","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T23:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":458,"hours":7.0,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"028/1","zone":"028","name":"สพป. ชุมพร เขต 1","venue":"โรงเรียนศรียาภัย","amphoe":"อ.เมืองชุมพร","lat":10.496795,"lng":99.183755,"eta":"2026-11-14T06:51:33.430375+07:00","remark":"","approx":false}]},{"id":62,"line":"สายอีสานตอนบน","route":"มหาสารคาม","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T22:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":477,"hours":7.3,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"107/1","zone":"107","name":"สพป. มหาสารคาม เขต 3","venue":"โรงเรียนศรีโกสุมวิทยามิตรภาพที่ 209","amphoe":"อ.โกสุมพิสัย","lat":16.244131,"lng":103.067379,"eta":"2026-11-14T06:18:27.259980+07:00","remark":"","approx":false}]},{"id":63,"line":"สายอีสานตอนบน","route":"มหาสารคาม","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T22:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":477,"hours":7.3,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"107/2","zone":"107","name":"สพป. มหาสารคาม เขต 3","venue":"โรงเรียนโกสุมวิทยาสรรค์","amphoe":"อ.โกสุมพิสัย","lat":16.237,"lng":103.068389,"eta":"2026-11-14T06:17:50.753268+07:00","remark":"ห้องมั่นคง: โรงเรียนศรีโกสุมวิทยามิตรภาพที่ 209","approx":false}]},{"id":64,"line":"สายอีสานตอนบน","route":"ขอนแก่น","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T23:50:00+07:00","mode":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":465,"hours":7.2,"vtype":"ตู้ทึบ","days":1,"staff":1,"stops":[{"code":"189/1","zone":"189","name":"สพม. ขอนแก่น","venue":"โรงเรียนแก่นนครวิทยาลัย","amphoe":"อ.เมืองขอนแก่น","lat":16.415155,"lng":102.82442,"eta":"2026-11-14T07:45:33.892361+07:00","remark":"","approx":false}]},{"id":65,"line":"สายอีสานตอนบน","route":"ขอนแก่น","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T23:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":451,"hours":6.9,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"016/1","zone":"016","name":"สพป. ขอนแก่น เขต 5","venue":"โรงเรียนหนองขามวิทยาคาร","amphoe":"อ.ชุมแพ","lat":16.546483,"lng":102.10872,"eta":"2026-11-14T06:40:41.402054+07:00","remark":"","approx":false}]},{"id":66,"line":"สายอีสานตอนล่าง","route":"ชัยภูมิ","group":"สนามไกล","origin":"CSP","depart":"2026-11-14T00:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":395,"hours":6.1,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"026/1","zone":"026","name":"สพป. ชัยภูมิ เขต 2","venue":"โรงเรียนศรีแก้งคร้อ","amphoe":"อ.แก้งคร้อ","lat":16.10699,"lng":102.255961,"eta":"2026-11-14T06:59:31.939318+07:00","remark":"","approx":false}]},{"id":67,"line":"สายอีสานตอนบน","route":"มหาสารคาม","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T22:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":472,"hours":7.3,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"106/2","zone":"106","name":"สพป. มหาสารคาม เขต 2","venue":"โรงเรียนเมืองวาปีปทุม","amphoe":"อ.วาปีปทุม","lat":15.847412,"lng":103.375215,"eta":"2026-11-14T06:41:05.076312+07:00","remark":"ห้องมั่นคง: โรงเรียนอนุบาลวาปีปทุม","approx":false}]},{"id":68,"line":"สายอีสานตอนบน","route":"มหาสารคาม","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T22:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":474,"hours":7.3,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"106/1","zone":"106","name":"สพป. มหาสารคาม เขต 2","venue":"โรงเรียนอนุบาลวาปีปทุม","amphoe":"อ.วาปีปทุม","lat":15.844931,"lng":103.380719,"eta":"2026-11-14T06:41:25.474592+07:00","remark":"","approx":false}]},{"id":69,"line":"สายเหนือตอนล่าง","route":"ตาก","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T23:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":438,"hours":6.7,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"197/1","zone":"197","name":"สพม. ตาก","venue":"โรงเรียนผดุงปัญญา","amphoe":"อ.เมืองตาก","lat":16.887815,"lng":99.12992,"eta":"2026-11-14T07:45:14.685815+07:00","remark":"","approx":false}]},{"id":70,"line":"สายอีสานตอนล่าง","route":"บุรีรัมย์","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T23:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":436,"hours":6.7,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"075/1","zone":"075","name":"สพป. บุรีรัมย์ เขต 4","venue":"โรงเรียนบ้านสตึก","amphoe":"อ.สตึก","lat":15.295251,"lng":103.289496,"eta":"2026-11-14T06:49:04.112434+07:00","remark":"","approx":false}]},{"id":71,"line":"สายอีสานตอนล่าง","route":"บุรีรัมย์","group":"สนามไกล","origin":"CSP","depart":"2026-11-14T00:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":418,"hours":6.4,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"072/1","zone":"072","name":"สพป. บุรีรัมย์ เขต 1","venue":"โรงเรียนอนุบาลบุรีรัมย์","amphoe":"อ.เมืองบุรีรัมย์","lat":14.997576,"lng":103.106311,"eta":"2026-11-14T06:38:29.417359+07:00","remark":"","approx":false}]},{"id":72,"line":"สายเหนือตอนล่าง","route":"พิษณุโลก","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T23:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":389,"hours":6.0,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"095/1","zone":"095","name":"สพป. พิษณุโลก เขต 2","venue":"โรงเรียนพิณพลราษฎร์ ตั้งตรงจิตร 12","amphoe":"อ.วังทอง","lat":16.823458,"lng":100.427665,"eta":"2026-11-14T06:30:02.210852+07:00","remark":"ห้องมั่นคง: บ้านเนินมะปราง","approx":false}]},{"id":73,"line":"สายเหนือตอนล่าง","route":"พิษณุโลก","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T23:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":392,"hours":6.0,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"095/2","zone":"095","name":"สพป. พิษณุโลก เขต 2","venue":"วังทองพิทยาคม","amphoe":"อ.วังทอง","lat":16.844017,"lng":100.453681,"eta":"2026-11-14T06:32:39.717438+07:00","remark":"ห้องมั่นคง: บ้านเนินมะปราง","approx":false}]},{"id":74,"line":"สายเหนือตอนล่าง","route":"พิษณุโลก","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T23:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":368,"hours":5.7,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"095/4","zone":"095","name":"สพป. พิษณุโลก เขต 2","venue":"บ้านเนินมะปรางศึกษาวิทยา","amphoe":"อ.เนินมะปราง","lat":16.552482,"lng":100.610054,"eta":"2026-11-14T05:53:36.903674+07:00","remark":"ห้องมั่นคง: บ้านเนินมะปราง","approx":false}]},{"id":75,"line":"สายเหนือตอนล่าง","route":"พิษณุโลก","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T23:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":371,"hours":5.7,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"095/3","zone":"095","name":"สพป. พิษณุโลก เขต 2","venue":"บ้านเนินมะปราง","amphoe":"อ.เนินมะปราง","lat":16.567458,"lng":100.634276,"eta":"2026-11-14T05:55:40.745209+07:00","remark":"","approx":false}]},{"id":76,"line":"สายเหนือตอนล่าง","route":"พิษณุโลก","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T23:20:00+07:00","mode":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":387,"hours":6.0,"vtype":"ตู้ทึบ","days":1,"staff":1,"stops":[{"code":"217/1","zone":"217","name":"สพม. พิษณุโลก อุตรดิตถ์","venue":"โรงเรียนพิษณุโลกพิทยาคม","amphoe":"อ.เมืองพิษณุโลก","lat":16.800919,"lng":100.198013,"eta":"2026-11-14T06:29:12.250363+07:00","remark":"","approx":false}]},{"id":77,"line":"สายเหนือตอนล่าง","route":"พิษณุโลก","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T23:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":409,"hours":6.3,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"217/2","zone":"217","name":"สพม. พิษณุโลก อุตรดิตถ์","venue":"โรงเรียนจ่านกร้อง","amphoe":"อ.เมืองพิษณุโลก","lat":16.827687,"lng":100.256064,"eta":"2026-11-14T06:32:01.225094+07:00","remark":"ห้องมั่นคง: โรงเรียนพิษณุโลกพิทยาคม","approx":false}]},{"id":78,"line":"สายอีสานตอนล่าง","route":"นครราชสีมา","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T23:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":372,"hours":5.7,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"055/1","zone":"055","name":"สพป. นครราชสีมา เขต 6","venue":"โรงเรียนวัดประชานิมิตร","amphoe":"อ.บัวใหญ่","lat":15.59965,"lng":102.418568,"eta":"2026-11-14T05:48:48.105541+07:00","remark":"","approx":false}]},{"id":79,"line":"สายอีสานตอนล่าง","route":"นครราชสีมา","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T23:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":369,"hours":5.7,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"055/2","zone":"055","name":"สพป. นครราชสีมา เขต 6","venue":"โรงเรียนสีดาวิทยา","amphoe":"อ.สีดา","lat":15.549379,"lng":102.542149,"eta":"2026-11-14T05:54:53.771873+07:00","remark":"ห้องมั่นคง: โรงเรียนวัดประชานิมิตร","approx":false}]},{"id":80,"line":"สายเหนือตอนล่าง","route":"เพชรบูรณ์","group":"สนามไกล","origin":"CSP","depart":"2026-11-14T00:20:00+07:00","mode":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":417,"hours":6.4,"vtype":"ตู้ทึบ","days":1,"staff":1,"stops":[{"code":"100/1","zone":"100","name":"สพป. เพชรบูรณ์ เขต 2","venue":"โรงเรียนหล่มสักวิทยาคม","amphoe":"อ.หล่มสัก","lat":16.790628,"lng":101.244749,"eta":"2026-11-14T07:34:26.832932+07:00","remark":"","approx":false}]},{"id":81,"line":"สายเหนือตอนล่าง","route":"เพชรบูรณ์","group":"สนามไกล","origin":"CSP","depart":"2026-11-14T00:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":370,"hours":5.7,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"099/1","zone":"099","name":"สพป. เพชรบูรณ์ เขต 1","venue":"โรงเรียนอนุบาลเพชรบูรณ์","amphoe":"อ.เมืองเพชรบูรณ์","lat":16.417816,"lng":101.156853,"eta":"2026-11-14T07:13:27.277099+07:00","remark":"","approx":false}]},{"id":82,"line":"สายเหนือตอนล่าง","route":"กำแพงเพชร","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T23:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":373,"hours":5.7,"vtype":"รถตู้","days":1,"staff":2,"stops":[{"code":"188/1","zone":"188","name":"สพม. กำแพงเพชร","venue":"สพม.กำแพงเพชร","amphoe":"อ.เมืองกำแพงเพชร","lat":16.479132,"lng":99.525755,"eta":"2026-11-14T06:36:07.640927+07:00","remark":"","approx":false},{"code":"010/1","zone":"010","name":"สพป. กำแพงเพชร เขต 1","venue":"โรงเรียนวัดคูยาง","amphoe":"อ.เมืองกำแพงเพชร","lat":16.477789,"lng":99.528899,"eta":"2026-11-14T06:51:34.064551+07:00","remark":"","approx":false}]},{"id":83,"line":"สายเหนือตอนล่าง","route":"กำแพงเพชร","group":"สนามไกล","origin":"CSP","depart":"2026-11-14T01:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":322,"hours":5.0,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"011/1","zone":"011","name":"สพป. กำแพงเพชร เขต 2","venue":"โรงเรียนชุมชนประชาสามัคคี","amphoe":"อ.คลองขลุง","lat":16.147818,"lng":99.719627,"eta":"2026-11-14T07:16:19.327612+07:00","remark":"","approx":false}]},{"id":84,"line":"สายอีสานตอนล่าง","route":"นครราชสีมา","group":"สนามไกล","origin":"CSP","depart":"2026-11-14T00:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":374,"hours":5.8,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"056/1","zone":"056","name":"สพป. นครราชสีมา เขต 7","venue":"โรงเรียนชุมพวงศึกษา","amphoe":"อ.ชุมพวง","lat":15.340514,"lng":102.74478,"eta":"2026-11-14T06:55:32.908002+07:00","remark":"","approx":false}]},{"id":85,"line":"สายอีสานตอนล่าง","route":"บุรีรัมย์","group":"สนามไกล","origin":"CSP","depart":"2026-11-13T23:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":401,"hours":6.2,"vtype":"รถตู้","days":1,"staff":2,"stops":[{"code":"074/1","zone":"074","name":"สพป. บุรีรัมย์ เขต 3","venue":"โรงเรียนอนุบาลนางรอง(สังขกฤษณ์อนุสรณ์)","amphoe":"อ.นางรอง","lat":14.626757,"lng":102.792873,"eta":"2026-11-14T05:09:55.953377+07:00","remark":"","approx":false},{"code":"073/1","zone":"073","name":"สพป. บุรีรัมย์ เขต 2","venue":"อนุบาลประโคนชัยฯ","amphoe":"อ.ประโคนชัย","lat":14.611931,"lng":103.078825,"eta":"2026-11-14T06:01:54.352950+07:00","remark":"","approx":false}]},{"id":86,"line":"สายตะวันออก","route":"ตราด","group":"สนามไกล","origin":"TUC","depart":"2026-11-14T00:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":345,"hours":5.3,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"042/1","zone":"042","name":"สพป. ตราด","venue":"โรงเรียนอนุบาลตราด","amphoe":"อ.เมืองตราด","lat":12.241338,"lng":102.514568,"eta":"2026-11-14T06:36:53.155922+07:00","remark":"","approx":false}]},{"id":87,"line":"สายเหนือตอนล่าง","route":"พิจิตร","group":"สนามไกล","origin":"CSP","depart":"2026-11-14T00:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":368,"hours":5.7,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"092/1","zone":"092","name":"สพป. พิจิตร เขต 1","venue":"โรงเรียนพิจิตรพิทยาคม","amphoe":"อ.เมืองพิจิตร","lat":16.447298,"lng":100.326589,"eta":"2026-11-14T07:10:40.940265+07:00","remark":"","approx":false}]},{"id":88,"line":"สายเหนือตอนล่าง","route":"พิจิตร","group":"สนามไกล","origin":"CSP","depart":"2026-11-14T01:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":329,"hours":5.1,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"093/1","zone":"093","name":"สพป. พิจิตร เขต 2","venue":"โรงเรียนตะพานหิน","amphoe":"อ.ตะพานหิน","lat":16.213054,"lng":100.440086,"eta":"2026-11-14T07:08:35.517630+07:00","remark":"","approx":false}]},{"id":89,"line":"สายอีสานตอนล่าง","route":"ชัยภูมิ","group":"สนามไกล","origin":"CSP","depart":"2026-11-14T00:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":348,"hours":5.4,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"193/1","zone":"193","name":"สพม. ชัยภูมิ","venue":"โรงเรียนเมืองพญาแลวิทยา","amphoe":"อ.เมืองชัยภูมิ","lat":15.797688,"lng":102.025072,"eta":"2026-11-14T06:38:46.479772+07:00","remark":"","approx":false}]},{"id":90,"line":"สายเหนือตอนล่าง","route":"เพชรบูรณ์","group":"สนามไกล","origin":"CSP","depart":"2026-11-14T01:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":313,"hours":4.8,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"101/1","zone":"101","name":"สพป. เพชรบูรณ์ เขต 3","venue":"โรงเรียนหนองไผ่","amphoe":"อ.หนองไผ่","lat":15.994029,"lng":101.06423,"eta":"2026-11-14T06:45:40.521150+07:00","remark":"","approx":false}]},{"id":91,"line":"สายเหนือตอนล่าง","route":"นครสวรรค์","group":"สนามไกล","origin":"CSP","depart":"2026-11-14T01:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":291,"hours":4.5,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"062/1","zone":"062","name":"สพป. นครสวรรค์ เขต 2","venue":"โรงเรียนลาดยาววิทยาคม","amphoe":"อ.ลาดยาว","lat":15.766102,"lng":99.799386,"eta":"2026-11-14T06:54:44.850859+07:00","remark":"","approx":false}]},{"id":92,"line":"สายเหนือตอนล่าง","route":"นครสวรรค์","group":"สนามไกล","origin":"CSP","depart":"2026-11-14T01:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":261,"hours":4.0,"vtype":"รถตู้","days":1,"staff":2,"stops":[{"code":"061/1","zone":"061","name":"สพป. นครสวรรค์ เขต 1","venue":"โรงเรียนอนุบาลนครสวรรค์","amphoe":"อ.เมืองนครสวรรค์","lat":15.678674,"lng":100.109003,"eta":"2026-11-14T06:32:56.336754+07:00","remark":"","approx":false},{"code":"202/1","zone":"202","name":"สพม. นครสวรรค์","venue":"โรงเรียนนครสวรรค์","amphoe":"อ.เมืองนครสวรรค์","lat":15.71206,"lng":100.133246,"eta":"2026-11-14T06:53:22.462261+07:00","remark":"","approx":false}]},{"id":93,"line":"สายตะวันออก","route":"จันทบุรี","group":"สนามไกล","origin":"TUC","depart":"2026-11-14T02:20:00+07:00","mode":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":271,"hours":4.2,"vtype":"ตู้ทึบ","days":1,"staff":1,"stops":[{"code":"018/1","zone":"018","name":"สพป. จันทบุรี เขต 2","venue":"มหาวิทยาลัยราชภัฏรำไพพรรณี","amphoe":"อ.เมืองจันทบุรี","lat":12.663777,"lng":102.103465,"eta":"2026-11-14T06:49:10.069462+07:00","remark":"","approx":false}]},{"id":94,"line":"สายตะวันออก","route":"จันทบุรี","group":"สนามไกล","origin":"TUC","depart":"2026-11-14T02:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":277,"hours":4.3,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"190/1","zone":"190","name":"สพม. จันทบุรี ตราด","venue":"โรงเรียนเบญจมานุสรณ์","amphoe":"อ.เมืองจันทบุรี","lat":12.590118,"lng":102.094179,"eta":"2026-11-14T06:55:16.816366+07:00","remark":"","approx":false}]},{"id":95,"line":"สายอีสานตอนล่าง","route":"นครราชสีมา","group":"สนามไกล","origin":"CSP","depart":"2026-11-14T01:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":280,"hours":4.3,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"052/2","zone":"052","name":"สพป. นครราชสีมา เขต 3","venue":"โรงเรียนบ้านเมืองปักสามัคคี","amphoe":"อ.ปักธงชัย","lat":14.724978,"lng":102.01594,"eta":"2026-11-14T05:50:53.586467+07:00","remark":"ห้องมั่นคง: โรงเรียนปักธงชัยชุณหะวัณวิทยาคาร","approx":false}]},{"id":96,"line":"สายอีสานตอนล่าง","route":"นครราชสีมา","group":"สนามไกล","origin":"CSP","depart":"2026-11-14T01:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":281,"hours":4.3,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"052/1","zone":"052","name":"สพป. นครราชสีมา เขต 3","venue":"โรงเรียนปักธงชัยชุณหะวัณวิทยาคาร","amphoe":"อ.ปักธงชัย","lat":14.719621,"lng":102.025631,"eta":"2026-11-14T05:51:26.199020+07:00","remark":"","approx":false}]},{"id":97,"line":"สายอีสานตอนล่าง","route":"นครราชสีมา","group":"สนามไกล","origin":"CSP","depart":"2026-11-14T02:50:00+07:00","mode":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"ตู้ทึบ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":278,"hours":4.3,"vtype":"ตู้ทึบ","days":1,"staff":1,"stops":[{"code":"200/1","zone":"200","name":"สพม. นครราชสีมา","venue":"โรงเรียนสุรนารีวิทยา","amphoe":"อ.เมืองนครราชสีมา","lat":14.980495,"lng":102.102489,"eta":"2026-11-14T07:21:29.317608+07:00","remark":"","approx":false}]},{"id":98,"line":"สายตะวันออก","route":"สระแก้ว","group":"สนามไกล","origin":"TUC","depart":"2026-11-14T02:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":254,"hours":3.9,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"150/1","zone":"150","name":"สพป. สระแก้ว เขต 2","venue":"โรงเรียนอรัญประเทศ","amphoe":"อ.อรัญประเทศ","lat":13.702438,"lng":102.491836,"eta":"2026-11-14T06:27:55.470212+07:00","remark":"","approx":false}]},{"id":99,"line":"สายตะวันออก","route":"สระแก้ว","group":"สนามไกล","origin":"TUC","depart":"2026-11-14T03:20:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":191,"hours":2.9,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"235/1","zone":"235","name":"สพม. สระแก้ว","venue":"โรงเรียนสระแก้ว","amphoe":"อ.เมืองสระแก้ว","lat":13.828383,"lng":102.060234,"eta":"2026-11-14T06:29:49.849348+07:00","remark":"","approx":false}]},{"id":100,"line":"สายตะวันตก","route":"ประจวบคีรีขันธ์","group":"สนามไกล","origin":"TUC","depart":"2026-11-14T00:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":338,"hours":5.2,"vtype":"รถตู้","days":1,"staff":2,"stops":[{"code":"209/1","zone":"209","name":"สพม. ประจวบคีรีขันธ์","venue":"โรงเรียนกุยบุรีวิทยา","amphoe":"อ.กุยบุรี","lat":12.080622,"lng":99.856159,"eta":"2026-11-14T05:33:00.776616+07:00","remark":"","approx":false},{"code":"078/1","zone":"078","name":"สพป. ประจวบคีรีขันธ์ เขต 1","venue":"โรงเรียนอนุบาลประจวบคีรีขันธ์","amphoe":"อ.เมืองประจวบคีรีขันธ์","lat":11.809893,"lng":99.797679,"eta":"2026-11-14T06:24:56.114383+07:00","remark":"","approx":false}]},{"id":101,"line":"สายตะวันตก","route":"ประจวบคีรีขันธ์","group":"สนามไกล","origin":"TUC","depart":"2026-11-14T02:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":261,"hours":4.0,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"079/1","zone":"079","name":"สพป. ประจวบคีรีขันธ์ เขต 2","venue":"โรงเรียนอนุบาลปราณบุรี (บ้านเมืองเก่า)","amphoe":"อ.ปราณบุรี","lat":12.378349,"lng":99.925364,"eta":"2026-11-14T06:52:41.036008+07:00","remark":"","approx":false}]},{"id":102,"line":"สายตะวันตก","route":"เพชรบุรี","group":"สนามไกล","origin":"TUC","depart":"2026-11-14T02:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":197,"hours":3.0,"vtype":"รถตู้","days":1,"staff":2,"stops":[{"code":"097/1","zone":"097","name":"สพป. เพชรบุรี เขต 1","venue":"โรงเรียนวัดดอนไก่เตี้ย","amphoe":"อ.เมืองเพชรบุรี","lat":13.124188,"lng":99.937339,"eta":"2026-11-14T05:23:39.473576+07:00","remark":"","approx":false},{"code":"098/1","zone":"098","name":"สพป. เพชรบุรี เขต 2","venue":"โรงเรียนบ้านท่ายาง (ประชาสรรค์)","amphoe":"อ.ท่ายาง","lat":12.971029,"lng":99.889701,"eta":"2026-11-14T06:00:00.724100+07:00","remark":"","approx":false}]},{"id":103,"line":"สายตะวันตก","route":"กาญจนบุรี","group":"สนามไกล","origin":"TUC","depart":"2026-11-14T03:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":198,"hours":3.0,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"005/1","zone":"005","name":"สพป. กาญจนบุรี เขต 3","venue":"โรงเรียนไทรโยคมณีกาญจน์วิทยา","amphoe":"อ.ไทรโยค","lat":14.120893,"lng":99.142229,"eta":"2026-11-14T07:00:46.714822+07:00","remark":"","approx":false}]},{"id":104,"line":"สายตะวันออก","route":"ปราจีนบุรี","group":"สนามใกล้","origin":"TUC","depart":"2026-11-14T03:20:00+07:00","mode":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","remark":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","km":153,"hours":2.4,"vtype":"รถตู้","days":2,"staff":1,"stops":[{"code":"081/1","zone":"081","name":"สพป. ปราจีนบุรี เขต 2","venue":"โรงเรียนไทยรัฐวิทยา 93 (บ้านลาดตะเคียน)","amphoe":"อ.กบินทร์บุรี","lat":13.902752,"lng":101.636002,"eta":"2026-11-14T05:33:59.192769+07:00","remark":"","approx":false}]},{"id":105,"line":"สายตะวันตก","route":"กาญจนบุรี","group":"สนามใกล้","origin":"TUC","depart":"2026-11-14T03:50:00+07:00","mode":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","remark":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","km":184,"hours":2.8,"vtype":"รถตู้","days":2,"staff":1,"stops":[{"code":"006/1","zone":"006","name":"สพป. กาญจนบุรี เขต 4","venue":"โรงเรียนบ่อพลอยรัชดาภิเษก","amphoe":"อ.บ่อพลอย","lat":14.327002,"lng":99.520559,"eta":"2026-11-14T06:15:45.790657+07:00","remark":"","approx":false}]},{"id":106,"line":"สายเหนือตอนล่าง","route":"อุทัยธานี","group":"สนามใกล้","origin":"TUC","depart":"2026-11-14T03:50:00+07:00","mode":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","remark":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","km":179,"hours":2.8,"vtype":"รถตู้","days":2,"staff":1,"stops":[{"code":"177/1","zone":"177","name":"สพป. อุทัยธานี เขต 1","venue":"โรงเรียนอุทัยวิทยาคม","amphoe":"อ.เมืองอุทัยธานี","lat":15.400359,"lng":100.032839,"eta":"2026-11-14T07:02:57.405411+07:00","remark":"","approx":false}]},{"id":107,"line":"สายกลาง","route":"ลพบุรี","group":"สนามไกล","origin":"TUC","depart":"2026-11-14T03:50:00+07:00","mode":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","remark":"รถตู้ · ค้างคืน · ขนภาค ก.+ข. รอบเดียว","km":164,"hours":2.5,"vtype":"รถตู้","days":1,"staff":1,"stops":[{"code":"125/1","zone":"125","name":"สพป. ลพบุรี เขต 2","venue":"โรงเรียนชัยบาดาลวิทยา","amphoe":"อ.ชัยบาดาล","lat":15.219901,"lng":101.146929,"eta":"2026-11-14T06:38:15.642168+07:00","remark":"","approx":false}]},{"id":108,"line":"สายตะวันออก","route":"ชลบุรี","group":"สนามใกล้","origin":"TUC","depart":"2026-11-14T03:20:00+07:00","mode":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","remark":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","km":180,"hours":2.8,"vtype":"รถตู้","days":2,"staff":3,"stops":[{"code":"023/3","zone":"023","name":"สพป. ชลบุรี เขต 3","venue":"โรงเรียนอนุบาลบางละมุง","amphoe":"อ.บางละมุง","lat":13.019645,"lng":100.93007,"eta":"2026-11-14T05:45:47.299267+07:00","remark":"","approx":false},{"code":"023/1","zone":"023","name":"สพป. ชลบุรี เขต 3","venue":"โรงเรียนวัดสุทธาวาส","amphoe":"อ.บางละมุง","lat":12.923574,"lng":100.936651,"eta":"2026-11-14T06:13:38.158789+07:00","remark":"","approx":false},{"code":"023/2","zone":"023","name":"สพป. ชลบุรี เขต 3","venue":"โรงเรียนวัดบุญสัมพันธ์","amphoe":"อ.บางละมุง","lat":12.909252,"lng":100.915084,"eta":"2026-11-14T06:32:01.804130+07:00","remark":"","approx":false}]},{"id":109,"line":"สายตะวันออก","route":"ชลบุรี","group":"สนามใกล้","origin":"TUC","depart":"2026-11-14T04:20:00+07:00","mode":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","remark":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","km":124,"hours":1.9,"vtype":"รถตู้","days":2,"staff":1,"stops":[{"code":"022/1","zone":"022","name":"สพป. ชลบุรี เขต 2","venue":"โรงเรียนอนุบาลพนัสศึกษาลัย","amphoe":"อ.พนัสนิคม","lat":13.449318,"lng":101.172647,"eta":"2026-11-14T06:09:44.418927+07:00","remark":"","approx":false}]},{"id":110,"line":"สายตะวันตก","route":"กาญจนบุรี","group":"สนามใกล้","origin":"TUC","depart":"2026-11-14T03:20:00+07:00","mode":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","remark":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","km":172,"hours":2.6,"vtype":"รถตู้","days":2,"staff":2,"stops":[{"code":"186/1","zone":"186","name":"สพม. กาญจนบุรี","venue":"โรงเรียนกาญจนานุเคราะห์","amphoe":"อ.เมืองกาญจนบุรี","lat":14.020931,"lng":99.531865,"eta":"2026-11-14T05:40:23.982224+07:00","remark":"","approx":false},{"code":"004/1","zone":"004","name":"สพป. กาญจนบุรี เขต 2","venue":"สพป.กาญจนบุรี เขต 2","amphoe":"อ.พนมทวน","lat":14.108562,"lng":99.666083,"eta":"2026-11-14T06:16:20.439102+07:00","remark":"","approx":false}]},{"id":111,"line":"สายตะวันออก","route":"ปราจีนบุรี","group":"สนามใกล้","origin":"TUC","depart":"2026-11-14T03:20:00+07:00","mode":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","remark":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","km":114,"hours":1.8,"vtype":"รถตู้","days":2,"staff":2,"stops":[{"code":"080/2","zone":"080","name":"สพป. ปราจีนบุรี เขต 1","venue":"โรงเรียนบ้านแหลมหิน","amphoe":"อ.เมืองปราจีนบุรี","lat":14.109676,"lng":101.337759,"eta":"2026-11-14T04:53:39.056911+07:00","remark":"","approx":false},{"code":"080/1","zone":"080","name":"สพป. ปราจีนบุรี เขต 1","venue":"โรงเรียนอนุบาลปราจีนบุรี","amphoe":"อ.เมืองปราจีนบุรี","lat":14.05071,"lng":101.3698,"eta":"2026-11-14T05:17:32.697044+07:00","remark":"","approx":false}]},{"id":112,"line":"สายตะวันออก","route":"ชลบุรี","group":"สนามใกล้","origin":"TUC","depart":"2026-11-14T04:50:00+07:00","mode":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","remark":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","km":113,"hours":1.7,"vtype":"รถตู้","days":2,"staff":1,"stops":[{"code":"021/1","zone":"021","name":"สพป. ชลบุรี เขต 1","venue":"โรงเรียนชลบุรี \"สุขบท\"","amphoe":"อ.เมืองชลบุรี","lat":13.394963,"lng":100.989,"eta":"2026-11-14T06:32:05.595624+07:00","remark":"","approx":false}]},{"id":113,"line":"สายตะวันออก","route":"ชลบุรี","group":"สนามใกล้","origin":"TUC","depart":"2026-11-14T04:20:00+07:00","mode":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","remark":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","km":119,"hours":1.8,"vtype":"รถตู้","days":2,"staff":1,"stops":[{"code":"192/1","zone":"192","name":"สพม. ชลบุรี ระยอง","venue":"โรงเรียนชลกันยานุกูล","amphoe":"อ.เมืองชลบุรี","lat":13.361628,"lng":100.980529,"eta":"2026-11-14T06:05:32.071368+07:00","remark":"","approx":false}]},{"id":114,"line":"สายตะวันตก","route":"สุพรรณบุรี","group":"สนามใกล้","origin":"TUC","depart":"2026-11-14T03:50:00+07:00","mode":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","remark":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","km":131,"hours":2.0,"vtype":"รถตู้","days":2,"staff":2,"stops":[{"code":"239/1","zone":"239","name":"สพม. สุพรรณบุรี","venue":"โรงเรียนกรรณสูตศึกษาลัย","amphoe":"อ.เมืองสุพรรณบุรี","lat":14.474964,"lng":100.097815,"eta":"2026-11-14T05:16:08.612645+07:00","remark":"","approx":false},{"code":"157/1","zone":"157","name":"สพป. สุพรรณบุรี เขต 2","venue":"โรงเรียนอนุบาลบ้านท่าพระยาจักร","amphoe":"อ.อู่ทอง","lat":14.374318,"lng":99.892151,"eta":"2026-11-14T06:00:55.278046+07:00","remark":"","approx":false}]},{"id":115,"line":"สายกลาง","route":"สิงห์บุรี","group":"สนามใกล้","origin":"TUC","depart":"2026-11-14T04:50:00+07:00","mode":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","remark":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","km":101,"hours":1.6,"vtype":"รถตู้","days":2,"staff":1,"stops":[{"code":"153/1","zone":"153","name":"สพป. สิงห์บุรี","venue":"โรงเรียนวัดพรหมสาคร","amphoe":"อ.เมืองสิงห์บุรี","lat":14.883255,"lng":100.40526,"eta":"2026-11-14T06:42:03.029435+07:00","remark":"","approx":false}]},{"id":116,"line":"สายตะวันตก","route":"สมุทรสาคร","group":"สนามใกล้","origin":"TUC","depart":"2026-11-14T04:50:00+07:00","mode":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","remark":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","km":93,"hours":1.4,"vtype":"รถตู้","days":2,"staff":1,"stops":[{"code":"234/1","zone":"234","name":"สพม. สมุทรสาคร สมุทรสงคราม","venue":"โรงเรียนสมุทรสาครวุฒิชัย","amphoe":"อ.เมืองสมุทรสาคร","lat":13.584649,"lng":100.235297,"eta":"2026-11-14T06:11:12.199107+07:00","remark":"","approx":false}]},{"id":117,"line":"สายตะวันตก","route":"สมุทรสาคร","group":"สนามใกล้","origin":"TUC","depart":"2026-11-14T04:20:00+07:00","mode":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","remark":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","km":87,"hours":1.3,"vtype":"รถตู้","days":2,"staff":2,"stops":[{"code":"148/1","zone":"148","name":"สพป. สมุทรสาคร","venue":"โรงเรียนเอกชัย","amphoe":"อ.เมืองสมุทรสาคร","lat":13.547898,"lng":100.265703,"eta":"2026-11-14T05:42:56.414446+07:00","remark":"","approx":false},{"code":"148/2","zone":"148","name":"สพป. สมุทรสาคร","venue":"โรงเรียนวัดป้อมวิเชียรโชติการาม","amphoe":"อ.เมืองสมุทรสาคร","lat":13.54797,"lng":100.271817,"eta":"2026-11-14T05:58:44.004795+07:00","remark":"","approx":false}]},{"id":118,"line":"สายตะวันตก","route":"นครปฐม","group":"สนามใกล้","origin":"TUC","depart":"2026-11-14T04:50:00+07:00","mode":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","remark":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","km":94,"hours":1.4,"vtype":"รถตู้","days":2,"staff":1,"stops":[{"code":"046/1","zone":"046","name":"สพป. นครปฐม เขต 1","venue":"โรงเรียนวัดสามง่าม (คงทองอนุสรณ์)","amphoe":"อ.ดอนตูม","lat":13.96349,"lng":100.083893,"eta":"2026-11-14T06:00:13.219037+07:00","remark":"","approx":false}]},{"id":119,"line":"สายตะวันตก","route":"นครปฐม","group":"สนามใกล้","origin":"TUC","depart":"2026-11-14T04:20:00+07:00","mode":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","remark":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","km":71,"hours":1.1,"vtype":"รถตู้","days":2,"staff":2,"stops":[{"code":"047/1","zone":"047","name":"สพป. นครปฐม เขต 2","venue":"โรงเรียนวัดไร่ขิงวิทยา","amphoe":"อ.สามพราน","lat":13.739659,"lng":100.257901,"eta":"2026-11-14T05:23:47.593291+07:00","remark":"","approx":false},{"code":"047/2","zone":"047","name":"สพป. นครปฐม เขต 2","venue":"โรงเรียนวัดไร่ขิง (สุนทรอุทิศ)","amphoe":"อ.สามพราน","lat":13.742783,"lng":100.25704,"eta":"2026-11-14T05:39:13.484947+07:00","remark":"","approx":false}]},{"id":120,"line":"สายกลาง","route":"สระบุรี","group":"สนามใกล้","origin":"TUC","depart":"2026-11-14T04:20:00+07:00","mode":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","remark":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","km":92,"hours":1.4,"vtype":"รถตู้","days":2,"staff":2,"stops":[{"code":"152/2","zone":"152","name":"สพป. สระบุรี เขต 2","venue":"โรงเรียนหินกอง(พิบูลอนุสรณ์)","amphoe":"อ.หนองแค","lat":14.408062,"lng":100.89052,"eta":"2026-11-14T05:17:36.568112+07:00","remark":"","approx":false},{"code":"152/1","zone":"152","name":"สพป. สระบุรี เขต 2","venue":"โรงเรียนอนุบาลทับกวาง","amphoe":"อ.แก่งคอย","lat":14.609842,"lng":101.070707,"eta":"2026-11-14T06:08:12.013969+07:00","remark":"","approx":false}]},{"id":121,"line":"สายกลาง","route":"สระบุรี","group":"สนามใกล้","origin":"TUC","depart":"2026-11-14T05:20:00+07:00","mode":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","remark":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","km":74,"hours":1.1,"vtype":"รถตู้","days":2,"staff":1,"stops":[{"code":"151/1","zone":"151","name":"สพป. สระบุรี เขต 1","venue":"รร.อนุบาลศาลาแดงและรร.เทศบาล4 (วัดบำรุงธรรม)","amphoe":"อ.เมืองสระบุรี","lat":14.511883,"lng":100.919451,"eta":"2026-11-14T06:31:01.943630+07:00","remark":"","approx":false}]},{"id":122,"line":"สายกลาง","route":"สมุทรปราการ","group":"สนามใกล้มาก","origin":"TUC","depart":"2026-11-14T04:20:00+07:00","mode":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","remark":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","km":67,"hours":1.0,"vtype":"รถตู้","days":2,"staff":2,"stops":[{"code":"145/1","zone":"145","name":"สพป. สมุทรปราการ เขต 1","venue":"โรงเรียนพร้านีลวัชระ","amphoe":"อ.เมืองสมุทรปราการ","lat":13.616533,"lng":100.592921,"eta":"2026-11-14T05:20:22.897792+07:00","remark":"","approx":false},{"code":"233/1","zone":"233","name":"สพม. สมุทรปราการ","venue":"โรงเรียนราชประชาสมาสัยฯ","amphoe":"อ.พระประแดง","lat":13.629417,"lng":100.535599,"eta":"2026-11-14T05:43:00.681142+07:00","remark":"","approx":false}]},{"id":123,"line":"สายกลาง","route":"กรุงเทพมหานคร","group":"สนามใกล้มาก","origin":"TUC","depart":"2026-11-14T04:50:00+07:00","mode":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","remark":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","km":20,"hours":0.3,"vtype":"รถตู้","days":2,"staff":1,"stops":[{"code":"185/3","zone":"185","name":"สพม. กรุงเทพมหานคร เขต 2","venue":"โรงเรียนฤทธิยะวรรณาลัย","amphoe":"อ.สายไหม","lat":13.91315,"lng":100.625363,"eta":"2026-11-14T05:10:46.375347+07:00","remark":"","approx":false}]},{"id":124,"line":"สายกลาง","route":"กรุงเทพมหานคร","group":"สนามใกล้มาก","origin":"TUC","depart":"2026-11-14T04:50:00+07:00","mode":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","remark":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","km":29,"hours":0.4,"vtype":"รถตู้","days":2,"staff":1,"stops":[{"code":"185/2","zone":"185","name":"สพม. กรุงเทพมหานคร เขต 2","venue":"โรงเรียนสารวิทยา","amphoe":"อ.จตุจักร","lat":13.851141,"lng":100.583526,"eta":"2026-11-14T05:19:17.920176+07:00","remark":"","approx":false}]},{"id":125,"line":"สายกลาง","route":"กรุงเทพมหานคร","group":"สนามใกล้มาก","origin":"TUC","depart":"2026-11-14T04:50:00+07:00","mode":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","remark":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","km":32,"hours":0.5,"vtype":"รถตู้","days":2,"staff":1,"stops":[{"code":"185/1","zone":"185","name":"สพม. กรุงเทพมหานคร เขต 2","venue":"โรงเรียนหอวัง","amphoe":"อ.จตุจักร","lat":13.818318,"lng":100.560847,"eta":"2026-11-14T05:24:07.519285+07:00","remark":"","approx":false}]},{"id":126,"line":"สายกลาง","route":"กรุงเทพมหานคร","group":"สนามใกล้มาก","origin":"TUC","depart":"2026-11-14T04:50:00+07:00","mode":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","remark":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","km":44,"hours":0.7,"vtype":"รถตู้","days":2,"staff":1,"stops":[{"code":"184/1","zone":"184","name":"สพม. กรุงเทพมหานคร เขต 1","venue":"โรงเรียนศรีอยุธยา ในพระอุปถัมภ์ฯ","amphoe":"อ.ราชเทวี","lat":13.758458,"lng":100.538978,"eta":"2026-11-14T05:32:32.451180+07:00","remark":"","approx":false}]},{"id":127,"line":"สายกลาง","route":"กรุงเทพมหานคร","group":"สนามใกล้มาก","origin":"TUC","depart":"2026-11-14T04:50:00+07:00","mode":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","remark":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","km":43,"hours":0.7,"vtype":"รถตู้","days":2,"staff":1,"stops":[{"code":"184/2","zone":"184","name":"สพม. กรุงเทพมหานคร เขต 1","venue":"โรงเรียนสันติราษฎร์วิทยาลัย","amphoe":"อ.ราชเทวี","lat":13.758039,"lng":100.532167,"eta":"2026-11-14T05:32:48.526610+07:00","remark":"","approx":false}]},{"id":128,"line":"สายกลาง","route":"พระนครศรีอยุธยา","group":"สนามใกล้มาก","origin":"TUC","depart":"2026-11-14T04:20:00+07:00","mode":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","remark":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","km":70,"hours":1.1,"vtype":"รถตู้","days":2,"staff":3,"stops":[{"code":"086/2","zone":"086","name":"สพป. พระนครศรีอยุธยา เขต 2","venue":"โรงเรียนวัดพระขาว","amphoe":"อ.บางบาล","lat":14.333978,"lng":100.472822,"eta":"2026-11-14T04:59:55.986959+07:00","remark":"","approx":false},{"code":"086/1","zone":"086","name":"สพป. พระนครศรีอยุธยา เขต 2","venue":"โรงเรียนวัดม่วงหวาน","amphoe":"อ.บางบาล","lat":14.36901,"lng":100.513396,"eta":"2026-11-14T05:21:57.529266+07:00","remark":"","approx":false},{"code":"086/3","zone":"086","name":"สพป. พระนครศรีอยุธยา เขต 2","venue":"โรงเรียนวัดจุฬามณี","amphoe":"อ.บางบาล","lat":14.432519,"lng":100.484262,"eta":"2026-11-14T05:46:13.916001+07:00","remark":"","approx":false}]},{"id":129,"line":"สายกลาง","route":"นนทบุรี","group":"สนามใกล้มาก","origin":"TUC","depart":"2026-11-14T05:20:00+07:00","mode":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","remark":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","km":44,"hours":0.7,"vtype":"รถตู้","days":2,"staff":1,"stops":[{"code":"203/1","zone":"203","name":"สพม. นนทบุรี","venue":"โรงเรียนเตรียมอุดมศึกษาพัฒนาการ นนทบุรี","amphoe":"อ.เมืองนนทบุรี","lat":13.847894,"lng":100.443478,"eta":"2026-11-14T05:56:54.522268+07:00","remark":"","approx":false}]},{"id":130,"line":"สายกลาง","route":"นนทบุรี","group":"สนามใกล้มาก","origin":"TUC","depart":"2026-11-14T05:20:00+07:00","mode":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","remark":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","km":47,"hours":0.7,"vtype":"รถตู้","days":2,"staff":1,"stops":[{"code":"065/1","zone":"065","name":"สพป. นนทบุรี เขต 2","venue":"โรงเรียนเฉลิมพระเกียรติ 60 พรรษาฯ","amphoe":"อ.บางใหญ่","lat":13.879113,"lng":100.403788,"eta":"2026-11-14T05:57:16.532372+07:00","remark":"","approx":false}]},{"id":131,"line":"สายกลาง","route":"ปทุมธานี","group":"สนามใกล้มาก","origin":"TUC","depart":"2026-11-14T04:50:00+07:00","mode":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","remark":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","km":27,"hours":0.4,"vtype":"รถตู้","days":2,"staff":3,"stops":[{"code":"076/6","zone":"076","name":"สพป. ปทุมธานี เขต 1","venue":"โรงเรียนวัดบางพูน","amphoe":"อ.เมืองปทุมธานี","lat":13.989343,"lng":100.572434,"eta":"2026-11-14T05:01:56.371662+07:00","remark":"","approx":false},{"code":"076/1","zone":"076","name":"สพป. ปทุมธานี เขต 1","venue":"โรงเรียนวัดนาวง","amphoe":"อ.เมืองปทุมธานี","lat":13.955624,"lng":100.572599,"eta":"2026-11-14T05:21:26.330190+07:00","remark":"","approx":false},{"code":"076/4","zone":"076","name":"สพป. ปทุมธานี เขต 1","venue":"โรงเรียนอนุบาลวัดบางนางบุญ","amphoe":"อ.เมืองปทุมธานี","lat":13.954252,"lng":100.526543,"eta":"2026-11-14T05:42:24.341980+07:00","remark":"","approx":false}]},{"id":132,"line":"สายกลาง","route":"กรุงเทพมหานคร","group":"สนามใกล้มาก","origin":"TUC","depart":"2026-11-14T04:50:00+07:00","mode":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","remark":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","km":38,"hours":0.6,"vtype":"รถตู้","days":2,"staff":1,"stops":[{"code":"246/2","zone":"246","name":"สำนักบริหารงานการศึกษาพิเศษ","venue":"โรงเรียนเตรียมอุดมศึกษาน้อมเกล้ากุนนที","amphoe":"อ.ดินแดง","lat":13.782094,"lng":100.57321,"eta":"2026-11-14T05:28:36.498623+07:00","remark":"","approx":false}]},{"id":133,"line":"สายกลาง","route":"กรุงเทพมหานคร","group":"สนามใกล้มาก","origin":"TUC","depart":"2026-11-14T04:50:00+07:00","mode":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","remark":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","km":39,"hours":0.6,"vtype":"รถตู้","days":2,"staff":1,"stops":[{"code":"246/1","zone":"246","name":"สำนักบริหารงานการศึกษาพิเศษ","venue":"โรงเรียนพิบูลประชาสรรค์","amphoe":"อ.ดินแดง","lat":13.762873,"lng":100.550498,"eta":"2026-11-14T05:31:38.492603+07:00","remark":"","approx":false}]},{"id":134,"line":"สายกลาง","route":"พระนครศรีอยุธยา","group":"สนามใกล้มาก","origin":"TUC","depart":"2026-11-14T05:20:00+07:00","mode":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","remark":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม","km":41,"hours":0.6,"vtype":"รถตู้","days":2,"staff":2,"stops":[{"code":"086/4","zone":"086","name":"สพป. พระนครศรีอยุธยา เขต 2","venue":"โรงเรียนเชียงรากน้อย","amphoe":"อ.บางปะอิน","lat":14.181068,"lng":100.615751,"eta":"2026-11-14T05:35:01.003677+07:00","remark":"","approx":false},{"code":"212/1","zone":"212","name":"สพม. พระนครศรีอยุธยา","venue":"โรงเรียนจอมสุรางค์อุปถัมภ์","amphoe":"อ.พระนครศรีอยุธยา","lat":14.364128,"lng":100.577591,"eta":"2026-11-14T06:14:56.196651+07:00","remark":"","approx":false}]},{"id":135,"line":"สายกลาง","route":"ปทุมธานี","group":"สนามใกล้มาก","origin":"TUC","depart":"2026-11-14T04:50:00+07:00","mode":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม · ทยอยส่ง","remark":"รถตู้ · ไป-กลับ · ภาค ก. 14/11 · ภาค ข. 15/11 เวลาเดิม · ทยอยส่ง","km":16,"hours":0.2,"vtype":"รถตู้","days":2,"staff":3,"stops":[{"code":"076/2","zone":"076","name":"สพป. ปทุมธานี เขต 1","venue":"โรงเรียนไทยรัฐวิทยา 69 (คลองหลวง)","amphoe":"อ.คลองหลวง","lat":14.066097,"lng":100.626007,"eta":"2026-11-14T04:51:24.769856+07:00","remark":"","approx":false},{"code":"076/5","zone":"076","name":"สพป. ปทุมธานี เขต 1","venue":"โรงเรียนประถมศึกษาธรรมศาสตร์","amphoe":"อ.คลองหลวง","lat":14.076866,"lng":100.599618,"eta":"2026-11-14T05:10:07.099243+07:00","remark":"","approx":false},{"code":"076/3","zone":"076","name":"สพป. ปทุมธานี เขต 1","venue":"โรงเรียนสามโคก","amphoe":"อ.สามโคก","lat":14.085269,"lng":100.535141,"eta":"2026-11-14T05:33:32.293042+07:00","remark":"","approx":false}]}],"source":"plan.xlsx"};
@@ -1294,248 +523,290 @@ function demoReports(now) {
   return out;
 }
 
-const OUTLINE = {"type":"FeatureCollection","features":[{"type":"Feature","id":"THA","properties":{"name":"Thailand"},"geometry":{"type":"Polygon","coordinates":[[[102.584932,12.186595],[101.687158,12.64574],[100.83181,12.627085],[100.978467,13.412722],[100.097797,13.406856],[100.018733,12.307001],[99.478921,10.846367],[99.153772,9.963061],[99.222399,9.239255],[99.873832,9.207862],[100.279647,8.295153],[100.459274,7.429573],[101.017328,6.856869],[101.623079,6.740622],[102.141187,6.221636],[101.814282,5.810808],[101.154219,5.691384],[101.075516,6.204867],[100.259596,6.642825],[100.085757,6.464489],[99.690691,6.848213],[99.519642,7.343454],[98.988253,7.907993],[98.503786,8.382305],[98.339662,7.794512],[98.150009,8.350007],[98.25915,8.973923],[98.553551,9.93296],[99.038121,10.960546],[99.587286,11.892763],[99.196354,12.804748],[99.212012,13.269294],[99.097755,13.827503],[98.430819,14.622028],[98.192074,15.123703],[98.537376,15.308497],[98.903348,16.177824],[98.493761,16.837836],[97.859123,17.567946],[97.375896,18.445438],[97.797783,18.62708],[98.253724,19.708203],[98.959676,19.752981],[99.543309,20.186598],[100.115988,20.41785],[100.548881,20.109238],[100.606294,19.508344],[101.282015,19.462585],[101.035931,18.408928],[101.059548,17.512497],[102.113592,18.109102],[102.413005,17.932782],[102.998706,17.961695],[103.200192,18.309632],[103.956477,18.240954],[104.716947,17.428859],[104.779321,16.441865],[105.589039,15.570316],[105.544338,14.723934],[105.218777,14.273212],[104.281418,14.416743],[102.988422,14.225721],[102.348099,13.394247],[102.584932,12.186595]]]}}]};
 
 const $ = s => document.querySelector(s);
-const state = { reports: [], status: [], filter: '', tab: 'v', sel: null, feedSort: { k: 'time', d: -1 } };
-const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-const effKey = s => s.stale ? 'stale' : s.key;
+const st = { profile: null, idToken: '', vehicle: null, leg: 'go', stage: null, sub: '', dest: null, pos: null, reps: [] };
 
-/* ---------- map ---------- */
-let map, layer, routeLayer;
-function initMap() {
-  if (!window.L) { $('#map').innerHTML = '<p class="empty">โหลดแผนที่ไม่ได้</p>'; return; }
-  map = L.map('map', { zoomSnap: .25, attributionControl: true }).setView([13.4, 100.9], 5.5);
-  if (OUTLINE) L.geoJSON(OUTLINE, { style: { color: cssVar('--line'), weight: 1, fillColor: cssVar('--land'), fillOpacity: 1 }, interactive: false }).addTo(map);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap' }).addTo(map);
-  layer = L.layerGroup().addTo(map); routeLayer = L.layerGroup().addTo(map);
-  Object.entries(DATA.origins).forEach(([k, o]) => L.marker([o.lat, o.lng], { icon: L.divIcon({ className: '', html: '<div class="vm" style="--c:var(--brand);border-radius:5px;width:34px;height:20px;font-size:10px">' + k + '</div>', iconSize: [34, 20] }) }).bindTooltip(o.name).addTo(map));
+async function initLine() {
+  if (CFG.LIFF_ID && window.liff) {
+    await liff.init({ liffId: CFG.LIFF_ID });
+    if (!liff.isLoggedIn()) { liff.login({ redirectUri: location.href }); return false; }
+    st.profile = await liff.getProfile();
+    st.idToken = liff.getIDToken() || '';
+  } else {
+    st.profile = { displayName: 'ผู้ทดสอบระบบ', userId: 'demo-user', pictureUrl: '' };
+    $('#demoBadge').hidden = false;
+  }
+  const p = st.profile;
+  $('#hello').textContent = 'สวัสดี ' + p.displayName;
+  $('#ava').textContent = p.displayName.slice(0, 1);   // ไม่ใช้รูปโปรไฟล์
+  return true;
 }
-function drawMap() {
-  if (!map) return;
-  layer.clearLayers(); routeLayer.clearLayers();
-  state.status.forEach(s => {
-    const p = s.lastPos || (s.last ? null : originOf(s.v));
-    if (!p) return;
-    const k = effKey(s), big = state.sel === s.v.id;
-    const m = L.marker([p.lat, p.lng], { zIndexOffset: big ? 1000 : STATUS[k].rank < 2 ? 500 : 0, icon: L.divIcon({ className: '', html: '<div class="vm' + (big ? ' big' : '') + '" style="--c:var(--s-' + k + ')">' + s.v.id + '</div>', iconSize: [28, 28] }) });
-    m.bindTooltip('คันที่ ' + s.v.id + ' · ' + STATUS[k].th);
-    m.on('click', () => openDrawer(s.v.id));
-    m.addTo(layer);
-  });
-  if (state.sel) {
-    const s = state.status.find(x => x.v.id === state.sel), v = s.v;
-    const plan = [originOf(v), ...v.stops].map(p => [p.lat, p.lng]);
-    L.polyline(plan, { color: cssVar('--muted'), weight: 2, dashArray: '4 6' }).addTo(routeLayer);
-    v.stops.forEach((p, i) => L.circleMarker([p.lat, p.lng], { radius: 5, color: p.approx ? cssVar('--s-stale') : cssVar('--panel'), weight: 2, dashArray: p.approx ? '2 2' : null, fillColor: s.goDone.has(p.code) ? cssVar('--s-done') : cssVar('--muted'), fillOpacity: 1 }).bindTooltip((i + 1) + '. ' + p.label + (p.approx ? ' (พิกัดประมาณ)' : '')).addTo(routeLayer));
-    const track = s.reps.filter(r => r.lat !== '' && r.lat != null).map(r => [r.lat, r.lng]);
-    if (track.length > 1) L.polyline(track, { color: cssVar('--s-' + effKey(s)), weight: 3 }).addTo(routeLayer);
-    map.fitBounds(L.latLngBounds(plan.concat(track)).pad(.15), { maxZoom: 10 });
+
+/* ----- vehicle ----- */
+function pickVehicle() {
+  const qs = new URLSearchParams(location.search);
+  let v = qs.get('v');
+  if (!v && qs.get('liff.state')) v = new URLSearchParams(qs.get('liff.state').split('?')[1] || '').get('v');
+  if (!v) try { v = localStorage.getItem('et-vehicle'); } catch (e) {}
+  $('#veh').innerHTML = '<option value="">— เลือกคันที่ —</option>' + VEH.map(x => '<option value="' + x.id + '">คันที่ ' + x.id + ' ' + esc(x.zones) + '</option>').join('');
+  if (v && VMAP[v]) $('#veh').value = v;
+  setVehicle($('#veh').value);
+}
+async function setVehicle(id) {
+  st.vehicle = VMAP[id] || null;
+  try { if (id) localStorage.setItem('et-vehicle', id); } catch (e) {}
+  if (!st.vehicle) { $('#vehInfo').textContent = 'เลือกคันที่ของคุณ (ลิงก์ประจำคันจะเลือกให้อัตโนมัติ)'; $('#hist').innerHTML = ''; renderAll(); return; }
+  const v = st.vehicle;
+  $('#vehInfo').textContent = v.title + ' · ออกจาก ' + originOf(v).name + (v.depart ? ' · แผนออก ' + fmtDT(v.depart) : '') + ' · ' + v.stops.length + ' สนามสอบ · ~' + v.km + ' กม.' + (v.plate ? ' · ทะเบียน ' + v.plate : '');
+  // แสดงฟอร์มทันทีจากประวัติที่จำไว้ในเครื่อง แล้วค่อยอัปเดตจากเซิร์ฟเวอร์ตามหลัง (เน็ตช้าก็กรอกได้เลย)
+  st.reps = repsCache(v.id); st.touched = false;
+  suggest(); renderAll(); renderHist();
+  if (!st.reps.length) $('#hist').innerHTML = '<li><small>กำลังโหลดประวัติ… (กรอกรายงานได้เลย ไม่ต้องรอ)</small></li>';
+  const want = v.id;
+  try {
+    const reps = await fetchReports({ vehicle: v.id });
+    if (!st.vehicle || st.vehicle.id !== want) return;      // ผู้ใช้เปลี่ยนคันไปแล้ว
+    const pend = st.reps.filter(x => x.pending && !reps.some(r => r.clientTime === x.clientTime));
+    st.reps = reps.concat(pend); repsCache(v.id, st.reps);
+    if (!st.touched) suggest();                               // ยังไม่ได้แตะอะไร ค่อยเดาขั้นถัดไปใหม่
+    renderAll(); renderHist();
+  } catch (e) {
+    if (!st.reps.length) $('#hist').innerHTML = '<li><small>โหลดประวัติไม่ได้ (' + esc(e.message) + ') — ส่งรายงานได้ตามปกติ</small></li>';
   }
 }
-
-/* ---------- summary ---------- */
-const ALERTS = ['incident', 'stale', 'late'];
-// เรียงตามลำดับการเดินทาง (ซ้าย → ขวา) ใช้ทั้งแถบความคืบหน้าและชิปสถานะ
-const FLOW = ['idle', 'going', 'paused', 'overnight', 'delivered', 'returning', 'between', 'done'];
-function drawSummary() {
-  const c = {}; ALERTS.concat(FLOW).forEach(k => c[k] = 0);
-  state.status.forEach(s => c[effKey(s)]++);
-  const n = state.status.length || 1, pressed = k => ' aria-pressed="' + (state.filter === k) + '"';
-  const al = ALERTS.filter(k => c[k]);
-  const alertsHtml = '<div class="alerts">' + (al.length
-    ? '<span class="lbl">ต้องดูแลตอนนี้</span>' + al.map(k => '<button class="alert sum-k" type="button" data-k="' + k + '" style="--c:var(--s-' + k + ')"' + pressed(k) + '><b>' + c[k] + '</b>' + STATUS[k].th + '</button>').join('')
-    : '<span class="allok">ไม่มีรถที่ต้องดูแล</span>') + '</div>';
-  const seq = ['late'].concat(FLOW.slice(0, 1), ['incident', 'stale'], FLOW.slice(1));
-  const stack = '<div class="stack" role="img" aria-label="ความคืบหน้ารวม">' + seq.filter(k => c[k]).map(k => '<i style="--c:var(--s-' + k + ');width:' + (c[k] / n * 100) + '%" title="' + STATUS[k].th + ' ' + c[k] + ' คัน"></i>').join('') + '</div>';
-  const chips = '<div class="chips"><button class="sum all sum-k" type="button" data-k=""' + pressed('') + '>ทั้งหมด <b>' + VEH.length + '</b></button>' +
-    FLOW.filter(k => c[k]).map(k => '<button class="sum sum-k" type="button" data-k="' + k + '" style="--c:var(--s-' + k + ')"' + pressed(k) + '>' + STATUS[k].th + ' <b>' + c[k] + '</b></button>').join('') + '</div>';
-  $('#summary').innerHTML = alertsHtml + '<div class="prog">' + stack + chips + '</div>';
-}
-
-/* ---------- vehicle list ---------- */
-function dots(s) {
-  const p = s.progress || { done: 0, total: s.v.stops.length, label: 'ส่งแล้ว' };
-  let h = '';
-  for (let i = 0; i < p.total; i++) h += '<i class="' + (i < p.done ? 'on' : '') + '"></i>';
-  const rd = s.days > 1 ? ' · รอบ ' + Math.min(s.round, s.days) + '/' + s.days : '';
-  return '<span class="dots" title="' + (s.leg === 'back' ? 'ขากลับ ' : 'ขาไป ') + p.label + rd + '" style="--c:var(--s-' + (s.leg === 'back' ? 'returning' : 'going') + ')">' + h + '<em>' + p.done + '/' + p.total + '</em></span>';
-}
-function drawList() {
-  const q = $('#q').value.trim().toLowerCase();
-  let rows = state.status.filter(s => (!state.filter || effKey(s) === state.filter) &&
-    (!state.line || s.v.line === state.line) &&
-    (!q || String(s.v.id) === q || (s.v.line + ' ' + s.v.zones + ' ' + (s.v.driver || '') + ' ' + (s.v.plate || '') + ' ' + s.v.stops.map(x => x.name + ' ' + (x.venue || '') + ' ' + (x.amphoe || '')).join(' ')).toLowerCase().includes(q)));
-  const sort = $('#sort').value;
-  const t = s => s.last ? new Date(s.last.serverTime).getTime() : 0;
-  rows.sort({
-    id: (a, b) => a.v.id - b.v.id,
-    recent: (a, b) => t(b) - t(a),
-    progress: (a, b) => (STATUS[b.key].rank - STATUS[a.key].rank) || ((b.progress ? b.progress.done / b.progress.total : 0) - (a.progress ? a.progress.done / a.progress.total : 0)),
-    status: (a, b) => STATUS[effKey(a)].rank - STATUS[effKey(b)].rank || a.v.id - b.v.id
-  }[sort]);
-  if (!rows.length) { $('#list').innerHTML = '<div class="empty">ไม่พบรถที่ตรงกับตัวกรอง</div>'; return; }
-  $('#list').innerHTML = rows.map(s => {
-    const k = effKey(s), l = s.last;
-    // บรรทัด 2: รายงานล่าสุด · เมื่อไร · ใคร (ยังไม่มีรายงาน → แผนออก)
-    const detail = s.nextDepart && (k === 'between' || k === 'late') ? 'รอบ 2 แผนออก ' + fmtDT(s.nextDepart)
-      : l ? esc(describe(l)) + ' · <span class="num">' + fmtTime(l.serverTime) + '</span>' + (s.stale ? ' <span class="warn">(' + ago(s.ageMin) + ')</span>' : ' · ' + ago(s.ageMin)) + ' · ' + esc(l.lineName || '')
-      : 'แผนออก ' + (s.v.depart ? fmtDT(s.v.depart) : '–') + ' จาก ' + s.v.origin;
-    return '<button type="button" class="vrow' + (state.sel === s.v.id ? ' sel' : '') + (ALERTS.includes(k) ? ' hot' : '') + '" data-id="' + s.v.id + '" style="--c:var(--s-' + k + ')">' +
-      '<span class="vno">' + s.v.id + '</span>' +
-      '<span class="vt">คันที่ ' + s.v.id + ' ' + esc(s.v.zones) + '</span>' +
-      '<span class="vr"><span class="pill ' + k + '" style="--c:var(--s-' + k + ')">' + STATUS[k].th + '</span></span>' +
-      '<span class="vd">' + detail + '</span>' +
-      '<span class="vp">' + dots(s) + '</span>' +
-      '</button>';
-  }).join('');
-}
-
-/* ---------- feed ---------- */
-function drawFeed() {
-  const fv = $('#fVeh').value, fs = $('#fStage').value, fl = $('#fLeg').value;
-  const rows = state.reports.filter(r => (!fv || String(r.vehicle) === fv) && (!fl || r.leg === fl) &&
-    (!fs || (fs === 'INC' ? (r.stage === 'ENROUTE' && INCIDENT_RE.test(r.sub)) : r.stage === fs)))
-    .slice().sort((a, b) => a.serverTime < b.serverTime ? 1 : -1).slice(0, 400);
-  if (!rows.length) { $('#feed').innerHTML = '<div class="empty">ยังไม่มีรายงานตามตัวกรองนี้</div>'; return; }
-  let day = '';
-  $('#feed').innerHTML = rows.map(r => {
-    const inc = r.stage === 'ENROUTE' && INCIDENT_RE.test(r.sub);
-    const c = inc ? 'incident' : r.stage === 'ARRIVE' ? 'done' : r.sub === 'แวะพัก' ? 'paused' : r.sub === 'พักค้างคืน' ? 'overnight' : r.leg === 'back' ? 'returning' : 'going';
-    const d = fmtDate(r.serverTime), head = d !== day ? '<div class="fday">' + d + '</div>' : ''; day = d;
-    const v = VMAP[r.vehicle];
-    const detail = [LEG_TH[r.leg] + (r.destName ? ' · ' + esc(r.destName) : ''), r.note ? '“' + esc(r.note) + '”' : '',
-      esc(r.lineName || '-') + (r.verified ? ' <span class="ok" title="ยืนยันตัวตนผ่าน LINE">✓</span>' : ''),
-      r.lat !== '' && r.lat != null ? '<a href="' + mapsUrl(r) + '" target="_blank" rel="noopener">แผนที่</a>' : ''].filter(Boolean).join(' · ');
-    return head + '<div class="frow" role="button" tabindex="0" data-id="' + r.vehicle + '" style="--c:var(--s-' + c + ')">' +
-      '<span class="ft">' + fmtTime(r.serverTime) + '</span>' +
-      '<span class="fv">คันที่ ' + r.vehicle + (v ? ' ' + esc(v.zones) : '') + '</span>' +
-      '<span class="fs"><span class="pill" style="--c:var(--s-' + c + ')">' + STAGE_TH[r.stage] + (r.sub ? ' · ' + esc(r.sub) : '') + '</span></span>' +
-      '<span class="fd">' + detail + '</span></div>';
-  }).join('');
-}
-function whoHtml(r) {
-  const ini = esc((r.lineName || '?').replace(/^(ครู|อ\.|นาย|นาง|นางสาว)/, '').trim().slice(0, 1));
-  return '<span class="who"><span class="ava">' + ini + '</span><span>' + esc(r.lineName || '-') + (r.verified ? ' <span class="ok" title="ยืนยันตัวตนผ่าน LINE">✓</span>' : '') + '</span></span>';
-}
-
-/* ---------- drawer ---------- */
-function openDrawer(id) { state.sel = id; renderDrawer(); $('#drawer').hidden = false; $('#scrim').hidden = false; drawList(); drawMap(); $('#drawer .close').focus(); }
-function closeDrawer() { state.sel = null; $('#drawer').hidden = true; $('#scrim').hidden = true; drawList(); drawMap(); map && map.setView([13.4, 100.9], 5.5); }
-function crew(v) {
-  const it = [['ทะเบียนรถ', v.plate], ['ผู้ควบคุมรถ', v.driver, v.phone], ['พนักงานขับรถ', v.chauffeur, v.chauffeurPhone]].filter(x => x[1]);
-  return it.length ? '<div class="crew">' + it.map(x => '<div><span>' + x[0] + '</span>' + esc(x[1]) + (x[2] ? '<br><a href="tel:' + esc(x[2].replace(/[^0-9+]/g, '')) + '" class="num">' + esc(x[2]) + '</a>' : '') + '</div>').join('') + '</div>' : '';
-}
-function renderDrawer() {
-  const s = state.status.find(x => x.v.id === state.sel); if (!s) return;
-  const v = s.v, k = effKey(s), o = originOf(v);
-  const arrT = (leg, code) => { const r = s.cur.find(r => r.leg === leg && (r.stage === 'ARRIVE' || (leg === 'back' && r.stage === 'DEPART')) && r.destCode === code); return r ? fmtTime(r.serverTime) : ''; };
-  const chk = (leg, code) => { const t = arrT(leg, code); return '<span class="chk' + (t ? ' y' : '') + '">' + (leg === 'go' ? 'ถึง ' : 'ออก ') + (t || '–') + '</span>'; };
-  $('#drawer').innerHTML =
-    '<div class="dhead"><span class="vno" style="--c:var(--s-' + k + ')">' + v.id + '</span><div><h2>คันที่ ' + v.id + ' ' + esc(v.zones) + '<br><small style="font-size:.8rem;color:var(--muted);font-weight:500">' + esc(v.title) + '</small>' + '</h2><p><span class="pill" style="--c:var(--s-' + k + ')">' + STATUS[k].th + '</span> ' + (s.last ? 'ล่าสุด ' + ago(s.ageMin) : '') + '</p></div><button class="close" type="button" aria-label="ปิด">✕</button></div>' +
-    '<div class="dbody">' +
-    '<div class="facts"><div><span>ออกเดินทางขาไป</span><b style="font-family:var(--f-body);font-size:.85rem">' + esc(o.name) + (v.depart ? '<br>แผน ' + fmtDT(v.depart) : '') + '</b></div><div><span>ระยะทาง (ขาไป)</span><b>~' + v.km + ' กม.</b></div><div><span>เวลาโดยประมาณ</span><b>' + v.hours + ' ชม.</b></div></div>' +
-    (v.mode ? '<p style="margin:0;font-size:.85rem;color:var(--muted)">' + esc(v.mode) + (v.reachArea ? ' · ถึงพื้นที่ ' + fmtDT(v.reachArea) : '') + '</p>' : '') +
-    crew(v) +
-    '<div><h3>' + (s.days > 1 ? 'รอบ ' + Math.min(s.round, s.days) + '/' + s.days + ' (ส่ง ' + s.days + ' วัน · เช็กลิสต์เริ่มใหม่ทุกรอบ) · ' : '') + 'ปลายทาง ' + v.stops.length + ' สนาม · ขาไปถึงตามลำดับ ขากลับออกวนกลับ</h3><ol class="stops">' + v.stops.map((p, i) => '<li><span class="seq">' + (i + 1) + '</span><span>' + esc(p.label) + (p.approx ? ' <span class="apx" title="ยังไม่มีพิกัดสนามสอบจริง ใช้พิกัดสำนักงานเขต">พิกัดประมาณ</span>' : '') + '<br><small style="color:var(--muted)">' + (p.venue ? esc(p.name) + ' · ' : '') + esc(p.amphoe || '') + ' · รหัส ' + p.code + (p.eta ? ' · ประมาณถึง ' + fmtTime(p.eta) + ' น.' : '') + (p.remark ? ' · ' + esc(p.remark) : '') + (p.contact ? ' · ผู้รับ ' + esc(p.contact) : '') + '</small></span>' + chk('go', p.code) + chk('back', p.code) + '</li>').join('') +
-    '<li><span class="seq">⌂</span><span>' + esc(HOME.name) + '<br><small style="color:var(--muted)">ปลายทางขากลับ (จุดเดียว)</small></span><span></span>' + (function () { const r = s.cur.find(r => r.leg === 'back' && r.stage === 'ARRIVE'); return '<span class="chk' + (r ? ' y' : '') + '">ถึง ' + (r ? fmtTime(r.serverTime) : '–') + '</span>'; })() + '</li></ol></div>' +
-    '<div><h3>ลำดับรายงาน</h3>' + (s.reps.length ? '<ol class="tl">' + s.reps.slice().reverse().map(r => {
-      const inc = r.stage === 'ENROUTE' && INCIDENT_RE.test(r.sub);
-      const c = inc ? 'incident' : r.stage === 'ARRIVE' ? 'done' : r.sub === 'แวะพัก' ? 'paused' : r.sub === 'พักค้างคืน' ? 'overnight' : r.leg === 'back' ? 'returning' : 'going';
-      return '<li style="--c:var(--s-' + c + ')"><div class="t">' + fmtDT(r.serverTime) + ' · ' + LEG_TH[r.leg] + '</div><div class="h">' + STAGE_TH[r.stage] + (r.sub ? ' · ' + esc(r.sub) : '') + '</div>' + (r.destName ? '<div>' + esc(r.destName) + '</div>' : '') +
-        (r.note ? '<div class="n">' + esc(r.note) + '</div>' : '') + '<div class="m">' + whoHtml(r) + (r.lat !== '' && r.lat != null ? '<a href="' + mapsUrl(r) + '" target="_blank" rel="noopener">พิกัด ±' + Math.round(r.accuracy || 0) + ' ม.</a>' : '<span>ไม่มีพิกัด</span>') + '</div></li>';
-    }).join('') + '</ol>' : '<p class="empty">ยังไม่มีรายงานจากคันนี้</p>') + '</div></div>';
-  $('#drawer .close').onclick = closeDrawer;
-}
-
-/* ---------- รหัสเข้าดู ---------- */
-// ไม่มีรหัส (เปิดจากเบราว์เซอร์/ไอคอนหน้าจอโฮมที่ยังไม่เคยใส่) หรือรหัสผิด → ถามรหัสบนหน้าจอ แล้วจำไว้ในเครื่อง
-function askKey(wrong) {
-  state.needKey = true; $('#upd').textContent = 'รอใส่รหัส';
-  $('#errBox').innerHTML = '<b>' + (wrong ? 'รหัสเข้าดูไม่ถูกต้อง' : 'ต้องใส่รหัสเข้าดูแดชบอร์ด') + '</b><br>ใส่ครั้งเดียว เครื่องนี้จะจำไว้ (หรือเปิดจากลิงก์ที่มี ?key=… ที่ได้รับ)' +
-    '<form id="keyForm" style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><input id="keyIn" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="รหัสเข้าดู" style="flex:1;min-width:0;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:8px 10px">' +
-    '<button class="btn" type="submit">เข้าดู</button></form>';
-  $('#errBox').hidden = false;
-  $('#keyForm').onsubmit = e => {
-    e.preventDefault();
-    const k = $('#keyIn').value.trim(); if (!k) return;
-    CFG.VIEW_KEY = k; try { localStorage.setItem('et-key', k); } catch (er) {}
-    state.needKey = false; $('#errBox').hidden = true; state.lastFull = 0; load(); loadPlan().then(x => { if (x === 'sheet') fillPlanUi(); });
-  };
-  $('#keyIn').focus();
-}
-
-/* ---------- load ---------- */
-async function load() {
-  if (state.loading || state.needKey) return;   // รอผู้ใช้ใส่รหัสก่อน          // กันโหลดซ้อนเมื่อเน็ตช้า
-  state.loading = true;
-  $('#upd').textContent = 'กำลังโหลด…';
+function repsCache(id, reps) {
+  const k = 'et-reps-' + id;
   try {
-    // ดึงเต็มทุก 10 นาที ระหว่างนั้นดึงเฉพาะรายงานใหม่ (ข้อมูลเล็ก เร็วแม้มีรถ 120 คัน)
-    const full = !state.lastFull || Date.now() - state.lastFull > 10 * 60e3 || !state.reports.length;
-    if (full) { state.reports = await fetchReports(); state.lastFull = Date.now(); }
-    else {
-      const since = state.reports[state.reports.length - 1].serverTime;
-      const add = await fetchReports({ since });
-      const seen = new Set(state.reports.map(r => r.id));
-      add.forEach(r => { if (!seen.has(r.id)) state.reports.push(r); });
-    }
-    $('#errBox').hidden = true;
-  } catch (e) {
-    if (/key|รหัส/.test(e.message)) { askKey(!!CFG.VIEW_KEY); state.loading = false; return; }
-    $('#errBox').textContent = 'โหลดข้อมูลล่าสุดไม่สำเร็จ (' + e.message + ') — ระบบจะลองใหม่อัตโนมัติ ข้อมูลที่เห็นอยู่คือรอบก่อนหน้า'; $('#errBox').hidden = false; }
-  const now = new Date();
-  // ตัดรายงานซ้ำ (ส่งซ้ำตอนสัญญาณไม่ดี) ด้วยเวลาที่กดส่งบนมือถือ
-  const seenK = new Set();
-  state.reports = state.reports.filter(r => { const k = r.vehicle + '|' + r.lineUserId + '|' + (r.clientTime || r.id); if (seenK.has(k)) return false; seenK.add(k); return true; });
-  const by = {}; state.reports.forEach(r => (by[r.vehicle] = by[r.vehicle] || []).push(r));
-  state.status = VEH.map(v => deriveStatus(v, by[v.id] || [], now));
-  $('#upd').textContent = fmtTime(now) + ' น.';
-  drawSummary(); drawList(); drawFeed(); drawMap();
-  if (state.sel && !$('#drawer').hidden) renderDrawer();
-  state.loading = false;
+    if (reps) localStorage.setItem(k, JSON.stringify(reps.slice(-40)));
+    else return JSON.parse(localStorage.getItem(k) || '[]');
+  } catch (e) { return []; }
 }
 
-/* ---------- events ---------- */
-$('#demoBadge').hidden = !DEMO;
-function fillPlanUi() {
-  $('#hdrCount').textContent = VEH.length + ' คัน · ' + VEH.reduce((a, v) => a + v.stops.length, 0) + ' สนามสอบ';
-  $('#fVeh').innerHTML = '<option value="">ทุกคัน</option>' + VEH.map(v => '<option value="' + v.id + '">คันที่ ' + v.id + ' ' + esc(v.zones) + '</option>').join('');
-  const lines = [...new Set(VEH.map(v => v.line))];
-  $('#line').innerHTML = '<option value="">ทุกสายรถ</option>' + lines.map(l => '<option>' + esc(l) + '</option>').join('');
+/** เดาขั้นถัดไปจากรายงานก่อนหน้า เพื่อลดการกด */
+function suggest() {
+  const s = deriveStatus(st.vehicle, st.reps, new Date());
+  // เริ่มรอบใหม่ได้: ยังไม่มีรายงาน / จบรอบ 1 รอรอบ 2 / เลยเวลาออก (เกิดได้เฉพาะ 2 กรณีแรก)
+  const fresh = !s.last || s.key === 'between' || s.key === 'late';
+  st.leg = !fresh && (s.key === 'delivered' || s.leg === 'back') ? 'back' : 'go';
+  st.sub = ''; st.dest = null;
+  // ขากลับ: ออกจากสนามสอบทีละเขต (วนกลับ) จนครบ แล้วจึงถึง TUC
+  st.rec = fresh || s.key === 'idle' || s.key === 'delivered' ? 'DEPART'
+    : s.key === 'done' ? null
+    : st.leg === 'back' ? (s.backDone.size < st.vehicle.stops.length ? 'DEPART' : 'ARRIVE')
+    : s.last.leg === 'go' && s.last.stage === 'ARRIVE' ? 'ENROUTE'     // ส่งปลายทางที่ 1 แล้ว กำลังไปปลายทางถัดไป
+    : 'ARRIVE';
+  // หยุดอยู่ (แวะพัก / พักค้างคืน / เหตุขัดข้อง) → ขั้นถัดไปคือ "ระหว่างทาง · เดินทางต่อ"
+  const stopped = s.key === 'paused' || s.key === 'overnight' || s.key === 'incident';
+  if (stopped && !fresh) st.rec = 'ENROUTE';
+  st.stage = st.rec;
+  if (st.rec === 'ENROUTE') st.sub = stopped ? 'เดินทางต่อ' : 'ปกติ';
 }
-$('#summary').addEventListener('click', e => { const b = e.target.closest('.sum-k'); if (!b) return; state.filter = state.filter === b.dataset.k ? '' : b.dataset.k; if (state.tab !== 'v') setTab('v'); drawSummary(); drawList(); });
-$('#list').addEventListener('click', e => { const b = e.target.closest('.vrow'); if (b) openDrawer(+b.dataset.id); });
-$('#feed').addEventListener('click', e => {
-  const h = e.target.closest('th[data-sort]');
-  if (h) { const k = h.dataset.sort; state.feedSort = { k, d: state.feedSort.k === k ? -state.feedSort.d : (k === 'time' ? -1 : 1) }; drawFeed(); return; }
-  const tr = e.target.closest('[data-id]'); if (tr && !e.target.closest('a')) openDrawer(+tr.dataset.id);
+
+/** รายการจุดที่เลือกได้ ตามขาและสถานะ (ดึงจากแผนเส้นทางของคันนั้นอัตโนมัติ)
+ *  ขาไป-ออกเดินทาง : CSP หรือ TUC
+ *  ขาไป-ถึงจุดหมาย : ปลายทางที่ 1..n ของคันนั้น
+ *  ขากลับ-ออกเดินทาง: สนามสอบของคันนั้น เรียงวนกลับ (ปลายทางสุดท้าย → ปลายทางที่ 1)
+ *  ขากลับ-ถึงจุดหมาย: TUC เท่านั้น */
+function destList() {
+  const v = st.vehicle; if (!v) return [];
+  const label = (p, i, tag) => Object.assign({}, p, { tag: tag + ' ' + i });
+  if (st.leg === 'go') return st.stage === 'DEPART' ? DEPOTS.slice().sort((a, b) => (b.code === v.origin) - (a.code === v.origin))
+    : v.stops.map((p, i) => label(p, i + 1, 'ปลายทางที่'));
+  return st.stage === 'DEPART' ? v.stops.map((p, i) => label(p, i + 1, 'สนามที่')).reverse() : [HOME];
+}
+function doneSet() {
+  // นับเฉพาะรอบปัจจุบัน (สนามใกล้ส่ง 2 วัน: วันที่ 2 เริ่มเช็กลิสต์ใหม่)
+  const rs = splitRounds(st.reps); let cur = rs[rs.length - 1];
+  if (st.leg === 'go' && cur.some(r => r.leg === 'back' && r.stage === 'ARRIVE')) cur = [];
+  const s = new Set();
+  cur.forEach(r => { if (r.leg === st.leg && r.destCode && r.stage === st.stage) s.add(r.destCode); });
+  return s;
+}
+
+/* ----- render ----- */
+function renderRound() {
+  const v = st.vehicle, el = $('#roundInfo');
+  if (!v || (v.days || 1) < 2) { el.hidden = true; return; }
+  const s = deriveStatus(v, st.reps, new Date());
+  const r = s.home && s.round < s.days ? s.round + 1 : s.round, d = roundDepart(v, r);
+  el.hidden = false;
+  el.textContent = 'ส่ง ' + s.days + ' วัน · ตอนนี้รอบที่ ' + r + '/' + s.days + (d ? ' (' + fmtDate(d) + ')' : '') + (s.home && s.round >= s.days ? ' · จบภารกิจแล้ว' : '');
+}
+function renderAll() {
+  renderRound();
+  document.querySelectorAll('#leg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === st.leg));
+  document.querySelectorAll('.stage').forEach(b => {
+    b.setAttribute('aria-pressed', b.dataset.v === st.stage);
+    const r = b.querySelector('.rec'); if (r) r.remove();
+    if (b.dataset.v === st.rec) b.insertAdjacentHTML('afterbegin', '<span class="rec">แนะนำ</span>');
+  });
+  $('.stage[data-v="DEPART"] small').textContent = st.leg === 'go' ? 'จาก CSP / TUC' : 'จากสนามสอบ (วนกลับ)';
+  $('.stage[data-v="ARRIVE"] small').textContent = st.leg === 'go' ? (st.vehicle && st.vehicle.stops.length === 1 ? 'ปลายทางที่ 1' : 'ปลายทางที่ 1–' + (st.vehicle ? st.vehicle.stops.length : 'n')) : 'ถึง TUC';
+
+  $('#subBox').hidden = st.stage !== 'ENROUTE';
+  const subC = { 'ปกติ': 's-done', 'แวะพัก': 's-paused', 'พักค้างคืน': 's-overnight', 'รถเสีย': 's-incident', 'เปลี่ยนยาง': 's-incident', 'เดินทางต่อ': 's-going', 'อื่นๆ': 'muted' };
+  $('#subs').innerHTML = SUBS.map(x => '<button type="button" class="chip" data-v="' + x + '" style="--c:var(--' + subC[x] + ')" aria-pressed="' + (st.sub === x) + '">' + x + '</button>').join('');
+
+  const showDest = st.stage === 'ARRIVE' || st.stage === 'DEPART';
+  $('#destBox').hidden = !showDest || !st.vehicle;
+  if (showDest && st.vehicle) {
+    $('#destLegend').textContent = st.leg === 'go'
+      ? (st.stage === 'DEPART' ? 'ออกเดินทางจาก' : 'ถึงปลายทางใด')
+      : (st.stage === 'DEPART' ? 'ออกจากสนามสอบใด (เรียงวนกลับ)' : 'ปลายทางขากลับ');
+    const list = destList(), done = doneSet();
+    if (!st.dest || !list.some(p => p.code === st.dest)) st.dest = st.leg === 'go' && st.stage === 'DEPART' ? st.vehicle.origin : (list.find(p => !done.has(p.code)) || list[list.length - 1]).code;
+    $('#dests').innerHTML = list.map(p => {
+      const depot = !!DATA.origins[p.code];
+      const sub = depot ? (p.code === st.vehicle.origin ? 'จุดขึ้นรถตามแผน' : '') : p.tag + ' · ' + (p.venue ? p.name : (p.amphoe || ''));
+      return '<button type="button" class="dest" data-v="' + p.code + '" aria-pressed="' + (st.dest === p.code) + '"><span class="n">' + (depot ? p.code : p.tag.replace(/\D/g, '')) + '</span><span>' + esc(p.label || p.name) + '<small>' + esc(sub) + '</small></span><span class="tick">' + (done.has(p.code) ? '✓ รายงานแล้ว' : '') + '</span></button>';
+    }).join('');
+  }
+  renderSum();
+}
+function renderSum() {
+  const v = st.vehicle;
+  let msg = '';
+  if (!st.profile) msg = 'กำลังเชื่อมต่อ LINE…';
+  else if (!v) msg = 'เลือกคันที่ก่อน';
+  else if (!st.stage) msg = 'เลือกสถานะ';
+  else if (st.stage === 'ENROUTE' && !st.sub) msg = 'เลือกเหตุการณ์ระหว่างทาง';
+  else if (st.sub === 'อื่นๆ' && !$('#note').value.trim()) msg = 'กรุณาระบุรายละเอียดในหมายเหตุ';
+  const ok = !msg;
+  $('#send').disabled = !ok;
+  $('#sum').innerHTML = ok ? 'คันที่ ' + v.id + ' · ' + LEG_TH[st.leg] + ' · ' + STAGE_TH[st.stage] + (st.sub ? ' · ' + st.sub : '') + (st.pos ? '' : ' · <span class="err">ไม่มีพิกัด</span>') : msg;
+}
+function renderHist() {
+  const r = st.reps.slice(-5).reverse();
+  $('#hist').innerHTML = r.length ? r.map(x => '<li><span class="t">' + fmtTime(x.serverTime) + '</span><span>' + LEG_TH[x.leg] + ' · ' + esc(describe(x)) + '</span><small>' + (x.pending ? '<span class="pend">รอส่งเข้าระบบ</span> · ' : '') + fmtDate(x.serverTime) + ' · ' + esc(x.lineName) + '</small></li>').join('') : '<li><small>ยังไม่มีรายงานของคันนี้</small></li>';
+}
+
+/* ----- GPS ----- */
+function readGps() {
+  $('#gpsSt').className = 'st'; $('#gpsSt').textContent = 'กำลังหาพิกัด…';
+  if (!navigator.geolocation) return gpsFail('อุปกรณ์นี้ไม่รองรับการระบุตำแหน่ง');
+  navigator.geolocation.getCurrentPosition(p => {
+    st.pos = { lat: +p.coords.latitude.toFixed(6), lng: +p.coords.longitude.toFixed(6), accuracy: Math.round(p.coords.accuracy) };
+    $('#gpsSt').className = 'st ok'; $('#gpsSt').textContent = 'ได้พิกัดแล้ว (±' + st.pos.accuracy + ' ม.)';
+    $('#gpsCo').innerHTML = st.pos.lat + ', ' + st.pos.lng + ' · <a href="' + mapsUrl(st.pos) + '" target="_blank" rel="noopener">ดูบนแผนที่</a>';
+    renderSum();
+  }, e => gpsFail(e.code === 1 ? 'ไม่ได้รับอนุญาตให้ใช้ตำแหน่ง — เปิดสิทธิ์ตำแหน่งให้แอป LINE แล้วกด "อ่านพิกัดใหม่"' : 'อ่านพิกัดไม่สำเร็จ ลองกดอ่านใหม่ในที่โล่ง'),
+  { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 });
+}
+function gpsFail(m) { st.pos = null; $('#gpsSt').className = 'st bad'; $('#gpsSt').textContent = 'ไม่มีพิกัด'; $('#gpsCo').textContent = m + ' (ยังส่งรายงานได้)'; renderSum(); }
+
+/* ----- events ----- */
+$('#veh').addEventListener('change', e => setVehicle(e.target.value));
+$('#f').addEventListener('click', () => { st.touched = true; }, true);
+$('#leg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; st.leg = b.dataset.v; st.dest = null; renderAll(); });
+$('#stages').addEventListener('click', e => { const b = e.target.closest('.stage'); if (!b) return; st.stage = b.dataset.v; st.dest = null; if (st.stage !== 'ENROUTE') st.sub = ''; renderAll(); });
+$('#subs').addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; st.sub = b.dataset.v; renderAll(); });
+$('#dests').addEventListener('click', e => { const b = e.target.closest('.dest'); if (!b) return; st.dest = b.dataset.v; renderAll(); });
+$('#note').addEventListener('input', renderSum);
+$('#gpsBtn').onclick = readGps;
+
+$('#f').addEventListener('submit', async e => {
+  e.preventDefault();
+  if ($('#send').disabled) return;
+  const v = st.vehicle;
+  const dest = st.stage === 'ENROUTE' ? null : pointByCode(v, st.dest);
+  const payload = {
+    vehicle: v.id, leg: st.leg, stage: st.stage, sub: st.sub,
+    destCode: dest ? dest.code : '', destName: dest ? (dest.label || dest.name) : '',
+    lat: st.pos ? st.pos.lat : '', lng: st.pos ? st.pos.lng : '', accuracy: st.pos ? st.pos.accuracy : '',
+    note: $('#note').value.trim(), clientTime: new Date().toISOString(),
+    lineUserId: st.profile.userId, lineName: st.profile.displayName
+  };
+  // เก็บลงคิวในเครื่องก่อน แล้วขึ้นหน้าสำเร็จทันที ส่งเข้าระบบเบื้องหลัง (สัญญาณหายก็ไม่หาย ส่งต่อเองเมื่อมีสัญญาณ)
+  outbox.add(payload);
+  const local = Object.assign({ serverTime: payload.clientTime, pending: true }, payload);
+  st.reps.push(local); repsCache(v.id, st.reps);
+  $('#doneCard').innerHTML = '<b>คันที่ ' + v.id + ' · ' + LEG_TH[payload.leg] + '</b><br>' + esc(describe(payload)) + '<br><span style="color:var(--muted)">' + fmtDT(payload.clientTime) + (payload.lat !== '' ? ' · พิกัด ±' + payload.accuracy + ' ม.' : ' · ไม่มีพิกัด') + '</span>';
+  $('#done').hidden = false;
+  outbox.flush();
 });
-['#q', '#sort'].forEach(s => $(s).addEventListener('input', drawList));
-$('#line').addEventListener('input', e => { state.line = e.target.value; drawList(); });
-['#fVeh', '#fStage', '#fLeg'].forEach(s => $(s).addEventListener('input', drawFeed));
-$('#scrim').onclick = closeDrawer;
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#drawer').hidden) closeDrawer(); });
-$('#refresh').onclick = load;
-function setTab(t) {
-  state.tab = t;
-  $('#tabV').setAttribute('aria-selected', t === 'v'); $('#tabF').setAttribute('aria-selected', t === 'f'); $('#tabM').setAttribute('aria-selected', t === 'm');
-  $('#list').hidden = t !== 'v'; $('#feed').hidden = t !== 'f'; $('#toolsV').hidden = t !== 'v'; $('#toolsF').hidden = t !== 'f';
-  document.body.classList.toggle('tab-m', t === 'm'); document.body.classList.toggle('tab-f', t === 'f');
-  if (t === 'm' && map) setTimeout(() => map.invalidateSize(), 50);
-  try { localStorage.setItem('et-tab', t); } catch (e) {}
-}
-$('#tabV').onclick = () => setTab('v'); $('#tabF').onclick = () => setTab('f'); $('#tabM').onclick = () => setTab('m');
-// มือถือ: กลับจากแผนที่ไปหน้าจอกว้างแล้ว แท็บแผนที่ไม่มี ให้กลับไปรายคัน
-matchMedia('(min-width:961px)').addEventListener('change', e => { if (e.matches && state.tab === 'm') setTab('v'); else if (map) map.invalidateSize(); });
-try { const s = localStorage.getItem('et-sort'); if (s) $('#sort').value = s; } catch (e) {}
-$('#sort').addEventListener('change', () => { try { localStorage.setItem('et-sort', $('#sort').value); } catch (e) {} });
 
-// แสดงผลทันทีด้วยแผนที่ฝังมา แล้วค่อยอัปเดตแผนจาก Google Sheet ตามหลัง
-fillPlanUi(); initMap(); load();
-loadPlan().then(s => { if (s === 'sheet') { fillPlanUi(); load(); } });
-setInterval(async () => { if (await loadPlan() === 'sheet') { fillPlanUi(); load(); } }, 10 * 60 * 1000);
-setInterval(load, CFG.REFRESH_SEC * 1000);
+/* ----- บัตรผ่าน (session ticket) -----
+   ขอครั้งเดียวตอนเปิดหน้า ด้วย ID token ที่ยังสด แล้วใช้แนบทุกรายงานได้ 4 วัน
+   รายงานที่ค้างคิวนาน ๆ จึงไม่ติดปัญหา token หมดอายุ */
+const auth = {
+  key: 'et-ticket',
+  get() { try { return JSON.parse(localStorage.getItem(this.key) || 'null'); } catch (e) { return this._mem || null; } },
+  set(v) { this._mem = v; try { localStorage.setItem(this.key, JSON.stringify(v)); } catch (e) {} },
+  valid(minLeftMs) {
+    const t = this.get();
+    return !!t && t.exp - Date.now() > (minLeftMs || 0) && (!st.profile || !t.sub || t.sub === st.profile.userId);
+  },
+  tokenFresh() {
+    try { const d = liff.getDecodedIDToken(); return !!d && d.exp * 1000 - Date.now() > 60e3; } catch (e) { return !!st.idToken; }
+  },
+  async ensure(force) {
+    if (DEMO || !CFG.LIFF_ID) return true;
+    if (!force && this.valid(6 * 3600e3)) return true;          // เหลือเกิน 6 ชม. ใช้ต่อได้
+    if (!st.idToken || !this.tokenFresh()) return this.valid();  // token หมดอายุแล้ว ใช้บัตรเดิมไปก่อนถ้ายังไม่หมด
+    try {
+      const j = await postApi({ action: 'session', idToken: st.idToken }, 30000);
+      if (j.ok) { this.set({ t: j.ticket, exp: j.exp, sub: j.sub }); return true; }
+    } catch (e) {}
+    return this.valid();
+  }
+};
+
+/* ----- คิวส่งรายงาน (outbox) ----- */
+const outbox = {
+  key: 'et-outbox',
+  list() { try { return JSON.parse(localStorage.getItem(this.key) || '[]'); } catch (e) { return this._mem || []; } },
+  save(a) { this._mem = a; try { localStorage.setItem(this.key, JSON.stringify(a)); } catch (e) {} },
+  add(p) { const a = this.list(); a.push(p); this.save(a); this.show(); },
+  busy: false,
+  async flush() {
+    if (this.busy || this.blocked) return; this.busy = true;
+    try {
+      await auth.ensure();
+      let a = this.list();
+      while (a.length) {
+        const p = a[0];
+        try {
+          const tk = auth.get();
+          let r;
+          try { r = await postReport(Object.assign({}, p, { ticket: tk && tk.t, idToken: st.idToken })); }
+          catch (e) {
+            if (e.code !== 'AUTH') throw e;
+            // บัตรถูกปฏิเสธ: ขอบัตรใหม่ 1 ครั้ง ถ้ายังไม่ผ่าน หยุดส่งซ้ำจนกว่าจะเปิดหน้าใหม่
+            if (!(await auth.ensure(true))) { this.blocked = true; throw e; }
+            const t2 = auth.get();
+            r = await postReport(Object.assign({}, p, { ticket: t2 && t2.t, idToken: st.idToken }));
+          }
+          a = this.list().filter(x => x.clientTime !== p.clientTime); this.save(a);
+          const i = st.reps.findIndex(x => x.pending && x.clientTime === p.clientTime);
+          if (i >= 0) st.reps[i] = r; else st.reps.push(r);
+          if (st.vehicle && st.vehicle.id === p.vehicle) repsCache(p.vehicle, st.reps);
+        } catch (e) { this.lastErr = e.message; break; }
+      }
+    } finally { this.busy = false; this.show(); renderHist(); }
+  },
+  show() {
+    const n = this.list().length, el = $('#sendSt');
+    if (!el) return;
+    if (!n) { el.className = 'sendst ok'; el.textContent = '✓ ส่งเข้าระบบแล้ว'; }
+    else if (this.blocked) { el.className = 'sendst wait'; el.textContent = 'ต้องยืนยันตัวตนใหม่ — กรุณาปิดแล้วเปิดหน้ารายงานใหม่ รายงาน ' + n + ' รายการเก็บไว้ในเครื่อง จะส่งให้อัตโนมัติ'; }
+    else if (this.busy || !this.lastErr) { el.className = 'sendst wait'; el.textContent = 'กำลังส่งเข้าระบบ… (' + n + ' รายการ) ปิดหน้านี้ได้ ระบบจะส่งต่อเมื่อเปิดครั้งหน้า'; }
+    else { el.className = 'sendst wait'; el.textContent = 'ยังส่งไม่ได้ (' + this.lastErr + ') — เก็บไว้ในเครื่อง ' + n + ' รายการ จะลองส่งใหม่อัตโนมัติ'; }
+  }
+};
+setInterval(() => { if (outbox.list().length && st.profile) outbox.flush(); }, 20000);
+window.addEventListener('online', () => outbox.flush());
+$('#again').onclick = () => { $('#done').hidden = true; $('#note').value = ''; suggest(); renderAll(); renderHist(); readGps(); window.scrollTo(0, 0); };
+$('#closeBtn').onclick = () => { if (window.liff && CFG.LIFF_ID && liff.isInClient()) liff.closeWindow(); else $('#again').click(); };
+
+(async () => {
+  // แสดงฟอร์มและเริ่มอ่าน GPS ก่อน ระหว่างรอเชื่อมต่อ LINE
+  pickVehicle(); readGps();
+  try { if (!(await initLine())) return; } catch (e) { $('#hello').textContent = 'เชื่อมต่อ LINE ไม่สำเร็จ'; $('#sum').innerHTML = '<span class="err">' + esc(e.message) + ' — ปิดแล้วเปิดลิงก์ใหม่ในแอป LINE</span>'; return; }
+  renderSum();
+  auth.ensure().then(() => { if (outbox.list().length) outbox.flush(); });   // ขอบัตรผ่านทันทีที่ LINE พร้อม   // มีรายงานค้างจากครั้งก่อน ส่งต่อ
+  loadPlan().then(s => { if (s === 'sheet') { const keep = st.vehicle && st.vehicle.id; pickVehicle(); if (keep && VMAP[keep]) { $('#veh').value = keep; } } });
+})();
 </script>
 
 </body>

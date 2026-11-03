@@ -112,6 +112,11 @@ textarea{min-height:80px;resize:vertical}
     <select id="veh" aria-label="เลือกคันที่"></select>
     <p class="hint" id="vehInfo"></p>
     <p class="round" id="roundInfo" hidden></p>
+    <div id="staffBox" hidden style="display:flex;flex-direction:column;gap:6px;margin-top:4px">
+      <label for="staffSel" style="font-weight:600;font-size:.9rem">ผู้รายงาน (กรรมการประจำคัน)</label>
+      <select id="staffSel" aria-label="ชื่อผู้รายงาน"></select>
+      <p class="hint">เลือกครั้งเดียว เครื่องจะจำไว้ · ผู้บริหารจะเห็นชื่อนี้แทนชื่อไลน์</p>
+    </div>
   </fieldset>
 
   <fieldset>
@@ -561,6 +566,7 @@ async function setVehicle(id) {
   $('#vehInfo').textContent = v.title + ' · ออกจาก ' + originOf(v).name + (v.depart ? ' · แผนออก ' + fmtDT(v.depart) : '') + ' · ' + v.stops.length + ' สนามสอบ · ~' + v.km + ' กม.' + (v.plate ? ' · ทะเบียน ' + v.plate : '');
   // แสดงฟอร์มทันทีจากประวัติที่จำไว้ในเครื่อง แล้วค่อยอัปเดตจากเซิร์ฟเวอร์ตามหลัง (เน็ตช้าก็กรอกได้เลย)
   st.reps = repsCache(v.id); st.touched = false;
+  $('#staffBox').hidden = true; st.staffList = []; staffLoad(v.id);
   suggest(); renderAll(); renderHist();
   if (!st.reps.length) $('#hist').innerHTML = '<li><small>กำลังโหลดประวัติ… (กรอกรายงานได้เลย ไม่ต้องรอ)</small></li>';
   const want = v.id;
@@ -575,6 +581,32 @@ async function setVehicle(id) {
     if (!st.reps.length) $('#hist').innerHTML = '<li><small>โหลดประวัติไม่ได้ (' + esc(e.message) + ') — ส่งรายงานได้ตามปกติ</small></li>';
   }
 }
+/* ----- รายชื่อกรรมการของคัน (ชื่อเท่านั้น ไม่มีเบอร์) ----- */
+const OTHER = '__other__';
+function staffRender(list) {
+  const v = st.vehicle; if (!v) return;
+  st.staffList = list || [];
+  if (!st.staffList.length) { $('#staffBox').hidden = true; renderSum(); return; }
+  let saved = ''; try { saved = localStorage.getItem('et-staff-' + v.id) || ''; } catch (e) {}
+  $('#staffSel').innerHTML = '<option value="">— เลือกชื่อของคุณ —</option>' +
+    st.staffList.map(s => '<option value="' + esc(s.name) + '">' + esc(s.name) + (s.venue ? ' · ' + esc(s.venue) : '') + '</option>').join('') +
+    '<option value="' + OTHER + '">ไม่อยู่ในรายชื่อ (รายงานแทน)</option>';
+  if (saved && (saved === OTHER || st.staffList.some(s => s.name === saved))) $('#staffSel').value = saved;
+  else if (st.staffList.length === 1) $('#staffSel').value = st.staffList[0].name;   // คันที่มีกรรมการคนเดียว เลือกให้เลย
+  $('#staffBox').hidden = false; renderSum();
+}
+async function staffLoad(id) {
+  if (DEMO) return;
+  let cached = null; try { cached = JSON.parse(localStorage.getItem('et-staffnames-' + id) || 'null'); } catch (e) {}
+  if (cached) staffRender(cached);
+  try {
+    const j = await getJson(CFG.API_URL + '?action=staff&vehicle=' + encodeURIComponent(id), 20000);
+    if (!j.ok || !st.vehicle || String(st.vehicle.id) !== String(id)) return;
+    try { localStorage.setItem('et-staffnames-' + id, JSON.stringify(j.staff)); } catch (e) {}
+    staffRender(j.staff);
+  } catch (e) {}
+}
+const staffChosen = () => $('#staffBox').hidden ? null : $('#staffSel').value;
 function repsCache(id, reps) {
   const k = 'et-reps-' + id;
   try {
@@ -669,6 +701,7 @@ function renderSum() {
   let msg = '';
   if (!st.profile) msg = 'กำลังเชื่อมต่อ LINE…';
   else if (!v) msg = 'เลือกคันที่ก่อน';
+  else if (staffChosen() === '') msg = 'เลือกชื่อผู้รายงาน (ข้อ 1)';
   else if (!st.stage) msg = 'เลือกสถานะ';
   else if (st.stage === 'ENROUTE' && !st.sub) msg = 'เลือกเหตุการณ์ระหว่างทาง';
   else if (st.sub === 'อื่นๆ' && !$('#note').value.trim()) msg = 'กรุณาระบุรายละเอียดในหมายเหตุ';
@@ -678,7 +711,7 @@ function renderSum() {
 }
 function renderHist() {
   const r = st.reps.slice(-5).reverse();
-  $('#hist').innerHTML = r.length ? r.map(x => '<li><span class="t">' + fmtTime(x.serverTime) + '</span><span>' + LEG_TH[x.leg] + ' · ' + esc(describe(x)) + '</span><small>' + (x.pending ? '<span class="pend">รอส่งเข้าระบบ</span> · ' : '') + fmtDate(x.serverTime) + ' · ' + esc(x.lineName) + '</small></li>').join('') : '<li><small>ยังไม่มีรายงานของคันนี้</small></li>';
+  $('#hist').innerHTML = r.length ? r.map(x => '<li><span class="t">' + fmtTime(x.serverTime) + '</span><span>' + LEG_TH[x.leg] + ' · ' + esc(describe(x)) + '</span><small>' + (x.pending ? '<span class="pend">รอส่งเข้าระบบ</span> · ' : '') + fmtDate(x.serverTime) + ' · ' + esc(x.staffName || x.lineName) + '</small></li>').join('') : '<li><small>ยังไม่มีรายงานของคันนี้</small></li>';
 }
 
 /* ----- GPS ----- */
@@ -697,6 +730,7 @@ function gpsFail(m) { st.pos = null; $('#gpsSt').className = 'st bad'; $('#gpsSt
 
 /* ----- events ----- */
 $('#veh').addEventListener('change', e => setVehicle(e.target.value));
+$('#staffSel').addEventListener('change', e => { try { if (st.vehicle) localStorage.setItem('et-staff-' + st.vehicle.id, e.target.value); } catch (er) {} renderSum(); });
 $('#f').addEventListener('click', () => { st.touched = true; }, true);
 $('#leg').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; st.leg = b.dataset.v; st.dest = null; renderAll(); });
 $('#stages').addEventListener('click', e => { const b = e.target.closest('.stage'); if (!b) return; st.stage = b.dataset.v; st.dest = null; if (st.stage !== 'ENROUTE') st.sub = ''; renderAll(); });
@@ -715,7 +749,8 @@ $('#f').addEventListener('submit', async e => {
     destCode: dest ? dest.code : '', destName: dest ? (dest.label || dest.name) : '',
     lat: st.pos ? st.pos.lat : '', lng: st.pos ? st.pos.lng : '', accuracy: st.pos ? st.pos.accuracy : '',
     note: $('#note').value.trim(), clientTime: new Date().toISOString(),
-    lineUserId: st.profile.userId, lineName: st.profile.displayName
+    lineUserId: st.profile.userId, lineName: st.profile.displayName,
+    staffName: staffChosen() && staffChosen() !== OTHER ? staffChosen() : ''
   };
   // เก็บลงคิวในเครื่องก่อน แล้วขึ้นหน้าสำเร็จทันที ส่งเข้าระบบเบื้องหลัง (สัญญาณหายก็ไม่หาย ส่งต่อเองเมื่อมีสัญญาณ)
   outbox.add(payload);

@@ -1514,7 +1514,8 @@ async function load() {
 /* ---------- events ---------- */
 $('#demoBadge').hidden = !DEMO;
 function fillPlanUi() {
-  $('#hdrCount').textContent = VEH.length + ' คัน · ' + VEH.reduce((a, v) => a + v.stops.length, 0) + ' สนามสอบ';
+  { const pts = VEH.reduce((a, v) => a + v.stops.length, 0), venues = new Set(VEH.flatMap(v => v.stops.map(p => p.code))).size;
+    $('#hdrCount').textContent = VEH.length + ' คัน · ' + venues + ' สนามสอบ' + (pts !== venues ? ' (' + pts + ' จุดส่ง รวมฝากส่ง)' : ''); }
   $('#fVeh').innerHTML = '<option value="">ทุกคัน</option>' + VEH.map(v => '<option value="' + v.id + '">คันที่ ' + v.id + ' ' + esc(v.zones) + '</option>').join('');
   const lines = [...new Set(VEH.map(v => v.line))];
   $('#line').innerHTML = '<option value="">ทุกสายรถ</option>' + lines.map(l => '<option>' + esc(l) + '</option>').join('');

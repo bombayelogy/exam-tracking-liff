@@ -553,7 +553,7 @@ async function exportLinks() {
     const web = location.origin + location.pathname.replace(/admin\/?(index\.html)?$/, '');
     const liff = CFG.LIFF_ID ? `https://liff.line.me/${CFG.LIFF_ID}/photos/` : '';
     const rows = [['รหัส', 'เขตพื้นที่', 'ลิงก์เปิดในไลน์', 'ลิงก์สำรอง']].concat(j.links.map(l => {
-      const q = `?d=${encodeURIComponent(l.code)}&t=${l.t}`; return [l.code, l.name, liff ? liff + q : '', web + q];
+      const q = `?d=${encodeURIComponent(l.code)}&v=${encodeURIComponent(l.venue)}&t=${l.t}`; return [l.code + ' ' + l.venue, l.name, liff ? liff + q : '', web + q];
     }));
     const csv = '﻿' + rows.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\r\n');
     saveBlob(new Blob([csv], { type: 'text/csv' }), 'ลิงก์ส่งรูปประจำเขต.csv');

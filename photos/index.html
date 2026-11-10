@@ -21,6 +21,7 @@ header{background:var(--brand);color:#fff;padding:16px 16px 18px;padding-top:cal
 header .k{font-size:13px;opacity:.8}
 header h1{margin:2px 0 0;font-size:20px;font-weight:700}
 header .sub{font-size:14px;opacity:.9;margin-top:2px}
+#hSub{font-size:18px;font-weight:800;opacity:1;color:#fff;margin-top:4px}
 .prog{display:flex;align-items:center;gap:10px;margin-top:12px}
 .bar{flex:1;height:8px;border-radius:8px;background:rgba(255,255,255,.25);overflow:hidden}
 .bar i{display:block;height:100%;width:0;background:#7ee2a8;transition:width .3s}
@@ -128,13 +129,13 @@ const DEMO = !CFG.API_URL && (/^(localhost|127\.)/.test(location.hostname) || lo
 const NOT_READY = !CFG.API_URL && !DEMO;
 const qs = new URLSearchParams(location.search);
 function store(op, k, v) { try { return op === 'get' ? localStorage.getItem(k) : op === 'del' ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) { return null; } }
-const S = { d: qs.get('d') || (qs.get('t') ? '' : store('get', 'w14p_d') || ''), t: qs.get('t') || '', district: null, photos: [], steps: [], max: 3,
+const S = { d: qs.get('d') || (qs.get('t') ? '' : store('get', 'w14p_d') || ''), v: qs.get('v') || (qs.get('t') ? '' : store('get', 'w14p_v') || ''), t: qs.get('t') || '', district: null, photos: [], steps: [], max: 3,
   canPdf: false, lineName: '', idToken: '', pending: [], pickStep: 0, pos: null };
 
 /* ---------- API ---------- */
 async function api(action, data, post) {
   if (DEMO) return demoApi(action, data || {});
-  const base = { action, d: S.d, t: S.t, idToken: S.idToken };
+  const base = { action, d: S.d, v: S.v, t: S.t, idToken: S.idToken };
   let res;
   if (post) {
     res = await fetch(CFG.API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -163,11 +164,12 @@ async function loadDistrict() {
   try {
     const j = await api('district');
     S.district = j.district; S.photos = j.photos; S.steps = j.steps; S.max = j.maxPerStep; S.canPdf = j.canPdf;
-    S.venues = j.venues || [];
+    // ลิงก์เก่า (ไม่มีสนาม) ของเขตที่มีสนามเดียว: จำสนามจากข้อมูลเขต (ลิงก์ที่ระบุสนามแล้วใช้ตามลิงก์)
+    if (!S.t && !S.v) S.v = j.district.venue || '';
     S.pending = [];
     render();
   } catch (e) {
-    if (!S.t) { store('del', 'w14p_d'); S.d = ''; return showPicker(e.message); }
+    if (!S.t) { store('del', 'w14p_d'); store('del', 'w14p_v'); S.d = ''; S.v = ''; return showPicker(e.message); }
     fatal(e.message);
   }
 }
@@ -183,7 +185,7 @@ async function showPicker(err) {
     const j = await api('list');
     S.list = j.districts;
     const mine = S.list.filter(d => d.mine);
-    if (mine.length === 1 && (!err || /ไม่พบเขต/.test(err)) && !S._picked) return pickDistrict(mine[0].code, true);
+    if (mine.length === 1 && (!err || /ไม่พบเขต/.test(err)) && !S._picked) return pickDistrict(S.list.indexOf(mine[0]), true);
     main.innerHTML = (err ? '<div class="msg err">' + esc(err) + '</div>' : '') +
       (S.lineName ? `<div class="note" style="margin:0 4px 8px">เข้าใช้ในนาม ${esc(S.lineName)} (ไลน์)</div>` : '') +
       `<input id="fq" placeholder="พิมพ์ค้นหา เช่น กระบี่ หรือ 001" oninput="renderPick(this.value)" autocomplete="off">
@@ -194,7 +196,7 @@ async function showPicker(err) {
 function renderPick(q) {
   q = q.trim().toLowerCase();
   const hit = S.list.filter(d => !q || (d.code + ' ' + d.name + ' ' + (d.venue || '') + ' ' + (d.region || '')).toLowerCase().includes(q));
-  const row = d => `<button onclick="pickDistrict('${esc(d.code)}')">${d.mine ? '<span class="tag">เขตของคุณ</span>' : d.taken ? '<span class="tag t">มีผู้ดูแลแล้ว</span>' : ''}
+  const row = d => `<button onclick="pickDistrict(${S.list.indexOf(d)})">${d.mine ? '<span class="tag">เขตของคุณ</span>' : d.taken ? '<span class="tag t">มีผู้ดูแลแล้ว</span>' : ''}
       <b>${esc(d.code)}</b>${esc(d.name)}<small>${esc([d.venue, d.region].filter(Boolean).join(' · '))}</small></button>`;
   const mine = hit.filter(d => d.mine), rest = hit.filter(d => !d.mine);
   document.getElementById('plist').innerHTML =
@@ -202,16 +204,17 @@ function renderPick(q) {
     '<div class="ghd">' + (q ? 'ผลการค้นหา ' + rest.length + ' เขต' : 'ทุกเขต (' + rest.length + ')') + '</div>' +
     (rest.length ? '<div class="pick">' + rest.map(row).join('') + '</div>' : '<div class="note">ไม่พบเขต</div>');
 }
-function pickDistrict(code, auto) {
-  const d = S.list.find(x => x.code === code);
-  if (!auto && !d.mine && !confirm(`ยืนยันว่าคุณเป็นผู้ประสานงานของ\n${d.code} ${d.name}\n\nเมื่อส่งข้อมูลครั้งแรก ระบบจะผูกบัญชีไลน์ของคุณกับเขตนี้`)) return;
-  S.d = code; S._picked = true; store('set', 'w14p_d', code);
+function pickDistrict(i, auto) {
+  const d = S.list[i];
+  if (!d) return;
+  if (!auto && !d.mine && !confirm(`ยืนยันว่าคุณเป็นผู้ประสานงานของ\n${d.code} ${d.name}\nสนาม ${d.venue}\n\nเมื่อส่งข้อมูลครั้งแรก ระบบจะผูกบัญชีไลน์ของคุณกับสนามนี้`)) return;
+  S.d = d.code; S.v = d.venue; S._picked = true; store('set', 'w14p_d', d.code); store('set', 'w14p_v', d.venue);
   document.getElementById('main').innerHTML = '<div class="skel"></div><div class="skel"></div>';
   loadDistrict();
 }
 function changeDistrict() {
   if (S.pending.length && !confirm('ยังมีรูปที่กำลังส่ง ออกจากเขตนี้หรือไม่?')) return;
-  S.d = ''; S._picked = true; store('del', 'w14p_d'); showPicker();
+  S.d = ''; S.v = ''; S._picked = true; store('del', 'w14p_d'); store('del', 'w14p_v'); showPicker();
 }
 
 async function initLine() {
@@ -252,26 +255,20 @@ function render() {
   const d = S.district;
   document.getElementById('bChg').hidden = !!S.t; document.getElementById('prog').hidden = false;
   document.getElementById('hName').textContent = d.code + ' ' + d.name;
-  document.getElementById('hSub').textContent = [d.venue || 'ยังไม่กรอกสนามสอบ', d.vehicle ? 'คันที่ ' + d.vehicle : ''].filter(Boolean).join(' · ');
+  document.getElementById('hSub').textContent = d.venue || 'ยังไม่กรอกสนามสอบ';
   const main = document.getElementById('main');
   const infoDone = !!d.venue;
-  const venues = S.venues || [];
   // สนามสอบเลือกจากรายชื่อที่แอดมินนำเข้า (ไม่ให้พิมพ์เอง กันพิมพ์ผิด) · มีสนามเดียวให้เลือกให้อัตโนมัติ
-  const cur = venues.includes(d.venue) ? d.venue : (venues.length === 1 ? venues[0] : '');
-  const venueField = venues.length
-    ? `<label for="fVenue">สนามสอบ</label><select id="fVenue"><option value="">— เลือกสนามสอบ —</option>${venues.map(v => `<option value="${esc(v)}" ${v === cur ? 'selected' : ''}>${esc(v)}</option>`).join('')}</select>`
-    : `<label>สนามสอบ</label><input value="" readonly placeholder="ยังไม่มีรายชื่อสนามสอบของเขตนี้ ติดต่อแอดมิน">`;
+  // 1 ลิงก์ = 1 สนาม: สนามถูกกำหนดจากลิงก์/รายการที่เลือก ผู้ประสานงานเปลี่ยนไม่ได้
   let h = '';
   if (d.submittedAt) h += '<div class="msg ok">ยืนยันส่งครบแล้วเมื่อ ' + esc(th(d.submittedAt)) + ' · ยังเพิ่ม/เปลี่ยนรูปได้</div>';
   h += `<section class="card ${infoDone ? 'done' : ''}" id="c1">
-    <div class="head"><div class="num">1</div><div class="ttl">ข้อมูลเขตและสนามสอบ<small>เลือกสนามสอบ ครั้งเดียว ไม่ต้องอัปโหลดรูป</small></div>
+    <div class="head"><div class="num">1</div><div class="ttl">ข้อมูลเขตและสนามสอบ<small>สนามของคุณตามลิงก์ที่ได้รับ ไม่ต้องอัปโหลดรูปในขั้นนี้</small></div>
     <span class="badge">${infoDone ? 'บันทึกแล้ว' : 'ยังไม่กรอก'}</span></div>
-    <div class="row2"><div><label>รหัสเขต</label><input value="${esc(d.code)}" readonly></div>
-    <div><label>คันที่</label><input value="${esc(d.vehicle || '-')}" readonly></div></div>
+    <label>รหัสเขต</label><input value="${esc(d.code)}" readonly>
     <label>ชื่อเขต</label><input value="${esc(d.name)}" readonly>
-    ${venueField}
     <div class="note" id="whoLine">${S.lineName ? 'ส่งในนาม: ' + esc(S.lineName) + ' (ไลน์)' : ''}${d.owners && d.owners.length ? ' · ผู้ดูแลเขต: ' + esc(d.owners.join(', ')) : ''}</div>
-    <button class="btn block" onclick="saveInfo(this)" ${venues.length ? '' : 'disabled'}>บันทึกข้อมูล</button></section>`;
+    </section>`;
   for (const s of S.steps) h += stepCard(s);
   main.innerHTML = h;
   updateProgress();

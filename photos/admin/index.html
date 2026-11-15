@@ -248,7 +248,7 @@ function renderList() {
   const list = filtered();
   document.getElementById('list').innerHTML = list.map(d => {
     const st = statusOf(d), n = nDone(d);
-    return `<tr class="r" onclick="openDistrict('${esc(d.code)}')">
+    return `<tr class="r" onclick="openDistrict('${esc(d.code)}','${encodeURIComponent(d.venue || '')}')">
       <td class="c-chk" onclick="event.stopPropagation()"><input type="checkbox" class="chk" ${S.sel.has(d.code) ? 'checked' : ''} onchange="toggleSel('${esc(d.code)}',this.checked)" aria-label="เลือก ${esc(d.code)}"></td>
       <td class="c-name"><span class="code">${esc(d.code)}</span> ${esc(d.name)}<div class="sub">${esc(d.venue || 'ยังไม่เลือกสนามสอบ')}${d.owners && d.owners.length ? ' · ' + esc(d.owners.join(', ')) : ''}${d.vehicle ? ' · คัน ' + esc(d.vehicle) : ''}</div></td>
       <td class="c-dots"><div class="dots">${S.steps.map(s => `<span class="dot ${(d.counts[s.n] || 0) ? 'y' : ''}" title="ขั้น ${s.n}: ${esc(s.title)} (${d.counts[s.n] || 0} รูป)">${s.n}</span>`).join('')}</div></td>
@@ -272,17 +272,19 @@ async function setAllowed(code, el) {
 }
 
 /* ---------- รายละเอียดเขต ---------- */
-async function openDistrict(code) {
-  const d = S.districts.find(x => x.code === code);
-  S.cur = { code, photos: null };
+async function openDistrict(code, venueEnc) {
+  const venue = decodeURIComponent(venueEnc || '');
+  const d = S.districts.find(x => x.code === code && String(x.venue || '').trim() === venue.trim()) || S.districts.find(x => x.code === code);
+  S.cur = { code, venue, photos: null };
   const panel = document.getElementById('panel');
   document.getElementById('drawer').classList.add('on');
   panel.innerHTML = drawerHtml(d, null);
   try {
-    const j = await api('admin_photos', { d: code });
-    if (!S.cur || S.cur.code !== code) return;
+    // ส่งสนามที่เลือกไปด้วย เพื่อให้ได้รูปเฉพาะสนามนั้น (ไม่รวมสนามอื่นของเขตเดียวกัน)
+    const j = await api('admin_photos', { d: code, v: venue });
+    if (!S.cur || S.cur.code !== code || S.cur.venue !== venue) return;
     S.cur.photos = j.photos;
-    panel.innerHTML = drawerHtml(j.district, j.photos);
+    panel.innerHTML = drawerHtml(Object.assign({}, j.district, { venue: d ? d.venue : j.district.venue, venues: d ? d.venues : j.district.venues }), j.photos);
   } catch (e) { panel.insertAdjacentHTML('beforeend', '<div class="sec msg err">' + esc(e.message) + '</div>'); }
 }
 function drawerHtml(d, photos) {
@@ -327,7 +329,7 @@ async function viewPhoto(id) {
 function closeViewer() { document.getElementById('viewer').classList.remove('on'); }
 async function delPhoto(id) {
   if (!confirm('ลบรูปนี้? (ไฟล์ย้ายไปโฟลเดอร์ _ลบแล้ว ใน Drive ไม่หายถาวร)')) return;
-  try { await api('delete', { id }, true); const c = S.cur.code; await load(true); openDistrict(c); }
+  try { await api('delete', { id }, true); const c = S.cur.code, cv = S.cur.venue || ''; await load(true); openDistrict(c, encodeURIComponent(cv)); }
   catch (e) { alert(e.message); }
 }
 
@@ -415,7 +417,7 @@ function editSteps() {
       const steps = S.steps.map((s, i) => ({ title: vals[1 + i * 2], full: vals[2 + i * 2] }));
       const j = await api('admin_steps', { pdfTitle: vals[0], steps }, true);
       S.steps = j.steps; S.pdfTitle = j.pdfTitle; renderList();
-      if (S.cur) openDistrict(S.cur.code);
+      if (S.cur) openDistrict(S.cur.code, encodeURIComponent(S.cur.venue || ''));
     });
 }
 function editInfo(code) {
@@ -483,10 +485,10 @@ function adminPick(step, btn) {
       for (let i = 0; i < files.length; i++) {
         btn.innerHTML = `<b>…</b>กำลังส่ง ${i + 1}/${files.length}`;
         const out = await shrinkImage(files[i]);
-        await api('upload', { d: code, step, image: out.image, thumb: out.thumb, clientTime: new Date().toISOString() }, true);
+        await api('upload', { d: code, v: (S.cur && S.cur.venue) || '', step, image: out.image, thumb: out.thumb, clientTime: new Date().toISOString() }, true);
       }
     } catch (e) { alert(e.message); }
-    await load(true); if (S.cur && S.cur.code === code) openDistrict(code);
+    await load(true); if (S.cur && S.cur.code === code) openDistrict(code, encodeURIComponent(S.cur.venue || ''));
   };
   inp.click();
 }

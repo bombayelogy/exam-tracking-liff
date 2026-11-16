@@ -79,7 +79,16 @@ select{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--line);bo
 .msg.err{background:var(--err-bg);color:var(--err)}
 .msg.warn{background:var(--warn-bg);color:var(--warn)}
 .msg.ok{background:var(--ok-bg);color:var(--ok)}
-.rhint{font-size:13px;margin:4px 2px 8px;line-height:1.45}.rhint.warn{color:var(--warn);font-weight:600}.rhint.ok{color:var(--ok)}
+.rhint{font-size:13px;margin:4px 2px 8px;line-height:1.45}
+.rvbar{border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:15px;line-height:1.5}
+.rvbar b{display:block;font-size:16px}
+.rvbar.ok{background:var(--ok-bg);color:var(--ok)}.rvbar.fix{background:var(--err-bg);color:var(--err)}.rvbar.incomplete{background:var(--warn-bg);color:var(--warn)}
+.locked-note{font-size:13px;color:var(--muted);text-align:center;padding:6px}
+.dlsheet{position:fixed;inset:0;background:rgba(10,20,35,.5);display:flex;align-items:flex-end;justify-content:center;z-index:70}
+.dlsheet .box{background:#fff;width:min(520px,100%);border-radius:16px 16px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom))}
+.dlsheet label{display:flex;gap:10px;align-items:center;padding:10px 4px;border-bottom:1px solid #eef1f5;font-size:16px}
+.dlsheet label input{width:20px;height:20px}
+.dlsheet .row{display:flex;gap:8px;margin-top:12px}.dlsheet .row .btn{flex:1}.rhint.warn{color:var(--warn);font-weight:600}.rhint.ok{color:var(--ok)}
 .foot{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:10px 12px calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px;justify-content:center}
 .foot .btn{flex:1;max-width:310px}
 .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#1d2633;color:#fff;padding:9px 14px;border-radius:10px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%;z-index:20}
@@ -118,8 +127,7 @@ header .k,header h1{padding-right:90px}
 </main>
 <div class="foot" id="foot" hidden>
   <button class="btn ok" id="bSubmit">ยืนยันส่งครบแล้ว</button>
-  <button class="btn ghost" id="bPdf" hidden>ดาวน์โหลด PDF</button>
-  <button class="btn ghost" id="bDocx" hidden>ดาวน์โหลด Word</button>
+  <button class="btn ghost" id="bDl" hidden>ดาวน์โหลดไฟล์</button>
 </div>
 <div class="toast" id="toast"></div>
 <div class="viewer" id="viewer"><button aria-label="ปิด" onclick="closeViewer()">✕</button><img id="vImg" alt=""><p id="vCap"></p></div>
@@ -263,7 +271,8 @@ function render() {
   // สนามสอบเลือกจากรายชื่อที่แอดมินนำเข้า (ไม่ให้พิมพ์เอง กันพิมพ์ผิด) · มีสนามเดียวให้เลือกให้อัตโนมัติ
   // 1 ลิงก์ = 1 สนาม: สนามถูกกำหนดจากลิงก์/รายการที่เลือก ผู้ประสานงานเปลี่ยนไม่ได้
   let h = '';
-  if (d.submittedAt) h += '<div class="msg ok">ยืนยันส่งครบแล้วเมื่อ ' + esc(th(d.submittedAt)) + ' · ยังเพิ่ม/เปลี่ยนรูปได้</div>';
+  h += reviewBanner(d);
+  if (d.submittedAt && !d.locked) h += '<div class="msg ok">ยืนยันส่งครบแล้วเมื่อ ' + esc(th(d.submittedAt)) + ' · ยังเพิ่ม/เปลี่ยนรูปได้</div>';
   h += `<section class="card ${infoDone ? 'done' : ''}" id="c1">
     <div class="head"><div class="num">1</div><div class="ttl">ข้อมูลเขตและสนามสอบ<small>สนามของคุณตามลิงก์ที่ได้รับ ไม่ต้องอัปโหลดรูปในขั้นนี้</small></div>
     <span class="badge">${infoDone ? 'บันทึกแล้ว' : 'ยังไม่กรอก'}</span></div>
@@ -275,8 +284,7 @@ function render() {
   main.innerHTML = h;
   updateProgress();
   document.getElementById('foot').hidden = false;
-  document.getElementById('bPdf').hidden = !S.canPdf;
-  document.getElementById('bDocx').hidden = !S.canPdf;
+  document.getElementById('bDl').hidden = !S.canPdf;
 }
 
 function stepCard(s) {
@@ -284,7 +292,8 @@ function stepCard(s) {
   const pend = S.pending.filter(p => p.step === s.n);
   const done = list.length > 0;
   const count = list.length + pend.length;
-  const left = S.max - count;
+  const locked = !!(S.district && S.district.locked);
+  const left = locked ? 0 : S.max - count;
   let body = '';
   if (!count) {
     // ยังไม่มีรูป: รูปตัวอย่างเต็มความกว้างการ์ด แตะเพื่อถ่าย / เลือกรูป
@@ -294,7 +303,7 @@ function stepCard(s) {
   } else {
     // มีรูปแล้ว: แถวเลื่อนซ้ายขวาทีละรูป ปุ่มเพิ่มรูปอยู่ท้ายแถว
     let slides = list.map(p => `<div class="tile"><img src="${esc(p.thumb || '')}" alt="" onclick="viewPhoto('${p.id}')">
-      <button class="x" aria-label="ลบรูป" onclick="delPhoto('${p.id}')">✕</button><div class="st">${esc(th(p.time))}</div></div>`).join('');
+      ${locked ? '' : `<button class="x" aria-label="ลบรูป" onclick="delPhoto('${p.id}')">✕</button>`}<div class="st">${esc(th(p.time))}</div></div>`).join('');
     slides += pend.map(p => `<div class="tile ${p.failed ? 'fail' : 'up'}"><img src="${p.thumb}" alt="">
       ${p.failed ? `<button class="x" aria-label="ยกเลิก" onclick="dropPending('${p.key}')">✕</button><div class="st" onclick="retry('${p.key}')">ส่งไม่สำเร็จ · แตะเพื่อส่งใหม่</div>` : '<div class="spin"></div>'}</div>`).join('');
     if (left > 0) slides += `<div class="add" role="button" tabindex="0" onclick="pick(${s.n})"><span>＋</span>${list.length ? 'เพิ่มรูป' : 'ถ่าย / เลือกรูป'}</div>`;
@@ -303,7 +312,7 @@ function stepCard(s) {
   return `<section class="card ${done ? 'done' : ''}" id="c${s.n}">
     <div class="head"><div class="num">${s.n}</div><div class="ttl">${esc(s.title)}</div>
     <span class="badge">${done ? list.length + ' รูป' : 'ยังไม่ส่ง'}</span></div>
-    ${reportHint(s.n, list.length)}${body}</section>`;
+    ${locked ? '' : reportHint(s.n, list.length)}${body}${locked && !count ? '<div class="locked-note">ปิดรับรูปแล้ว</div>' : ''}</section>`;
 }
 
 /* ขั้นที่ใส่ในรายงาน (รับ/ส่ง 14 และ 15 พ.ย.) แนะนำข้อละ 1–2 รูป · ขั้นอื่นไม่แสดงคำแนะนำ */
@@ -327,7 +336,8 @@ function updateProgress() {
   document.getElementById('pTxt').textContent = n + '/' + S.steps.length + ' ขั้น';
   document.getElementById('pBar').style.width = (n / S.steps.length * 100) + '%';
   const b = document.getElementById('bSubmit');
-  b.disabled = n < S.steps.length;
+  b.disabled = n < S.steps.length || !!S.district.locked;
+  b.hidden = !!S.district.locked;
   b.textContent = S.district.submittedAt ? 'ยืนยันแล้ว ✓' : (n < S.steps.length ? `ยืนยันส่งครบ (${n}/${S.steps.length})` : 'ยืนยันส่งครบแล้ว');
 }
 
@@ -467,21 +477,61 @@ document.getElementById('bSubmit').onclick = async function () {
   try { await api('submit', { on: true }, true); S.district.submittedAt = new Date().toISOString(); render(); toast('ยืนยันแล้ว ขอบคุณครับ'); }
   catch (e) { toast(e.message, 4000); }
 };
-document.getElementById('bDocx').onclick = async function () {
-  const b = this; b.disabled = true; b.textContent = 'กำลังสร้าง Word…';
-  try {
-    const j = await api('pdf', { format: 'docx' });
-    if (j.docx) downloadB64(j.docx, j.name, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-  } catch (e) { toast(e.message, 4000); }
-  b.disabled = false; b.textContent = 'ดาวน์โหลด Word';
-};
-document.getElementById('bPdf').onclick = async function () {
-  const b = this; b.disabled = true; b.textContent = 'กำลังสร้าง PDF…';
-  try {
-    const j = await api('pdf');
-    if (j.pdf) downloadB64(j.pdf, j.name, 'application/pdf');
-  } catch (e) { toast(e.message, 4000); }
-  b.disabled = false; b.textContent = 'ดาวน์โหลด PDF';
+/* ---------- ผลตรวจ ---------- */
+function reviewBanner(d) {
+  if (d.review === 'ok') return `<div class="rvbar ok"><b>✅ ผู้ตรวจยืนยันแล้ว</b>ปิดรับการเพิ่ม/ลบรูปของสนามนี้ หากต้องแก้ไขกรุณาติดต่อผู้ตรวจ${d.reviewNote ? '<br>หมายเหตุ: ' + esc(d.reviewNote) : ''}</div>`;
+  if (d.review === 'fix') return `<div class="rvbar fix"><b>⚠️ ผู้ตรวจแจ้ง: ต้องแก้ไข</b>${d.reviewNote ? esc(d.reviewNote) : 'กรุณาตรวจรูปแต่ละขั้นอีกครั้ง'}<br><small>แก้ไขรูปแล้ว ระบบจะส่งให้ผู้ตรวจดูอีกครั้งโดยอัตโนมัติ</small></div>`;
+  if (d.review === 'incomplete') return `<div class="rvbar incomplete"><b>⚠️ ผู้ตรวจแจ้ง: ไม่สมบูรณ์</b>${d.reviewNote ? esc(d.reviewNote) : 'ยังขาดรูปบางขั้น'}<br><small>เพิ่มรูปให้ครบแล้ว ระบบจะส่งให้ผู้ตรวจดูอีกครั้งโดยอัตโนมัติ</small></div>`;
+  return '';
+}
+
+/* ---------- เลือกไฟล์ดาวน์โหลด (หลายไฟล์รวมเป็น ZIP) ---------- */
+const DL_ITEMS = [
+  { id: 'rp', label: 'รายงานวันที่ 14–15 (PDF)', q: {}, kind: 'pdf' },
+  { id: 'rw', label: 'รายงานวันที่ 14–15 (Word)', q: { format: 'docx' }, kind: 'docx' },
+  { id: 'sp', label: 'ห้องมั่นคง (PDF)', q: { doc: 'secure' }, kind: 'pdf' },
+  { id: 'sw', label: 'ห้องมั่นคง (Word)', q: { doc: 'secure', format: 'docx' }, kind: 'docx' }
+];
+const MIME = { pdf: 'application/pdf', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' };
+function loadScript(src) {
+  return new Promise((ok, bad) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => bad(new Error('โหลดไลบรารีไม่ได้ ลองใหม่อีกครั้ง')); document.head.appendChild(s); });
+}
+function b64Bytes(b64) { const bin = atob(b64), a = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i); return a; }
+function saveFile(blob, name) {
+  const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+document.getElementById('bDl').onclick = function () {
+  const el = document.createElement('div'); el.className = 'dlsheet';
+  el.innerHTML = `<div class="box"><h3 style="margin:0 0 4px">ดาวน์โหลดไฟล์</h3>
+    <div class="note">เลือกได้หลายไฟล์ · ถ้าเลือกมากกว่า 1 ไฟล์ จะรวมเป็น ZIP ไฟล์เดียว</div>
+    ${DL_ITEMS.map(x => `<label><input type="checkbox" value="${x.id}" ${x.id === 'rp' ? 'checked' : ''}> ${x.label}</label>`).join('')}
+    <div class="note" id="dlMsg" style="margin-top:8px"></div>
+    <div class="row"><button class="btn ghost" id="dlCancel">ปิด</button><button class="btn" id="dlGo">ดาวน์โหลด</button></div></div>`;
+  document.body.appendChild(el);
+  el.onclick = e => { if (e.target === el) el.remove(); };
+  el.querySelector('#dlCancel').onclick = () => el.remove();
+  el.querySelector('#dlGo').onclick = async function () {
+    const pick = [...el.querySelectorAll('input:checked')].map(i => DL_ITEMS.find(x => x.id === i.value));
+    const msg = el.querySelector('#dlMsg');
+    if (!pick.length) { msg.textContent = 'เลือกอย่างน้อย 1 ไฟล์'; return; }
+    const b = this; b.disabled = true; const got = [];
+    try {
+      for (let i = 0; i < pick.length; i++) {
+        msg.textContent = `กำลังสร้าง ${pick[i].label} (${i + 1}/${pick.length})…`;
+        const j = await api('pdf', pick[i].q);
+        got.push({ name: j.name, bytes: b64Bytes(j[pick[i].kind]), type: MIME[pick[i].kind] });
+      }
+      if (got.length === 1) saveFile(new Blob([got[0].bytes], { type: got[0].type }), got[0].name);
+      else {
+        msg.textContent = 'กำลังรวมเป็น ZIP…';
+        await loadScript('https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js');
+        const zip = new JSZip(); got.forEach(f => zip.file(f.name, f.bytes));
+        saveFile(await zip.generateAsync({ type: 'blob' }), got[0].name.replace(/\.(pdf|docx)$/, '').replace(/_ห้องมั่นคง$/, '') + '.zip');
+      }
+      el.remove();
+    } catch (e) { msg.textContent = e.message; b.disabled = false; }
+  };
 };
 function downloadB64(b64, name, type) {
   const bin = atob(b64), arr = new Uint8Array(bin.length);

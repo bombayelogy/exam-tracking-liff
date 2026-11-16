@@ -51,6 +51,19 @@ td .sub{color:var(--muted);font-size:13px}
 .pill.ok{background:var(--ok-bg);color:var(--ok)}
 .pill.part{background:var(--part-bg);color:var(--part)}
 .pill.none{background:#eef1f5;color:var(--muted)}
+.pill.rv-ok{background:var(--ok);color:#fff}.pill.rv-fix{background:var(--err-bg);color:var(--err)}.pill.rv-incomplete{background:var(--part-bg);color:var(--part)}.pill.rv-new{background:#e6effa;color:var(--brand)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
+.tabs button{border:1px solid var(--line,#d8dee6);background:#fff;border-radius:20px;padding:6px 14px;font:inherit;font-size:14px;cursor:pointer;color:inherit}
+.tabs button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.tabs button b{font-weight:700;margin-left:4px}
+.rv{border:2px solid var(--brand-2);border-radius:12px;padding:10px 12px;background:#f7faff}
+.rv textarea{width:100%;min-height:54px;font:inherit;font-size:14px;border:1px solid #cfd7e2;border-radius:8px;padding:6px 8px;margin:6px 0}
+.rv .acts{display:flex;gap:6px;flex-wrap:wrap}
+.btn.rv-ok{background:var(--ok);color:#fff}.btn.rv-fix{background:var(--err);color:#fff}.btn.rv-incomplete{background:var(--part);color:#fff}
+.lockbar{background:var(--ok-bg);color:var(--ok);border-radius:10px;padding:8px 10px;font-weight:600;margin-top:8px}
+.role{background:#fff;color:var(--brand);border-radius:20px;padding:3px 10px;font-size:13px;font-weight:700}
+.dl label{display:flex;gap:8px;align-items:center;padding:8px 4px;border-bottom:1px solid #eef1f5;font-size:15px;cursor:pointer}
+.dl label input{width:18px;height:18px}
 .chk{width:18px;height:18px}
 .drawer{position:fixed;inset:0;background:rgba(10,20,35,.45);display:none;z-index:20}
 .drawer.on{display:block}
@@ -133,8 +146,8 @@ const NOT_READY = !CFG.API_URL && !DEMO;
 const qs = new URLSearchParams(location.search);
 let KEY = store('get', 'w14p_admin_session') || '';
 if (qs.has('key')) history.replaceState(null, '', location.pathname);
-if (!/^s\.\d+\./.test(KEY) || Number(KEY.split('.')[1]) < Date.now()) KEY = '';
-const S = { districts: [], steps: [], exportOpen: false, sel: new Set(), q: '', region: '', status: '', sort: 'code', cur: null, cancel: false };
+if (!/^[sS]\.\d+\./.test(KEY) || Number(KEY.split('.')[1]) < Date.now()) KEY = '';
+const S = { districts: [], steps: [], exportOpen: false, sel: new Set(), q: '', region: '', status: '', sort: 'code', cur: null, cancel: false, tab: 'queue', role: 'admin' };
 
 function store(op, k, v) { try { return op === 'get' ? localStorage.getItem(k) : localStorage.setItem(k, v); } catch (e) { return null; } }
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
@@ -179,7 +192,7 @@ function logout() { KEY = ''; try { localStorage.removeItem('w14p_admin_session'
 async function load(quiet) {
   try {
     const j = await api('admin_summary');
-    S.districts = j.districts; S.steps = j.steps; S.exportOpen = j.exportOpen; S.max = j.maxPerStep || 3; S.pdfTitle = j.pdfTitle || '';
+    S.districts = j.districts; S.role = j.role || 'admin'; S.steps = j.steps; S.exportOpen = j.exportOpen; S.max = j.maxPerStep || 3; S.pdfTitle = j.pdfTitle || '';
     if (!quiet || !document.getElementById('list')) shell();
     renderList();
   } catch (e) {
@@ -196,10 +209,12 @@ function shell() {
   const regions = [...new Set(S.districts.map(d => d.region).filter(Boolean))].sort();
   document.getElementById('app').innerHTML = `
   <header><h1>แดชบอร์ดรูปรายงานประจำเขต<small>ว.14 ครูผู้ช่วย · แยกจากแดชบอร์ดรถ</small></h1>
+    <span class="role">${S.role === 'super' ? 'ผู้ตรวจ (super-admin)' : 'แอดมิน'}</span>
     <label class="sw" title="เปิดแล้วผู้ประสานงานทุกเขตดาวน์โหลด PDF ของเขตตัวเองได้"><input type="checkbox" id="swOpen" ${S.exportOpen ? 'checked' : ''} onchange="setOpen(this)">อนุญาตให้ทุกเขตส่งออก PDF</label>
     <button class="btn ghost sm" onclick="logout()">ออกจากระบบ</button></header>
   <main>
     <div class="stats" id="stats"></div>
+    <div class="tabs" id="tabs"></div>
     <div class="tools">
       <input id="q" placeholder="ค้นหา รหัส / เขต / สนามสอบ / ผู้ประสานงาน" value="${esc(S.q)}" oninput="S.q=this.value;renderList()">
       <select onchange="S.region=this.value;renderList()"><option value="">ทุกสายภูมิภาค</option>${regions.map(r => `<option ${S.region === r ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select>
@@ -227,6 +242,7 @@ function filtered() {
   const q = S.q.trim().toLowerCase();
   let list = S.districts.filter(d => {
     if (S.region && d.region !== S.region) return false;
+    if (S.tab !== 'all' && reviewTab(d) !== S.tab) return false;
     if (S.status === 'sub') { if (!d.submittedAt) return false; }
     else if (S.status && statusOf(d) !== S.status) return false;
     if (q && ![d.code, d.name, d.venue, d.place].join(' ').toLowerCase().includes(q)) return false;
@@ -246,6 +262,7 @@ function renderList() {
      <div class="stat"><b>${part}</b><span>ส่งบางขั้น</span></div>
      <div class="stat"><b>${all.length - ok - part}</b><span>ยังไม่ส่งเลย</span></div>
      <div class="stat"><b>${all.reduce((a, d) => a + nPhotos(d), 0)}</b><span>รูปทั้งหมด · ยืนยันแล้ว ${all.filter(d => d.submittedAt).length} เขต</span></div>`;
+  renderTabs();
   const list = filtered();
   document.getElementById('list').innerHTML = list.map(d => {
     const st = statusOf(d), n = nDone(d);
@@ -253,7 +270,7 @@ function renderList() {
       <td class="c-chk" onclick="event.stopPropagation()"><input type="checkbox" class="chk" ${S.sel.has(d.code) ? 'checked' : ''} onchange="toggleSel('${esc(d.code)}',this.checked)" aria-label="เลือก ${esc(d.code)}"></td>
       <td class="c-name"><span class="code">${esc(d.code)}</span> ${esc(d.name)}<div class="sub">${esc(d.venue || 'ยังไม่เลือกสนามสอบ')}${d.owners && d.owners.length ? ' · ' + esc(d.owners.join(', ')) : ''}${d.vehicle ? ' · คัน ' + esc(d.vehicle) : ''}</div></td>
       <td class="c-dots"><div class="dots">${S.steps.map(s => `<span class="dot ${(d.counts[s.n] || 0) ? 'y' : ''}" title="ขั้น ${s.n}: ${esc(s.title)} (${d.counts[s.n] || 0} รูป)">${s.n}</span>`).join('')}</div></td>
-      <td class="c-st"><span class="pill ${st}">${st === 'ok' ? 'ครบ' : n + '/' + S.steps.length}</span>${d.submittedAt ? ' <span class="pill ok" title="ผู้ประสานงานยืนยันส่งครบ">ยืนยัน</span>' : ''}</td>
+      <td class="c-st"><span class="pill ${st}">${st === 'ok' ? 'ครบ' : n + '/' + S.steps.length}</span>${d.submittedAt ? ' <span class="pill ok" title="ผู้ประสานงานยืนยันส่งครบ">ยืนยัน</span>' : ''}${reviewPill(d)}</td>
       <td class="c-last"><span class="sub">${esc(th(d.lastPhoto)) || '-'}</span></td>
       <td class="c-pdf" onclick="event.stopPropagation()"><label class="sw" style="background:none;padding:0"><input type="checkbox" ${d.pdfAllowed ? 'checked' : ''} onchange="setAllowed('${esc(d.code)}',this)"></label></td></tr>`;
   }).join('') || '<tr><td colspan="6" class="empty">ไม่พบเขตตามเงื่อนไข</td></tr>';
@@ -298,22 +315,110 @@ function drawerHtml(d, photos) {
       <span>ยืนยันส่งครบ</span><div>${d.submittedAt ? esc(th(d.submittedAt)) : '-'}</div>
       <span>ผู้ดูแล (ไลน์)</span><div>${d.owners && d.owners.length ? esc(d.owners.join(', ')) + ` <button class="btn ghost sm" onclick="resetOwners('${esc(d.code)}')">ล้าง</button>` : '-'}</div></div>
       <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap"><button class="btn ghost sm" onclick="previewPdf('${esc(d.code)}')">ดูตัวอย่าง PDF</button>
-      <button class="btn sm" onclick="exportPdf('one','${esc(d.code)}')">ดาวน์โหลด PDF เขตนี้</button>
-      <button class="btn ghost sm" onclick="exportDocx('${esc(d.code)}', this)">ดาวน์โหลด Word</button>
+      <button class="btn sm" onclick="chooseDownload('${esc(d.code)}')">ดาวน์โหลดไฟล์ (PDF / Word)…</button>
       <button class="btn ghost sm" onclick="editInfo('${esc(d.code)}')">แก้ข้อมูลขั้นที่ 1</button>
       <button class="btn ghost sm" onclick="editDistrict('${esc(d.code)}')">แก้รหัส / ชื่อเขต</button></div>
-      <div class="empty" style="margin-top:6px">PDF แสดงเฉพาะ รหัสเขต · เขตพื้นที่ · สนามสอบ (ไม่แสดงผู้ประสานงาน คันที่ สาย) · แอดมินเพิ่ม/ลบรูปได้ในแต่ละขั้นด้านล่าง</div></div>`;
+      <div class="empty" style="margin-top:6px">PDF แสดงเฉพาะ รหัสเขต · เขตพื้นที่ · สนามสอบ (ไม่แสดงผู้ประสานงาน คันที่ สาย) · แอดมินเพิ่ม/ลบรูปได้ในแต่ละขั้นด้านล่าง</div></div>` + reviewPanel(d);
+  const canEdit = !d.locked || S.role === 'super';
   for (const s of S.steps) {
     const list = photos ? photos.filter(p => p.step === s.n) : null;
-    const add = list && list.length < (S.max || 3)
+    const add = canEdit && list && list.length < (S.max || 3)
       ? `<button class="th add" onclick="adminPick(${s.n}, this)"><b>＋</b>เพิ่มรูป</button>` : '';
     h += `<div class="sec"><h3>${s.n}. ${esc(s.full || s.title)}</h3>` + (list === null ? '' : reportHint(s.n, list.length)) + (list === null ? '<div class="empty">กำลังโหลด…</div>'
       : '<div class="thumbs">' + list.map(p => `<div class="th"><img src="${esc(p.thumb || '')}" alt="" onclick="viewPhoto('${p.id}')">
-          <button class="del" title="ลบรูป" onclick="delPhoto('${p.id}')">✕</button><div class="cap">${esc(th(p.time))}${p.by ? ' · ' + esc(p.by) : ''}</div></div>`).join('') + add + '</div>'
+          ${canEdit ? `<button class="del" title="ลบรูป" onclick="delPhoto('${p.id}')">✕</button>` : ''}<div class="cap">${esc(th(p.time))}${p.by ? ' · ' + esc(p.by) : ''}</div></div>`).join('') + add + '</div>'
         + (list.length ? '' : '<div class="empty">ยังไม่มีรูป</div>')) + '</div>';
   }
   return h;
 }
+/* ---------- ผลตรวจ (super-admin) ---------- */
+const REVIEW_TXT = { ok: 'ตรวจแล้ว', fix: 'ต้องแก้ไข', incomplete: 'ไม่สมบูรณ์' };
+/** แท็บของสนาม: queue = รอตรวจ (ยังไม่ตรวจ หรือแก้ไขแล้วส่งรูปใหม่) · wait = รอผู้ประสานงานแก้ · done = ตรวจแล้ว */
+function resent(d) { return !!(d.review && d.review !== 'ok' && d.lastPhoto && d.reviewAt && d.lastPhoto > d.reviewAt); }
+function reviewTab(d) { if (d.review === 'ok') return 'done'; if (!d.review || resent(d)) return 'queue'; return 'wait'; }
+function reviewPill(d) {
+  if (!d.review) return '';
+  return ` <span class="pill rv-${d.review}" title="${esc(d.reviewNote || '')}">${d.review === 'ok' ? '🔒 ' : ''}${REVIEW_TXT[d.review] || d.review}</span>` +
+    (resent(d) ? ' <span class="pill rv-new" title="มีรูปใหม่หลังผลตรวจ">ส่งรูปใหม่แล้ว</span>' : '');
+}
+function renderTabs() {
+  const c = { queue: 0, wait: 0, done: 0 };
+  S.districts.forEach(d => c[reviewTab(d)]++);
+  const tabs = [['queue', 'รอตรวจ', c.queue], ['wait', 'ต้องแก้ไข / ไม่สมบูรณ์', c.wait], ['done', 'ตรวจแล้ว', c.done], ['all', 'ทั้งหมด', S.districts.length]];
+  document.getElementById('tabs').innerHTML = tabs.map(([k, t, n]) => `<button class="${S.tab === k ? 'on' : ''}" onclick="S.tab='${k}';renderList()">${t}<b>${n}</b></button>`).join('');
+}
+function reviewPanel(d) {
+  const cur = d.review ? `<div><span class="pill rv-${d.review}">${d.review === 'ok' ? '🔒 ' : ''}${REVIEW_TXT[d.review]}</span> <span class="empty">${esc(d.reviewBy || '')} ${d.reviewAt ? '· ' + esc(th(d.reviewAt)) : ''}</span></div>` +
+    (d.reviewNote ? `<div style="margin-top:4px">หมายเหตุ: ${esc(d.reviewNote)}</div>` : '') + (resent(d) ? '<div class="rhint ok" style="margin-top:4px">ผู้ประสานงานส่งรูปใหม่หลังผลตรวจ · รอตรวจอีกครั้ง</div>' : '')
+    : '<div class="empty">ยังไม่ได้ตรวจ</div>';
+  const lock = d.locked ? '<div class="lockbar">🔒 ตรวจแล้ว · ปิดรับอัปโหลด/ลบรูปจากผู้ประสานงานและแอดมิน</div>' : '';
+  if (S.role !== 'super') return `<div class="sec"><h3>ผลการตรวจ</h3><div class="rv">${cur}${lock}<div class="empty" style="margin-top:6px">เฉพาะผู้ตรวจ (super-admin) บันทึกผลตรวจได้</div></div></div>`;
+  return `<div class="sec"><h3>ผลการตรวจ</h3><div class="rv">${cur}${lock}
+    <textarea id="rvNote" placeholder="หมายเหตุถึงผู้ประสานงาน (แสดงในหน้าส่งรูป) เช่น ขั้น 3 รูปไม่ชัด ขอรูปใหม่">${esc(d.reviewNote || '')}</textarea>
+    <div class="acts"><button class="btn sm rv-ok" onclick="setReview('${esc(d.code)}','ok',this)">✓ ตรวจแล้ว</button>
+    <button class="btn sm rv-fix" onclick="setReview('${esc(d.code)}','fix',this)">ต้องแก้ไข</button>
+    <button class="btn sm rv-incomplete" onclick="setReview('${esc(d.code)}','incomplete',this)">ไม่สมบูรณ์</button>
+    ${d.review ? `<button class="btn ghost sm" onclick="setReview('${esc(d.code)}','',this)">ล้างผลตรวจ / ปลดล็อก</button>` : ''}</div>
+    <div class="empty" style="margin-top:6px">"ตรวจแล้ว" จะปิดไม่ให้ผู้ประสานงานและแอดมินอัปโหลดหรือลบรูปของสนามนี้ (ผู้ตรวจยังแก้ได้)</div></div></div>`;
+}
+async function setReview(code, status, btn) {
+  const venue = curVenue(code);
+  const note = (document.getElementById('rvNote') || {}).value || '';
+  if (status === 'ok' && !confirm('ยืนยัน "ตรวจแล้ว" ' + code + ' ' + venue + '?\nระบบจะปิดรับอัปโหลด/ลบรูปของสนามนี้')) return;
+  if ((status === 'fix' || status === 'incomplete') && !note.trim() && !confirm('ยังไม่ได้ใส่หมายเหตุ ผู้ประสานงานจะไม่รู้ว่าต้องแก้อะไร · บันทึกต่อไหม?')) return;
+  if (status === '' && !confirm('ล้างผลตรวจและปลดล็อกสนามนี้?')) return;
+  btn.disabled = true;
+  try {
+    const j = await api('review', { d: code, v: venue, status, note: status ? note : '' }, true);
+    const row = S.districts.find(x => x.code === code && String(x.venue || '').trim() === String(venue).trim());
+    if (row) ['review', 'reviewNote', 'reviewBy', 'reviewAt', 'locked'].forEach(k => row[k] = j.district[k]);
+    renderList();
+    openDistrict(code, encodeURIComponent(venue));
+  } catch (e) { alert(e.message); btn.disabled = false; }
+}
+
+/* ---------- เลือกไฟล์ดาวน์โหลด (หลายไฟล์รวมเป็น ZIP) ---------- */
+const DL_ITEMS = [
+  { id: 'rp', label: 'รายงานวันที่ 14–15 (PDF)', q: {}, kind: 'pdf' },
+  { id: 'rw', label: 'รายงานวันที่ 14–15 (Word)', q: { format: 'docx' }, kind: 'docx' },
+  { id: 'sp', label: 'ห้องมั่นคง (PDF)', q: { doc: 'secure' }, kind: 'pdf' },
+  { id: 'sw', label: 'ห้องมั่นคง (Word)', q: { doc: 'secure', format: 'docx' }, kind: 'docx' }
+];
+const MIME = { pdf: 'application/pdf', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' };
+function chooseDownload(code) {
+  const venue = curVenue(code);
+  const el = document.createElement('div'); el.className = 'form';
+  el.innerHTML = `<div class="box dl"><h3 style="margin:0 0 4px">ดาวน์โหลดไฟล์ · ${esc(code)} ${esc(venue)}</h3>
+    <div class="empty" style="margin-bottom:6px">เลือกได้หลายไฟล์ · ถ้าเลือกมากกว่า 1 ไฟล์ จะรวมเป็น ZIP ไฟล์เดียว</div>
+    ${DL_ITEMS.map(x => `<label><input type="checkbox" value="${x.id}" ${x.id === 'rp' ? 'checked' : ''}> ${x.label}</label>`).join('')}
+    <div class="empty" id="dlMsg" style="margin-top:8px"></div>
+    <div class="row" style="justify-content:flex-end;gap:8px;margin-top:10px"><button class="btn ghost" id="dlCancel">ปิด</button><button class="btn" id="dlGo">ดาวน์โหลด</button></div></div>`;
+  document.body.appendChild(el);
+  el.querySelector('#dlCancel').onclick = () => el.remove();
+  el.querySelector('#dlGo').onclick = async function () {
+    const pick = [...el.querySelectorAll('input:checked')].map(i => DL_ITEMS.find(x => x.id === i.value));
+    if (!pick.length) return el.querySelector('#dlMsg').textContent = 'เลือกอย่างน้อย 1 ไฟล์';
+    const b = this; b.disabled = true;
+    const msg = el.querySelector('#dlMsg'); const got = [];
+    try {
+      for (let i = 0; i < pick.length; i++) {
+        msg.textContent = `กำลังสร้าง ${pick[i].label} (${i + 1}/${pick.length}) · ไฟล์ละประมาณ 5–20 วินาที`;
+        const j = await api('pdf', Object.assign({ d: code, v: venue }, pick[i].q));
+        got.push({ name: j.name, bytes: b64ToBytes(j[pick[i].kind]), type: MIME[pick[i].kind] });
+      }
+      if (got.length === 1) saveBlob(new Blob([got[0].bytes], { type: got[0].type }), got[0].name);
+      else {
+        msg.textContent = 'กำลังรวมเป็น ZIP…';
+        await loadScript('https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js');
+        const zip = new JSZip(); got.forEach(f => zip.file(f.name, f.bytes));
+        const base = got[0].name.replace(/\.(pdf|docx)$/, '').replace(/_ห้องมั่นคง$/, '');
+        saveBlob(await zip.generateAsync({ type: 'blob' }), base + '.zip');
+      }
+      el.remove();
+    } catch (e) { msg.textContent = e.message; b.disabled = false; }
+  };
+}
+
 /* ขั้นที่ใส่ในรายงาน PDF/Word (รับ/ส่ง 14 และ 15 พ.ย.) แนะนำข้อละ 1–2 รูป · ขั้นอื่นไม่แสดงคำแนะนำ */
 const REPORT_STEPS = [3, 4, 5, 6], REPORT_MIN = 1, REPORT_MAX = 2;
 function reportHint(n, count) {

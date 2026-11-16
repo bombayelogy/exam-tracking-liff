@@ -79,6 +79,7 @@ select{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--line);bo
 .msg.err{background:var(--err-bg);color:var(--err)}
 .msg.warn{background:var(--warn-bg);color:var(--warn)}
 .msg.ok{background:var(--ok-bg);color:var(--ok)}
+.rhint{font-size:13px;margin:4px 2px 8px;line-height:1.45}.rhint.warn{color:var(--warn);font-weight:600}.rhint.ok{color:var(--ok)}
 .foot{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:10px 12px calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px;justify-content:center}
 .foot .btn{flex:1;max-width:310px}
 .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#1d2633;color:#fff;padding:9px 14px;border-radius:10px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%;z-index:20}
@@ -118,6 +119,7 @@ header .k,header h1{padding-right:90px}
 <div class="foot" id="foot" hidden>
   <button class="btn ok" id="bSubmit">ยืนยันส่งครบแล้ว</button>
   <button class="btn ghost" id="bPdf" hidden>ดาวน์โหลด PDF</button>
+  <button class="btn ghost" id="bDocx" hidden>ดาวน์โหลด Word</button>
 </div>
 <div class="toast" id="toast"></div>
 <div class="viewer" id="viewer"><button aria-label="ปิด" onclick="closeViewer()">✕</button><img id="vImg" alt=""><p id="vCap"></p></div>
@@ -274,6 +276,7 @@ function render() {
   updateProgress();
   document.getElementById('foot').hidden = false;
   document.getElementById('bPdf').hidden = !S.canPdf;
+  document.getElementById('bDocx').hidden = !S.canPdf;
 }
 
 function stepCard(s) {
@@ -300,7 +303,16 @@ function stepCard(s) {
   return `<section class="card ${done ? 'done' : ''}" id="c${s.n}">
     <div class="head"><div class="num">${s.n}</div><div class="ttl">${esc(s.title)}</div>
     <span class="badge">${done ? list.length + ' รูป' : 'ยังไม่ส่ง'}</span></div>
-    ${body}</section>`;
+    ${reportHint(s.n, list.length)}${body}</section>`;
+}
+
+/* ขั้นที่ใส่ในรายงาน (รับ/ส่ง 14 และ 15 พ.ย.) แนะนำข้อละ 1–2 รูป · ขั้นอื่นไม่แสดงคำแนะนำ */
+const REPORT_STEPS = [3, 4, 5, 6], REPORT_MIN = 1, REPORT_MAX = 2;
+function reportHint(n, count) {
+  if (!REPORT_STEPS.includes(n)) return '';
+  if (count > REPORT_MAX) return `<div class="rhint warn">มี ${count} รูป · ควรเหลือ ${REPORT_MIN}–${REPORT_MAX} รูป แตะ ✕ ที่รูปที่ไม่ใช้เพื่อลบ</div>`;
+  if (count < REPORT_MIN) return `<div class="rhint">ส่งอย่างน้อย ${REPORT_MIN} รูป ไม่เกิน ${REPORT_MAX} รูป</div>`;
+  return `<div class="rhint ok">✓ ${count} รูป · จำนวนเหมาะสม</div>`;
 }
 
 function rerenderStep(n) {
@@ -454,6 +466,14 @@ document.getElementById('bSubmit').onclick = async function () {
   if (!confirm('ยืนยันว่าส่งรูปครบทุกขั้นแล้ว?')) return;
   try { await api('submit', { on: true }, true); S.district.submittedAt = new Date().toISOString(); render(); toast('ยืนยันแล้ว ขอบคุณครับ'); }
   catch (e) { toast(e.message, 4000); }
+};
+document.getElementById('bDocx').onclick = async function () {
+  const b = this; b.disabled = true; b.textContent = 'กำลังสร้าง Word…';
+  try {
+    const j = await api('pdf', { format: 'docx' });
+    if (j.docx) downloadB64(j.docx, j.name, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+  } catch (e) { toast(e.message, 4000); }
+  b.disabled = false; b.textContent = 'ดาวน์โหลด Word';
 };
 document.getElementById('bPdf').onclick = async function () {
   const b = this; b.disabled = true; b.textContent = 'กำลังสร้าง PDF…';

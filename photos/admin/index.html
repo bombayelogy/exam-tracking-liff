@@ -61,6 +61,7 @@ td .sub{color:var(--muted);font-size:13px}
 .panel .x{background:rgba(255,255,255,.15);border:0;color:#fff;width:34px;height:34px;border-radius:50%;font-size:18px;cursor:pointer;flex:none}
 .sec{background:var(--card);border:1px solid var(--line);border-radius:12px;margin:10px 12px;padding:10px 12px}
 .sec h3{margin:0 0 6px;font-size:15px}
+.rhint{font-size:12.5px;margin:-2px 0 6px}.rhint.warn{color:var(--err);font-weight:600}.rhint.ok{color:var(--ok)}
 .kv{display:grid;grid-template-columns:110px 1fr;gap:2px 8px;font-size:14px}
 .kv span{color:var(--muted)}
 .thumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
@@ -298,6 +299,7 @@ function drawerHtml(d, photos) {
       <span>ผู้ดูแล (ไลน์)</span><div>${d.owners && d.owners.length ? esc(d.owners.join(', ')) + ` <button class="btn ghost sm" onclick="resetOwners('${esc(d.code)}')">ล้าง</button>` : '-'}</div></div>
       <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap"><button class="btn ghost sm" onclick="previewPdf('${esc(d.code)}')">ดูตัวอย่าง PDF</button>
       <button class="btn sm" onclick="exportPdf('one','${esc(d.code)}')">ดาวน์โหลด PDF เขตนี้</button>
+      <button class="btn ghost sm" onclick="exportDocx('${esc(d.code)}', this)">ดาวน์โหลด Word</button>
       <button class="btn ghost sm" onclick="editInfo('${esc(d.code)}')">แก้ข้อมูลขั้นที่ 1</button>
       <button class="btn ghost sm" onclick="editDistrict('${esc(d.code)}')">แก้รหัส / ชื่อเขต</button></div>
       <div class="empty" style="margin-top:6px">PDF แสดงเฉพาะ รหัสเขต · เขตพื้นที่ · สนามสอบ (ไม่แสดงผู้ประสานงาน คันที่ สาย) · แอดมินเพิ่ม/ลบรูปได้ในแต่ละขั้นด้านล่าง</div></div>`;
@@ -305,12 +307,20 @@ function drawerHtml(d, photos) {
     const list = photos ? photos.filter(p => p.step === s.n) : null;
     const add = list && list.length < (S.max || 3)
       ? `<button class="th add" onclick="adminPick(${s.n}, this)"><b>＋</b>เพิ่มรูป</button>` : '';
-    h += `<div class="sec"><h3>${s.n}. ${esc(s.full || s.title)}</h3>` + (list === null ? '<div class="empty">กำลังโหลด…</div>'
+    h += `<div class="sec"><h3>${s.n}. ${esc(s.full || s.title)}</h3>` + (list === null ? '' : reportHint(s.n, list.length)) + (list === null ? '<div class="empty">กำลังโหลด…</div>'
       : '<div class="thumbs">' + list.map(p => `<div class="th"><img src="${esc(p.thumb || '')}" alt="" onclick="viewPhoto('${p.id}')">
           <button class="del" title="ลบรูป" onclick="delPhoto('${p.id}')">✕</button><div class="cap">${esc(th(p.time))}${p.by ? ' · ' + esc(p.by) : ''}</div></div>`).join('') + add + '</div>'
         + (list.length ? '' : '<div class="empty">ยังไม่มีรูป</div>')) + '</div>';
   }
   return h;
+}
+/* ขั้นที่ใส่ในรายงาน PDF/Word (รับ/ส่ง 14 และ 15 พ.ย.) แนะนำข้อละ 1–2 รูป · ขั้นอื่นไม่แสดงคำแนะนำ */
+const REPORT_STEPS = [3, 4, 5, 6], REPORT_MIN = 1, REPORT_MAX = 2;
+function reportHint(n, count) {
+  if (!REPORT_STEPS.includes(n)) return '';
+  if (count > REPORT_MAX) return `<div class="rhint warn">มี ${count} รูป · แนะนำให้ลบให้เหลือ ${REPORT_MIN}–${REPORT_MAX} รูป (กด ✕ ที่รูปที่ไม่ใช้)</div>`;
+  if (count < REPORT_MIN) return `<div class="rhint warn">ควรมีอย่างน้อย ${REPORT_MIN} รูป (ไม่เกิน ${REPORT_MAX} รูป)</div>`;
+  return `<div class="rhint ok">✓ ${count} รูป · จำนวนเหมาะสม (${REPORT_MIN}–${REPORT_MAX} รูป)</div>`;
 }
 async function resetOwners(code) {
   if (!confirm('ล้างบัญชีไลน์ที่ผูกกับเขต ' + code + '? (ใช้เมื่อมีคนเลือกเขตผิด หรือเปลี่ยนผู้ประสานงาน รูปเดิมไม่หาย)')) return;
@@ -337,6 +347,16 @@ async function delPhoto(id) {
 function loadScript(src) {
   return new Promise((ok, bad) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => bad(new Error('โหลดไลบรารีไม่ได้')); document.head.appendChild(s); });
 }
+/** สนามที่เปิดอยู่ในแผงรายละเอียด (เขตหลายสนามต้องระบุสนาม ไม่งั้นได้สนามแรก) */
+function curVenue(code) { return S.cur && S.cur.code === code ? (S.cur.venue || '') : ''; }
+async function exportDocx(code, btn) {
+  const old = btn.textContent; btn.disabled = true; btn.textContent = 'กำลังสร้าง Word…';
+  try {
+    const j = await api('pdf', { d: code, v: curVenue(code), format: 'docx' });
+    saveBlob(new Blob([b64ToBytes(j.docx)], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' }), j.name);
+  } catch (e) { alert(e.message); }
+  btn.disabled = false; btn.textContent = old;
+}
 function b64ToBytes(b64) { const bin = atob(b64), a = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) a[i] = bin.charCodeAt(i); return a; }
 function saveBlob(blob, name) {
   const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = name;
@@ -361,7 +381,7 @@ async function exportPdf(mode, one) {
     for (let i = 0; i < codes.length && !S.cancel; i++) {
       txt.textContent = `เขต ${codes[i]} (${i + 1}/${codes.length}) · เขตที่สร้างไว้แล้วและไม่มีรูปใหม่จะเร็วขึ้น`;
       try {
-        const j = await api('pdf', { d: codes[i] });
+        const j = await api('pdf', mode === 'one' ? { d: codes[i], v: curVenue(codes[i]) } : { d: codes[i] });
         got.push({ code: codes[i], name: j.name, bytes: b64ToBytes(j.pdf) });
       } catch (e) { log.insertAdjacentHTML('beforeend', `<div>✕ ${esc(codes[i])}: ${esc(e.message)}</div>`); }
       bar.style.width = ((i + 1) / codes.length * 100) + '%';
@@ -539,7 +559,7 @@ async function previewPdf(code) {
   const close = () => { el.remove(); if (url) setTimeout(() => URL.revokeObjectURL(url), 60000); };
   el.querySelector('#pvClose').onclick = close;
   try {
-    const j = await api('pdf', { d: code, preview: '1' });
+    const j = await api('pdf', { d: code, v: curVenue(code), preview: '1' });
     url = URL.createObjectURL(new Blob([b64ToBytes(j.pdf)], { type: 'application/pdf' }));
     const f = el.querySelector('#pvFrame'); f.src = url; f.hidden = false;
     el.querySelector('#pvMsg').textContent = 'ตัวอย่างยังไม่นับเป็นการส่งออก · ถ้าต้องปรับ ให้แก้หัวข้อขั้นตอน ข้อมูลเขต หรือลบ/เพิ่มรูป แล้วกดดูตัวอย่างใหม่';

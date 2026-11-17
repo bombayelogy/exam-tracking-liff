@@ -86,6 +86,14 @@ td .sub{color:var(--muted);font-size:13px}
 .th.add:disabled{cursor:progress;opacity:.7}
 .form .grp{margin-top:12px;padding-top:8px;border-top:1px solid var(--line);font-weight:600;font-size:14px}
 .th .cap{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.55);color:#fff;font-size:11px;padding:2px 5px}
+.movebar.on{border-color:var(--brand-2);background:#f7faff}
+.sec.dz.over{outline:3px dashed var(--brand);background:#eef5ff}
+.th.mv{outline:2px dashed #9fb3c8;cursor:grab}
+.th.mv img{cursor:pointer}
+.th.sel{outline:4px solid var(--brand)}
+.th.sel::after{content:'เลือกแล้ว';position:absolute;top:4px;left:4px;background:var(--brand);color:#fff;font-size:11px;padding:1px 6px;border-radius:6px}
+.dropbtn{display:block;width:100%;margin:2px 0 8px;padding:9px;border:2px dashed var(--brand-2);border-radius:8px;background:#fff;color:var(--brand);font:inherit;font-weight:600;cursor:pointer}
+.dropbtn:disabled{border-color:var(--line);color:var(--muted);cursor:default;font-weight:400}
 .th .del{position:absolute;top:3px;right:3px;width:24px;height:24px;border:0;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;cursor:pointer}
 .empty{color:var(--muted);font-size:13px}
 .viewer{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;z-index:40;flex-direction:column}
@@ -294,7 +302,7 @@ async function setAllowed(code, el) {
 async function openDistrict(code, venueEnc) {
   const venue = decodeURIComponent(venueEnc || '');
   const d = S.districts.find(x => x.code === code && String(x.venue || '').trim() === venue.trim()) || S.districts.find(x => x.code === code);
-  S.cur = { code, venue, photos: null, gen: 0 };
+  S.cur = { code, venue, photos: null, gen: 0 }; S.moveMode = false; S.moveSel = null;
   const cur = S.cur;
   const panel = document.getElementById('panel');
   document.getElementById('drawer').classList.add('on');
@@ -327,13 +335,21 @@ function drawerHtml(d, photos) {
       <button class="btn ghost sm" onclick="editDistrict('${esc(d.code)}')">แก้รหัส / ชื่อเขต</button></div>
       <div class="empty" style="margin-top:6px">PDF แสดงเฉพาะ รหัสเขต · เขตพื้นที่ · สนามสอบ (ไม่แสดงผู้ประสานงาน คันที่ สาย) · แอดมินเพิ่ม/ลบรูปได้ในแต่ละขั้นด้านล่าง</div></div>` + reviewPanel(d);
   const canEdit = !d.locked || S.role === 'super';
+  // โหมดย้ายรูป: ลากรูปข้ามขั้น (คอมพิวเตอร์) หรือแตะรูปแล้วแตะ "ย้ายมาขั้นนี้" (มือถือ)
+  const mv = !!(canEdit && S.moveMode && photos);
+  const max = S.max || 3;
+  if (canEdit && photos && photos.length) h += `<div class="sec movebar${mv ? ' on' : ''}"><button class="btn sm${mv ? '' : ' ghost'}" onclick="toggleMove()">${mv ? '✓ เสร็จแล้ว ออกจากโหมดย้ายรูป' : '↕ โหมดย้ายรูป (รูปอยู่ผิดขั้น)'}</button>` +
+    (mv ? '<div class="empty" style="margin-top:6px">คอมพิวเตอร์: ลากรูปไปวางในขั้นที่ถูกต้อง · มือถือ: แตะรูปที่จะย้าย แล้วแตะ "ย้ายมาขั้นนี้" ในขั้นปลายทาง</div>' : '') + '</div>';
+  const sel = mv && S.moveSel ? photos.find(p => p.id === S.moveSel) || null : null;
   for (const s of S.steps) {
     const list = photos ? photos.filter(p => p.step === s.n) : null;
-    const add = canEdit && list && list.length < (S.max || 3)
+    const add = canEdit && !mv && list && list.length < max
       ? `<button class="th add" onclick="adminPick(${s.n}, this)"><b>＋</b>เพิ่มรูป</button>` : '';
-    h += `<div class="sec"><h3>${s.n}. ${esc(s.full || s.title)}</h3>` + (list === null ? '' : reportHint(s.n, list.length)) + (list === null ? '<div class="empty">กำลังโหลด…</div>'
-      : '<div class="thumbs">' + list.map(p => `<div class="th"><img src="${esc(p.thumb || '')}" alt="" onclick="viewPhoto('${p.id}')">
-          ${canEdit ? `<button class="del" title="ลบรูป" onclick="delPhoto('${p.id}')">✕</button>` : ''}<div class="cap">${esc(th(p.time))}${p.by ? ' · ' + esc(p.by) : ''}</div></div>`).join('') + add + '</div>'
+    const full = !!(list && list.length >= max);
+    const target = mv ? `<button class="dropbtn" ${(!sel || sel.step === s.n || full) ? 'disabled' : ''} onclick="moveSelTo(${s.n})">${!sel ? 'แตะรูปที่จะย้ายก่อน' : sel.step === s.n ? 'รูปที่เลือกอยู่ขั้นนี้' : full ? 'ขั้นนี้มีรูปครบ ' + max + ' รูปแล้ว' : '⬇ ย้ายมาขั้นนี้'}</button>` : '';
+    h += `<div class="sec${mv ? ' dz' : ''}"${mv ? ` ondragover="dzOver(event)" ondragleave="dzLeave(event)" ondrop="dzDrop(event, ${s.n})"` : ''}><h3>${s.n}. ${esc(s.full || s.title)}</h3>` + (list === null || mv ? '' : reportHint(s.n, list.length)) + target + (list === null ? '<div class="empty">กำลังโหลด…</div>'
+      : '<div class="thumbs">' + list.map(p => `<div class="th${mv ? ' mv' : ''}${mv && S.moveSel === p.id ? ' sel' : ''}"${mv ? ` draggable="true" ondragstart="dzStart(event,'${p.id}')"` : ''}><img src="${esc(p.thumb || '')}" alt=""${mv ? ` draggable="false" onclick="pickMove('${p.id}')"` : ` onclick="viewPhoto('${p.id}')"`}>
+          ${canEdit && !mv ? `<button class="del" title="ลบรูป" onclick="delPhoto('${p.id}')">✕</button>` : ''}<div class="cap">${esc(th(p.time))}${p.by ? ' · ' + esc(p.by) : ''}</div></div>`).join('') + add + '</div>'
         + (list.length ? '' : '<div class="empty">ยังไม่มีรูป</div>')) + '</div>';
   }
   return h;
@@ -458,10 +474,41 @@ function toast(m, ms) {
 }
 function rowOf(code, venue) { return S.districts.find(x => x.code === code && String(x.venue || '').trim() === String(venue || '').trim()); }
 function nowLocal() { const n = new Date(); return new Date(n - n.getTimezoneOffset() * 60000).toISOString().slice(0, 19); }
-function bumpCount(code, venue, step, delta) {
+function bumpCount(code, venue, step, delta, touch) {
   const r = rowOf(code, venue); if (!r) return;
   r.counts = r.counts || {}; r.counts[step] = Math.max(0, (r.counts[step] || 0) + delta);
-  if (delta > 0) r.lastPhoto = nowLocal();
+  if (delta > 0 && touch !== false) r.lastPhoto = nowLocal();
+}
+
+/* ---------- ย้ายรูปข้ามขั้น ---------- */
+function toggleMove() { S.moveMode = !S.moveMode; S.moveSel = null; redrawDrawer(); }
+function pickMove(id) { S.moveSel = S.moveSel === id ? null : id; redrawDrawer(); }
+function moveSelTo(step) { if (S.moveSel) movePhoto(S.moveSel, step); }
+function dzStart(e, id) { e.dataTransfer.setData('text/plain', id); e.dataTransfer.effectAllowed = 'move'; S.moveSel = id; }
+function dzOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; e.currentTarget.classList.add('over'); }
+function dzLeave(e) { if (!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.classList.remove('over'); }
+function dzDrop(e, step) {
+  e.preventDefault(); e.currentTarget.classList.remove('over');
+  const id = e.dataTransfer.getData('text/plain') || S.moveSel;
+  if (id) movePhoto(id, step);
+}
+async function movePhoto(id, step) {
+  const cur = S.cur; const p = cur && cur.photos && cur.photos.find(x => x.id === id); if (!p) return;
+  const from = p.step; if (from === step) { S.moveSel = null; redrawDrawer(); return; }
+  const max = S.max || 3;
+  if (cur.photos.filter(x => x.step === step).length >= max) { alert('ขั้น ' + step + ' มีรูปครบ ' + max + ' รูปแล้ว ลบรูปในขั้นนั้นก่อน'); return; }
+  // ย้ายบนจอทันที แล้วค่อยบันทึกที่เซิร์ฟเวอร์
+  cur.gen++; p.step = step; S.moveSel = null;
+  bumpCount(cur.code, cur.venue, from, -1); bumpCount(cur.code, cur.venue, step, +1, false);
+  redrawDrawer(); renderList(); remember(cur);
+  toast('กำลังย้ายรูปไปขั้น ' + step + '…');
+  try { await api('move', { id, step }, true); toast('ย้ายรูปไปขั้น ' + step + ' แล้ว'); }
+  catch (e) {
+    cur.gen++; p.step = from;
+    bumpCount(cur.code, cur.venue, step, -1); bumpCount(cur.code, cur.venue, from, +1, false); remember(cur);
+    if (S.cur === cur) redrawDrawer(); renderList();
+    alert('ย้ายรูปไม่สำเร็จ: ' + e.message);
+  }
 }
 function remember(cur) { if (cur && cur.dj && cur.photos) PCACHE[cur.code + '|' + (cur.venue || '')] = { dj: cur.dj, photos: cur.photos.slice() }; }
 function redrawDrawer() {

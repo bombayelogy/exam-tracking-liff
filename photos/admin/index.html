@@ -51,6 +51,7 @@ td .sub{color:var(--muted);font-size:13px}
 .pill.ok{background:var(--ok-bg);color:var(--ok)}
 .pill.part{background:var(--part-bg);color:var(--part)}
 .pill.none{background:#eef1f5;color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#1f2a37;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;z-index:90;opacity:0;transition:opacity .2s;pointer-events:none}.toast.on{opacity:1}
 .pill.rv-ok{background:var(--ok);color:#fff}.pill.rv-fix{background:var(--err-bg);color:var(--err)}.pill.rv-incomplete{background:var(--part-bg);color:var(--part)}.pill.rv-new{background:#e6effa;color:var(--brand)}
 .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}
 .tabs button{border:1px solid var(--line,#d8dee6);background:#fff;border-radius:20px;padding:6px 14px;font:inherit;font-size:14px;cursor:pointer;color:inherit}
@@ -293,16 +294,22 @@ async function setAllowed(code, el) {
 async function openDistrict(code, venueEnc) {
   const venue = decodeURIComponent(venueEnc || '');
   const d = S.districts.find(x => x.code === code && String(x.venue || '').trim() === venue.trim()) || S.districts.find(x => x.code === code);
-  S.cur = { code, venue, photos: null };
+  S.cur = { code, venue, photos: null, gen: 0 };
+  const cur = S.cur;
   const panel = document.getElementById('panel');
   document.getElementById('drawer').classList.add('on');
-  panel.innerHTML = drawerHtml(d, null);
+  const cached = PCACHE[code + '|' + venue];
+  if (cached) { cur.dj = cached.dj; cur.photos = cached.photos.slice(); panel.innerHTML = drawerHtml(cur.dj, cur.photos); }
+  else panel.innerHTML = drawerHtml(d, null);
+  const gen = cur.gen;
   try {
     // ส่งสนามที่เลือกไปด้วย เพื่อให้ได้รูปเฉพาะสนามนั้น (ไม่รวมสนามอื่นของเขตเดียวกัน)
     const j = await api('admin_photos', { d: code, v: venue });
-    if (!S.cur || S.cur.code !== code || S.cur.venue !== venue) return;
-    S.cur.photos = j.photos;
-    panel.innerHTML = drawerHtml(Object.assign({}, j.district, { venue: d ? d.venue : j.district.venue, venues: d ? d.venues : j.district.venues }), j.photos);
+    // ระหว่างรอ มีการลบ/เพิ่มรูปในหน้านี้แล้ว: ไม่เอาข้อมูลเก่ามาทับ
+    if (S.cur !== cur || cur.gen !== gen) return;
+    cur.photos = j.photos;
+    cur.dj = Object.assign({}, j.district, { venue: d ? d.venue : j.district.venue, venues: d ? d.venues : j.district.venues });
+    redrawDrawer();
   } catch (e) { panel.insertAdjacentHTML('beforeend', '<div class="sec msg err">' + esc(e.message) + '</div>'); }
 }
 function drawerHtml(d, photos) {
@@ -442,10 +449,44 @@ async function viewPhoto(id) {
   try { if (!p.full) p.full = (await api('image', { id })).image; if (v.classList.contains('on')) im.src = p.full; } catch (e) { }
 }
 function closeViewer() { document.getElementById('viewer').classList.remove('on'); }
+/* ---------- แคชรูปต่อสนาม: เปิดซ้ำแสดงทันที ลบ/เพิ่มรูปแล้วไม่ต้องโหลดทั้งหน้าใหม่ ---------- */
+const PCACHE = {};
+function toast(m, ms) {
+  let t = document.getElementById('toast');
+  if (!t) { t = document.createElement('div'); t.id = 'toast'; t.className = 'toast'; document.body.appendChild(t); }
+  t.textContent = m; t.classList.add('on'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('on'), ms || 2000);
+}
+function rowOf(code, venue) { return S.districts.find(x => x.code === code && String(x.venue || '').trim() === String(venue || '').trim()); }
+function nowLocal() { const n = new Date(); return new Date(n - n.getTimezoneOffset() * 60000).toISOString().slice(0, 19); }
+function bumpCount(code, venue, step, delta) {
+  const r = rowOf(code, venue); if (!r) return;
+  r.counts = r.counts || {}; r.counts[step] = Math.max(0, (r.counts[step] || 0) + delta);
+  if (delta > 0) r.lastPhoto = nowLocal();
+}
+function remember(cur) { if (cur && cur.dj && cur.photos) PCACHE[cur.code + '|' + (cur.venue || '')] = { dj: cur.dj, photos: cur.photos.slice() }; }
+function redrawDrawer() {
+  const cur = S.cur; if (!cur || !cur.dj) return;
+  const panel = document.getElementById('panel'); const top = panel.scrollTop;
+  panel.innerHTML = drawerHtml(cur.dj, cur.photos); panel.scrollTop = top;
+  remember(cur);
+}
 async function delPhoto(id) {
   if (!confirm('ลบรูปนี้? (ไฟล์ย้ายไปโฟลเดอร์ _ลบแล้ว ใน Drive ไม่หายถาวร)')) return;
-  try { await api('delete', { id }, true); const c = S.cur.code, cv = S.cur.venue || ''; await load(true); openDistrict(c, encodeURIComponent(cv)); }
-  catch (e) { alert(e.message); }
+  const cur = S.cur; const p = cur && cur.photos && cur.photos.find(x => x.id === id); if (!p) return;
+  cur.gen++;
+  cur.photos = cur.photos.filter(x => x.id !== id);
+  bumpCount(cur.code, cur.venue, p.step, -1);
+  redrawDrawer(); renderList(); remember(cur);
+  toast('กำลังลบรูป…');
+  try { await api('delete', { id }, true); toast('ลบรูปแล้ว'); }
+  catch (e) {
+    // ลบไม่สำเร็จ: เอารูปกลับมา
+    cur.gen++;
+    cur.photos = cur.photos.concat([p]).sort((a, b) => String(a.time).localeCompare(String(b.time)));
+    bumpCount(cur.code, cur.venue, p.step, +1); remember(cur);
+    if (S.cur === cur) redrawDrawer(); renderList();
+    alert('ลบรูปไม่สำเร็จ: ' + e.message);
+  }
 }
 
 /* ---------- ส่งออก PDF ---------- */
@@ -601,7 +642,7 @@ function importVenues() {
 function adminPick(step, btn) {
   const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*'; inp.multiple = true;
   inp.onchange = async () => {
-    const code = S.cur && S.cur.code; if (!code) return;
+    const cur = S.cur; const code = cur && cur.code; if (!code) return;
     const have = (S.cur.photos || []).filter(p => p.step === step).length;
     const files = [...inp.files].slice(0, Math.max(0, (S.max || 3) - have));
     if (inp.files.length > files.length) alert('ขั้นละไม่เกิน ' + (S.max || 3) + ' รูป จะเพิ่มเพียง ' + files.length + ' รูป');
@@ -610,10 +651,18 @@ function adminPick(step, btn) {
       for (let i = 0; i < files.length; i++) {
         btn.innerHTML = `<b>…</b>กำลังส่ง ${i + 1}/${files.length}`;
         const out = await shrinkImage(files[i]);
-        await api('upload', { d: code, v: (S.cur && S.cur.venue) || '', step, image: out.image, thumb: out.thumb, clientTime: new Date().toISOString() }, true);
+        const j = await api('upload', { d: code, v: cur.venue || '', step, image: out.image, thumb: out.thumb, clientTime: new Date().toISOString() }, true);
+        if (j.photo) {
+          cur.gen++;
+          cur.photos = (cur.photos || []).concat([Object.assign({ step }, j.photo, { thumb: out.thumb })]);
+          bumpCount(code, cur.venue, step, +1); remember(cur);
+          if (S.cur === cur) redrawDrawer(); renderList();
+        }
       }
     } catch (e) { alert(e.message); }
-    await load(true); if (S.cur && S.cur.code === code) openDistrict(code, encodeURIComponent(S.cur.venue || ''));
+    btn.disabled = false;
+    // ตรวจกับเซิร์ฟเวอร์อีกรอบเบื้องหลัง (หน้าจอแสดงจากแคชทันที)
+    if (S.cur === cur) openDistrict(code, encodeURIComponent(cur.venue || ''));
   };
   inp.click();
 }

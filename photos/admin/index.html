@@ -610,11 +610,10 @@ async function exportPdf(mode, one) {
       saveBlob(new Blob([await out.save()], { type: 'application/pdf' }), `รูปรายงาน_ว14_รวม${got.length}สนาม_${stamp}.pdf`);
     } else {
       txt.textContent = 'กำลังทำไฟล์ ZIP…';
-      // แยกโฟลเดอร์ตามเขต: "246/246_ชื่อเขต_สนาม.pdf" (ชื่อโฟลเดอร์สั้น ไม่ให้ชื่อรวมยาวเกินที่ Windows รับได้)
+      // ไฟล์ละสนามอยู่ชั้นเดียว (ไม่มีโฟลเดอร์ซ้อน) ชื่อขึ้นต้นด้วยรหัสเขต จึงเรียงเป็นกลุ่มเขตเอง: 246_ชื่อเขต_สนาม.pdf
       const zip = new JSZip(), dirs = new Set();
       got.forEach(g => {
-        const dir = String(g.code).replace(/[\\/:*?"<>|]/g, '-');
-        dirs.add(dir); zip.file(zipName(dir + '/' + g.name), g.bytes);
+        dirs.add(g.code); zip.file(zipName(g.name), g.bytes);
       });
       saveBlob(await zip.generateAsync({ type: 'blob' }), `รูปรายงาน_ว14_${dirs.size}เขต_${got.length}สนาม_${stamp}.zip`);
     }

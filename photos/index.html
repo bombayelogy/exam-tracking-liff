@@ -493,6 +493,20 @@ const DL_ITEMS = [
   { id: 'sw', label: 'ห้องมั่นคง (Word)', q: { doc: 'secure', format: 'docx' }, kind: 'docx' }
 ];
 const MIME = { pdf: 'application/pdf', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' };
+/** ชื่อในไฟล์ ZIP ต้องไม่ยาวเกิน: ตัวแตกซิปของ Windows เปิดไม่ได้ถ้าชื่อเกินราว 260 ไบต์ (ภาษาไทยตัวละ 3 ไบต์) */
+function zipName(path, maxBytes) {
+  maxBytes = maxBytes || 185; // ชื่อยาวสุดที่ทดสอบแล้วว่า Windows เปิดได้คือ 187 ไบต์
+  const len = s => new TextEncoder().encode(s).length;
+  if (len(path) <= maxBytes) return path;
+  const i = path.lastIndexOf('/'), dir = i >= 0 ? path.slice(0, i + 1) : '', file = path.slice(i + 1);
+  const m = file.match(/^(.*?)((?: \(V\d+\))?\.[A-Za-z0-9]+)$/) || [null, file, ''];
+  let base = m[1]; const tail = m[2];
+  // ตัดชื่อเขต (ส่วนที่ 2 ของ รหัส_เขต_สนาม) ออกก่อน แล้วค่อยตัดท้ายถ้ายังยาว
+  const parts = base.split('_');
+  if (parts.length >= 3 && len(dir + base + tail) > maxBytes) base = [parts[0]].concat(parts.slice(2)).join('_');
+  while (base.length > 8 && len(dir + base + tail) > maxBytes) base = base.slice(0, -1);
+  return dir + base + tail;
+}
 function loadScript(src) {
   return new Promise((ok, bad) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => bad(new Error('โหลดไลบรารีไม่ได้ ลองใหม่อีกครั้ง')); document.head.appendChild(s); });
 }
@@ -526,7 +540,7 @@ document.getElementById('bDl').onclick = function () {
       else {
         msg.textContent = 'กำลังรวมเป็น ZIP…';
         await loadScript('https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js');
-        const zip = new JSZip(); got.forEach(f => zip.file(f.name, f.bytes));
+        const zip = new JSZip(); got.forEach(f => zip.file(zipName(f.name), f.bytes));
         saveFile(await zip.generateAsync({ type: 'blob' }), got[0].name.replace(/\.(pdf|docx)$/, '').replace(/_ห้องมั่นคง$/, '') + '.zip');
       }
       el.remove();

@@ -435,7 +435,7 @@ function chooseDownload(code) {
       else {
         msg.textContent = 'กำลังรวมเป็น ZIP…';
         await loadScript('https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js');
-        const zip = new JSZip(); got.forEach(f => zip.file(f.name, f.bytes));
+        const zip = new JSZip(); got.forEach(f => zip.file(zipName(f.name), f.bytes));
         const base = got[0].name.replace(/\.(pdf|docx)$/, '').replace(/_ห้องมั่นคง$/, '');
         saveBlob(await zip.generateAsync({ type: 'blob' }), base + '.zip');
       }
@@ -539,6 +539,20 @@ async function delPhoto(id) {
 }
 
 /* ---------- ส่งออก PDF ---------- */
+/** ชื่อในไฟล์ ZIP ต้องไม่ยาวเกิน: ตัวแตกซิปของ Windows เปิดไม่ได้ถ้าชื่อเกินราว 260 ไบต์ (ภาษาไทยตัวละ 3 ไบต์) */
+function zipName(path, maxBytes) {
+  maxBytes = maxBytes || 185; // ชื่อยาวสุดที่ทดสอบแล้วว่า Windows เปิดได้คือ 187 ไบต์
+  const len = s => new TextEncoder().encode(s).length;
+  if (len(path) <= maxBytes) return path;
+  const i = path.lastIndexOf('/'), dir = i >= 0 ? path.slice(0, i + 1) : '', file = path.slice(i + 1);
+  const m = file.match(/^(.*?)((?: \(V\d+\))?\.[A-Za-z0-9]+)$/) || [null, file, ''];
+  let base = m[1]; const tail = m[2];
+  // ตัดชื่อเขต (ส่วนที่ 2 ของ รหัส_เขต_สนาม) ออกก่อน แล้วค่อยตัดท้ายถ้ายังยาว
+  const parts = base.split('_');
+  if (parts.length >= 3 && len(dir + base + tail) > maxBytes) base = [parts[0]].concat(parts.slice(2)).join('_');
+  while (base.length > 8 && len(dir + base + tail) > maxBytes) base = base.slice(0, -1);
+  return dir + base + tail;
+}
 function loadScript(src) {
   return new Promise((ok, bad) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => bad(new Error('โหลดไลบรารีไม่ได้')); document.head.appendChild(s); });
 }
@@ -596,12 +610,11 @@ async function exportPdf(mode, one) {
       saveBlob(new Blob([await out.save()], { type: 'application/pdf' }), `รูปรายงาน_ว14_รวม${got.length}สนาม_${stamp}.pdf`);
     } else {
       txt.textContent = 'กำลังทำไฟล์ ZIP…';
-      // แยกโฟลเดอร์ตามเขต: "246_ชื่อเขต/246_ชื่อเขต_สนาม.pdf"
+      // แยกโฟลเดอร์ตามเขต: "246/246_ชื่อเขต_สนาม.pdf" (ชื่อโฟลเดอร์สั้น ไม่ให้ชื่อรวมยาวเกินที่ Windows รับได้)
       const zip = new JSZip(), dirs = new Set();
       got.forEach(g => {
-        const d = S.districts.find(x => x.code === g.code);
-        const dir = (g.code + (d && d.name ? '_' + d.name : '')).trim().replace(/[\\/:*?"<>|]/g, '-');
-        dirs.add(dir); zip.file(dir + '/' + g.name, g.bytes);
+        const dir = String(g.code).replace(/[\\/:*?"<>|]/g, '-');
+        dirs.add(dir); zip.file(zipName(dir + '/' + g.name), g.bytes);
       });
       saveBlob(await zip.generateAsync({ type: 'blob' }), `รูปรายงาน_ว14_${dirs.size}เขต_${got.length}สนาม_${stamp}.zip`);
     }

@@ -239,6 +239,8 @@ function shell() {
     <div class="bulk"><span class="n" id="selN"></span>
       <button class="btn ghost sm" onclick="selectShown()">เลือกทั้งหมดที่แสดง</button>
       <button class="btn ghost sm" onclick="S.sel.clear();renderList()">ล้างที่เลือก</button>
+      <select id="bDoc" title="ไฟล์ที่จะส่งออก" style="font:inherit;font-size:14px;padding:5px 8px;border-radius:8px;border:1px solid var(--line)">
+        <option value="report">รายงานวันที่ 14–15</option><option value="secure">ห้องมั่นคง (ขั้นที่ 7)</option></select>
       <button class="btn sm" id="bMerge" onclick="exportPdf('merge')">ส่งออก PDF รวมไฟล์เดียว</button>
       <button class="btn sm" id="bZip" onclick="exportPdf('zip')">ส่งออกแยกเขต (ZIP)</button></div>
     <table><thead><tr><th style="width:30px"></th><th onclick="sortBy('code')">เขต / สนามสอบ</th>
@@ -578,13 +580,22 @@ async function exportPdf(mode, one) {
   const items = mode === 'one' ? [{ code: one, venue: curVenue(one) }]
     : [...S.sel].sort().map(k => { const i = k.indexOf('|'); return { code: k.slice(0, i), venue: k.slice(i + 1) }; });
   if (!items.length) return;
+  // ห้องมั่นคง: ส่งออกเฉพาะสนามที่มีรูปขั้นที่ 7
+  const doc = mode === 'one' ? 'report' : ((document.getElementById('bDoc') || {}).value || 'report');
+  const docLabel = doc === 'secure' ? 'ห้องมั่นคง' : '';
+  if (doc === 'secure') {
+    const before = items.length;
+    for (let k = items.length - 1; k >= 0; k--) { const d = rowOf(items[k].code, items[k].venue); if (!d || !(d.counts && d.counts[7] > 0)) items.splice(k, 1); }
+    if (!items.length) { alert('สนามที่เลือกยังไม่มีรูปห้องมั่นคง (ขั้นที่ 7)'); return; }
+    if (items.length < before && !confirm(`${before - items.length} สนามยังไม่มีรูปห้องมั่นคง จะข้ามไป · ส่งออก ${items.length} สนามที่มีรูป?`)) return;
+  }
   const codes = items.map(it => it.code + (it.venue ? ' ' + it.venue : ''));
-  const incomplete = items.filter(it => { const d = rowOf(it.code, it.venue); return !d || statusOf(d) !== 'ok'; });
+  const incomplete = doc === 'secure' ? [] : items.filter(it => { const d = rowOf(it.code, it.venue); return !d || statusOf(d) !== 'ok'; });
   if (mode !== 'one' && incomplete.length && !confirm(`${incomplete.length} สนามยังส่งรูปไม่ครบ ${S.steps.length} ขั้น จะส่งออกเท่าที่มีหรือไม่?`)) return;
   S.busy = true; S.cancel = false;
   const log = document.getElementById('mLog'), bar = document.getElementById('mBar'), txt = document.getElementById('mText');
   log.innerHTML = ''; bar.style.width = '0'; document.getElementById('mBtn').textContent = 'ยกเลิก';
-  modal(true, mode === 'one' ? 'กำลังสร้าง PDF' : `กำลังส่งออก PDF ${codes.length} สนาม`);
+  modal(true, mode === 'one' ? 'กำลังสร้าง PDF' : `กำลังส่งออก PDF${docLabel ? ' ' + docLabel : ''} ${codes.length} สนาม`);
   const got = [];
   try {
     if (mode === 'merge') await loadScript('https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js');
@@ -592,7 +603,7 @@ async function exportPdf(mode, one) {
     for (let i = 0; i < codes.length && !S.cancel; i++) {
       txt.textContent = `${codes[i]} (${i + 1}/${codes.length}) · สนามที่สร้างไว้แล้วและไม่มีรูปใหม่จะเร็วขึ้น`;
       try {
-        const j = await api('pdf', { d: items[i].code, v: items[i].venue });
+        const j = await api('pdf', doc === 'secure' ? { d: items[i].code, v: items[i].venue, doc: 'secure' } : { d: items[i].code, v: items[i].venue });
         got.push({ code: items[i].code, name: j.name, bytes: b64ToBytes(j.pdf) });
       } catch (e) { log.insertAdjacentHTML('beforeend', `<div>✕ ${esc(codes[i])}: ${esc(e.message)}</div>`); }
       bar.style.width = ((i + 1) / codes.length * 100) + '%';
@@ -607,7 +618,7 @@ async function exportPdf(mode, one) {
         const src = await PDFLib.PDFDocument.load(g.bytes);
         (await out.copyPages(src, src.getPageIndices())).forEach(p => out.addPage(p));
       }
-      saveBlob(new Blob([await out.save()], { type: 'application/pdf' }), `รูปรายงาน_ว14_รวม${got.length}สนาม_${stamp}.pdf`);
+      saveBlob(new Blob([await out.save()], { type: 'application/pdf' }), `รูปรายงาน_ว14${docLabel ? '_' + docLabel : ''}_รวม${got.length}สนาม_${stamp}.pdf`);
     } else {
       txt.textContent = 'กำลังทำไฟล์ ZIP…';
       // ไฟล์ละสนามอยู่ชั้นเดียว (ไม่มีโฟลเดอร์ซ้อน) ชื่อขึ้นต้นด้วยรหัสเขต จึงเรียงเป็นกลุ่มเขตเอง: 246_ชื่อเขต_สนาม.pdf
@@ -615,7 +626,7 @@ async function exportPdf(mode, one) {
       got.forEach(g => {
         dirs.add(g.code); zip.file(zipName(g.name), g.bytes);
       });
-      saveBlob(await zip.generateAsync({ type: 'blob' }), `รูปรายงาน_ว14_${dirs.size}เขต_${got.length}สนาม_${stamp}.zip`);
+      saveBlob(await zip.generateAsync({ type: 'blob' }), `รูปรายงาน_ว14${docLabel ? '_' + docLabel : ''}_${dirs.size}เขต_${got.length}สนาม_${stamp}.zip`);
     }
     txt.textContent = (S.cancel ? 'ยกเลิกแล้ว · ' : '') + `ส่งออกสำเร็จ ${got.length}/${codes.length} สนาม`;
   } catch (e) { txt.textContent = e.message; }

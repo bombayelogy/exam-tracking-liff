@@ -240,7 +240,7 @@ function shell() {
       <button class="btn ghost sm" onclick="selectShown()">เลือกทั้งหมดที่แสดง</button>
       <button class="btn ghost sm" onclick="S.sel.clear();renderList()">ล้างที่เลือก</button>
       <button class="btn sm" id="bMerge" onclick="exportPdf('merge')">ส่งออก PDF รวมไฟล์เดียว</button>
-      <button class="btn sm" id="bZip" onclick="exportPdf('zip')">ส่งออกแยกเขต (ZIP)</button></div>
+      <button class="btn sm" id="bZip" onclick="exportPdf('zip')">ส่งออกแยกสนาม (ZIP)</button></div>
     <table><thead><tr><th style="width:30px"></th><th onclick="sortBy('code')">เขต / สนามสอบ</th>
       <th>ขั้น 2–7</th><th onclick="sortBy('status')">สถานะ</th><th onclick="sortBy('last')">ส่งล่าสุด</th><th>อนุญาต PDF</th></tr></thead>
       <tbody id="list"></tbody></table>
@@ -276,18 +276,20 @@ function renderList() {
   document.getElementById('list').innerHTML = list.map(d => {
     const st = statusOf(d), n = nDone(d);
     return `<tr class="r" onclick="openDistrict('${esc(d.code)}','${encodeURIComponent(d.venue || '')}')">
-      <td class="c-chk" onclick="event.stopPropagation()"><input type="checkbox" class="chk" ${S.sel.has(d.code) ? 'checked' : ''} onchange="toggleSel('${esc(d.code)}',this.checked)" aria-label="เลือก ${esc(d.code)}"></td>
+      <td class="c-chk" onclick="event.stopPropagation()"><input type="checkbox" class="chk" ${S.sel.has(selKey(d)) ? 'checked' : ''} onchange="toggleSel('${encodeURIComponent(selKey(d))}',this.checked)" aria-label="เลือก ${esc(d.code)} ${esc(d.venue || '')}"></td>
       <td class="c-name"><span class="code">${esc(d.code)}</span> ${esc(d.name)}<div class="sub">${esc(d.venue || 'ยังไม่เลือกสนามสอบ')}${d.owners && d.owners.length ? ' · ' + esc(d.owners.join(', ')) : ''}${d.vehicle ? ' · คัน ' + esc(d.vehicle) : ''}</div></td>
       <td class="c-dots"><div class="dots">${S.steps.map(s => `<span class="dot ${(d.counts[s.n] || 0) ? 'y' : ''}" title="ขั้น ${s.n}: ${esc(s.title)} (${d.counts[s.n] || 0} รูป)">${s.n}</span>`).join('')}</div></td>
       <td class="c-st"><span class="pill ${st}">${st === 'ok' ? 'ครบ' : n + '/' + S.steps.length}</span>${d.submittedAt ? ' <span class="pill ok" title="ผู้ประสานงานยืนยันส่งครบ">ยืนยัน</span>' : ''}${reviewPill(d)}</td>
       <td class="c-last"><span class="sub">${esc(th(d.lastPhoto)) || '-'}</span></td>
       <td class="c-pdf" onclick="event.stopPropagation()"><label class="sw" style="background:none;padding:0"><input type="checkbox" ${d.pdfAllowed ? 'checked' : ''} onchange="setAllowed('${esc(d.code)}',this)"></label></td></tr>`;
   }).join('') || '<tr><td colspan="6" class="empty">ไม่พบเขตตามเงื่อนไข</td></tr>';
-  document.getElementById('selN').textContent = S.sel.size ? `เลือก ${S.sel.size} เขต` : `แสดง ${list.length} เขต · ติ๊กเลือกเขตเพื่อส่งออก`;
+  document.getElementById('selN').textContent = S.sel.size ? `เลือก ${S.sel.size} สนาม` : `แสดง ${list.length} สนาม · ติ๊กเลือกสนามเพื่อส่งออก`;
   document.getElementById('bMerge').disabled = document.getElementById('bZip').disabled = !S.sel.size;
 }
-function toggleSel(c, on) { on ? S.sel.add(c) : S.sel.delete(c); renderList(); }
-function selectShown() { filtered().forEach(d => S.sel.add(d.code)); renderList(); }
+/* เลือกส่งออกรายสนาม (เขตเดียวมีได้หลายสนาม): คีย์ = รหัส|สนาม */
+function selKey(d) { return d.code + '|' + String(d.venue || '').trim(); }
+function toggleSel(k, on) { k = decodeURIComponent(k); on ? S.sel.add(k) : S.sel.delete(k); renderList(); }
+function selectShown() { filtered().forEach(d => S.sel.add(selKey(d))); renderList(); }
 
 async function setOpen(el) {
   try { const j = await api('admin_set', { exportOpen: el.checked ? '1' : '0' }, true); S.exportOpen = j.exportOpen; }
@@ -559,22 +561,24 @@ function modal(on, title) { document.getElementById('modal').classList.toggle('o
 function cancelExport() { if (S.busy) S.cancel = true; else modal(false); }
 
 async function exportPdf(mode, one) {
-  const codes = mode === 'one' ? [one] : [...S.sel].sort();
-  if (!codes.length) return;
-  const incomplete = codes.filter(c => statusOf(S.districts.find(d => d.code === c)) !== 'ok');
-  if (mode !== 'one' && incomplete.length && !confirm(`${incomplete.length} เขตยังส่งรูปไม่ครบ ${S.steps.length} ขั้น จะส่งออกเท่าที่มีหรือไม่?`)) return;
+  const items = mode === 'one' ? [{ code: one, venue: curVenue(one) }]
+    : [...S.sel].sort().map(k => { const i = k.indexOf('|'); return { code: k.slice(0, i), venue: k.slice(i + 1) }; });
+  if (!items.length) return;
+  const codes = items.map(it => it.code + (it.venue ? ' ' + it.venue : ''));
+  const incomplete = items.filter(it => { const d = rowOf(it.code, it.venue); return !d || statusOf(d) !== 'ok'; });
+  if (mode !== 'one' && incomplete.length && !confirm(`${incomplete.length} สนามยังส่งรูปไม่ครบ ${S.steps.length} ขั้น จะส่งออกเท่าที่มีหรือไม่?`)) return;
   S.busy = true; S.cancel = false;
   const log = document.getElementById('mLog'), bar = document.getElementById('mBar'), txt = document.getElementById('mText');
   log.innerHTML = ''; bar.style.width = '0'; document.getElementById('mBtn').textContent = 'ยกเลิก';
-  modal(true, mode === 'one' ? 'กำลังสร้าง PDF' : `กำลังส่งออก PDF ${codes.length} เขต`);
+  modal(true, mode === 'one' ? 'กำลังสร้าง PDF' : `กำลังส่งออก PDF ${codes.length} สนาม`);
   const got = [];
   try {
     if (mode === 'merge') await loadScript('https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js');
     if (mode === 'zip') await loadScript('https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js');
     for (let i = 0; i < codes.length && !S.cancel; i++) {
-      txt.textContent = `เขต ${codes[i]} (${i + 1}/${codes.length}) · เขตที่สร้างไว้แล้วและไม่มีรูปใหม่จะเร็วขึ้น`;
+      txt.textContent = `${codes[i]} (${i + 1}/${codes.length}) · สนามที่สร้างไว้แล้วและไม่มีรูปใหม่จะเร็วขึ้น`;
       try {
-        const j = await api('pdf', mode === 'one' ? { d: codes[i], v: curVenue(codes[i]) } : { d: codes[i] });
+        const j = await api('pdf', { d: items[i].code, v: items[i].venue });
         got.push({ code: codes[i], name: j.name, bytes: b64ToBytes(j.pdf) });
       } catch (e) { log.insertAdjacentHTML('beforeend', `<div>✕ ${esc(codes[i])}: ${esc(e.message)}</div>`); }
       bar.style.width = ((i + 1) / codes.length * 100) + '%';
@@ -589,13 +593,13 @@ async function exportPdf(mode, one) {
         const src = await PDFLib.PDFDocument.load(g.bytes);
         (await out.copyPages(src, src.getPageIndices())).forEach(p => out.addPage(p));
       }
-      saveBlob(new Blob([await out.save()], { type: 'application/pdf' }), `รูปรายงาน_ว14_รวม${got.length}เขต_${stamp}.pdf`);
+      saveBlob(new Blob([await out.save()], { type: 'application/pdf' }), `รูปรายงาน_ว14_รวม${got.length}สนาม_${stamp}.pdf`);
     } else {
       txt.textContent = 'กำลังทำไฟล์ ZIP…';
       const zip = new JSZip(); got.forEach(g => zip.file(g.name, g.bytes));
-      saveBlob(await zip.generateAsync({ type: 'blob' }), `รูปรายงาน_ว14_${got.length}เขต_${stamp}.zip`);
+      saveBlob(await zip.generateAsync({ type: 'blob' }), `รูปรายงาน_ว14_${got.length}สนาม_${stamp}.zip`);
     }
-    txt.textContent = (S.cancel ? 'ยกเลิกแล้ว · ' : '') + `ส่งออกสำเร็จ ${got.length}/${codes.length} เขต`;
+    txt.textContent = (S.cancel ? 'ยกเลิกแล้ว · ' : '') + `ส่งออกสำเร็จ ${got.length}/${codes.length} สนาม`;
   } catch (e) { txt.textContent = e.message; }
   S.busy = false; document.getElementById('mBtn').textContent = 'ปิด';
   if (mode === 'one' && got.length) modal(false);

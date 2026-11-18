@@ -240,7 +240,7 @@ function shell() {
       <button class="btn ghost sm" onclick="selectShown()">เลือกทั้งหมดที่แสดง</button>
       <button class="btn ghost sm" onclick="S.sel.clear();renderList()">ล้างที่เลือก</button>
       <button class="btn sm" id="bMerge" onclick="exportPdf('merge')">ส่งออก PDF รวมไฟล์เดียว</button>
-      <button class="btn sm" id="bZip" onclick="exportPdf('zip')">ส่งออกแยกสนาม (ZIP)</button></div>
+      <button class="btn sm" id="bZip" onclick="exportPdf('zip')">ส่งออกแยกเขต (ZIP)</button></div>
     <table><thead><tr><th style="width:30px"></th><th onclick="sortBy('code')">เขต / สนามสอบ</th>
       <th>ขั้น 2–7</th><th onclick="sortBy('status')">สถานะ</th><th onclick="sortBy('last')">ส่งล่าสุด</th><th>อนุญาต PDF</th></tr></thead>
       <tbody id="list"></tbody></table>
@@ -579,7 +579,7 @@ async function exportPdf(mode, one) {
       txt.textContent = `${codes[i]} (${i + 1}/${codes.length}) · สนามที่สร้างไว้แล้วและไม่มีรูปใหม่จะเร็วขึ้น`;
       try {
         const j = await api('pdf', { d: items[i].code, v: items[i].venue });
-        got.push({ code: codes[i], name: j.name, bytes: b64ToBytes(j.pdf) });
+        got.push({ code: items[i].code, name: j.name, bytes: b64ToBytes(j.pdf) });
       } catch (e) { log.insertAdjacentHTML('beforeend', `<div>✕ ${esc(codes[i])}: ${esc(e.message)}</div>`); }
       bar.style.width = ((i + 1) / codes.length * 100) + '%';
     }
@@ -596,8 +596,14 @@ async function exportPdf(mode, one) {
       saveBlob(new Blob([await out.save()], { type: 'application/pdf' }), `รูปรายงาน_ว14_รวม${got.length}สนาม_${stamp}.pdf`);
     } else {
       txt.textContent = 'กำลังทำไฟล์ ZIP…';
-      const zip = new JSZip(); got.forEach(g => zip.file(g.name, g.bytes));
-      saveBlob(await zip.generateAsync({ type: 'blob' }), `รูปรายงาน_ว14_${got.length}สนาม_${stamp}.zip`);
+      // แยกโฟลเดอร์ตามเขต: "246_ชื่อเขต/246_ชื่อเขต_สนาม.pdf"
+      const zip = new JSZip(), dirs = new Set();
+      got.forEach(g => {
+        const d = S.districts.find(x => x.code === g.code);
+        const dir = (g.code + (d && d.name ? '_' + d.name : '')).trim().replace(/[\\/:*?"<>|]/g, '-');
+        dirs.add(dir); zip.file(dir + '/' + g.name, g.bytes);
+      });
+      saveBlob(await zip.generateAsync({ type: 'blob' }), `รูปรายงาน_ว14_${dirs.size}เขต_${got.length}สนาม_${stamp}.zip`);
     }
     txt.textContent = (S.cancel ? 'ยกเลิกแล้ว · ' : '') + `ส่งออกสำเร็จ ${got.length}/${codes.length} สนาม`;
   } catch (e) { txt.textContent = e.message; }
